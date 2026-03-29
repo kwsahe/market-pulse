@@ -1,33 +1,31 @@
 # dashboard/app.py
 # 게이밍 노트북 가격 & IT 뉴스 대시보드
-
+ 
 import streamlit as st
 import pandas as pd
 import sqlite3
 import os
-
+ 
 # ============================
 # DB 연결
 # ============================
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
+ 
+ 
 def load_prices():
-    """가격 데이터를 pandas DataFrame으로 불러오기"""
     conn = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query("SELECT date, product, price FROM prices ORDER BY date", conn)
     conn.close()
     return df
-
-
+ 
+ 
 def load_news():
-    """뉴스 데이터를 pandas DataFrame으로 불러오기"""
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query("SELECT collected_at, press, title, time_ago FROM news ORDER BY collected_at DESC", conn)
+    df = pd.read_sql_query("SELECT collected_at, press, title, published_at FROM news ORDER BY published_at DESC", conn)
     conn.close()
     return df
-
-
+ 
+ 
 # ============================
 # 페이지 설정
 # ============================
@@ -36,21 +34,21 @@ st.set_page_config(
     page_icon="📊",
     layout="wide"
 )
-
+ 
 st.title("📊 Market Pulse")
 st.caption("게이밍 노트북 가격 추적 & IT 뉴스 대시보드")
-
+ 
 # ============================
 # 데이터 불러오기
 # ============================
 prices_df = load_prices()
 news_df = load_news()
-
+ 
 # ============================
 # 상단 요약 카드
 # ============================
 col1, col2, col3, col4 = st.columns(4)
-
+ 
 with col1:
     st.metric("📦 수집 상품 수", f"{len(prices_df)}개")
 with col2:
@@ -67,21 +65,19 @@ with col3:
         st.metric("🔽 최저가", "데이터 없음")
 with col4:
     st.metric("📰 수집 뉴스 수", f"{len(news_df)}개")
-
+ 
 st.divider()
-
+ 
 # ============================
 # 2열 레이아웃: 가격 | 뉴스
 # ============================
 left_col, right_col = st.columns([3, 2])
-
+ 
 # --- 왼쪽: 가격 분석 ---
 with left_col:
     st.subheader("💻 게이밍 노트북 가격")
-
+ 
     if not prices_df.empty:
-        # 브랜드 필터
-        # 상품명에서 브랜드 추출
         def get_brand(name):
             brands = {
                 "MSI": "MSI", "ASUS": "ASUS", "HP": "HP",
@@ -92,26 +88,23 @@ with left_col:
                 if key in name:
                     return value
             return "기타"
-
+ 
         prices_df["brand"] = prices_df["product"].apply(get_brand)
-
-        # 브랜드 선택 필터
+ 
         all_brands = sorted(prices_df["brand"].unique())
         selected_brands = st.multiselect(
             "브랜드 필터",
             options=all_brands,
             default=all_brands
         )
-
+ 
         filtered_df = prices_df[prices_df["brand"].isin(selected_brands)]
-
-        # 가격 분포 차트
+ 
         st.bar_chart(
             filtered_df.groupby("brand")["price"].mean().sort_values(ascending=False),
             color="#4A90D9"
         )
-
-        # 가격 순위 테이블
+ 
         st.caption("가격 낮은 순")
         display_df = filtered_df[["product", "price", "brand", "date"]].copy()
         display_df["price"] = display_df["price"].apply(lambda x: f"{x:,}원")
@@ -123,44 +116,41 @@ with left_col:
         )
     else:
         st.info("아직 가격 데이터가 없어요. price_scraper.py를 실행해주세요!")
-
+ 
 # --- 오른쪽: 뉴스 피드 ---
 with right_col:
     st.subheader("📰 IT/과학 뉴스")
-
+ 
     if not news_df.empty:
-        # 언론사 필터
         all_press = sorted(news_df["press"].unique())
         selected_press = st.multiselect(
             "언론사 필터",
             options=all_press,
             default=all_press
         )
-
+ 
         filtered_news = news_df[news_df["press"].isin(selected_press)]
-
-        # 뉴스 카드 형태로 표시
+ 
         for _, row in filtered_news.iterrows():
             with st.container():
                 st.markdown(f"**{row['title']}**")
-                st.caption(f"📡 {row['press']}  ·  🕐 {row['time_ago']}  ·  수집: {row['collected_at']}")
+                st.caption(f"📡 {row['press']}  ·  🕐 {row['published_at']}")
                 st.divider()
     else:
         st.info("아직 뉴스 데이터가 없어요. news_scraper.py를 실행해주세요!")
-
+ 
 # ============================
-# 하단: 가격 추이 (데이터가 2일 이상 쌓이면 표시)
+# 하단: 가격 추이
 # ============================
 if not prices_df.empty:
     date_count = prices_df["date"].nunique()
     if date_count >= 2:
         st.divider()
         st.subheader("📈 가격 추이")
-        st.caption("매일 스크래퍼를 실행하면 여기에 가격 변동 그래프가 나타나요!")
-
-        # 날짜별 평균 가격
+ 
         trend_df = prices_df.groupby("date")["price"].mean().reset_index()
         st.line_chart(trend_df, x="date", y="price", color="#4A90D9")
     else:
         st.divider()
         st.info("📈 가격 추이 그래프는 2일 이상 데이터가 쌓이면 표시돼요. 매일 스크래퍼를 실행해보세요!")
+ 
