@@ -16,7 +16,7 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # prices 테이블 — specs 열 추가
+    # prices 테이블
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +27,12 @@ def init_db():
             specs TEXT,
             image_url TEXT
         )
+    """)
+
+    # 같은 날짜 + 같은 상품은 중복 저장 방지용 인덱스
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_prices_unique
+        ON prices (date, product)
     """)
 
     # news 테이블
@@ -40,33 +46,47 @@ def init_db():
         )
     """)
 
+    # 같은 제목 + 같은 언론사는 중복 방지
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_news_unique
+        ON news (title, press)
+    """)
+
     conn.commit()
     conn.close()
     print("✅ DB 초기화 완료! 테이블: prices, news")
 
 
 def insert_many_prices(data_list):
-    """data_list: [(날짜, 카테고리, 상품명, 가격, 스펙, 이미지URL), ...]"""
+    """가격 데이터 여러 개를 한 번에 저장 (중복 무시)
+    
+    INSERT OR IGNORE: 이미 같은 (date, product) 조합이 있으면
+    에러 없이 건너뛰어요. 하루에 여러 번 실행해도 안전!
+    """
     conn = get_connection()
     cursor = conn.cursor()
     cursor.executemany(
-        "INSERT INTO prices (date, category, product, price, specs, image_url) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO prices (date, category, product, price, specs, image_url) VALUES (?, ?, ?, ?, ?, ?)",
         data_list
     )
+    inserted = cursor.rowcount
     conn.commit()
     conn.close()
+    return inserted
 
 
 def insert_many_news(data_list):
-    """data_list: [(수집시간, 언론사, 제목, 발행시간), ...]"""
+    """뉴스 데이터 여러 개를 한 번에 저장 (중복 무시)"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.executemany(
-        "INSERT INTO news (collected_at, press, title, published_at) VALUES (?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO news (collected_at, press, title, published_at) VALUES (?, ?, ?, ?)",
         data_list
     )
+    inserted = cursor.rowcount
     conn.commit()
     conn.close()
+    return inserted
 
 
 def get_all_prices():
