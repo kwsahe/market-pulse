@@ -10,6 +10,8 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
+from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
+from ml.price_prediction import train_model, predict_price, FEATURE_EXTRACTORS
 
 # ============================
 # DB 연결
@@ -35,6 +37,12 @@ def load_news():
     )
     conn.close()
     return df
+
+
+@st.cache_resource(show_spinner="모델 학습 중...")
+def get_trained_model(category):
+    """카테고리별 가격 예측 모델 학습 (캐시됨)"""
+    return train_model(category)
 
 
 # ============================
@@ -101,9 +109,16 @@ if not prices_df.empty:
     tab_labels = (
         ["📋 전체"]
         + [f"{tab_icons.get(c, '🔧')} {c}" for c in categories]
-        + ["📊 가격 변동", "⚠️ 이상치", "📰 뉴스"]
+        + ["📊 가격 변동", "⚠️ 이상치", "🔮 가격 예측", "📰 뉴스"]
     )
     tabs = st.tabs(tab_labels)
+
+    # 탭 인덱스 계산
+    n = len(categories)
+    tab_change   = tabs[n + 1]
+    tab_anomaly  = tabs[n + 2]
+    tab_predict  = tabs[n + 3]
+    tab_news     = tabs[n + 4]
 
     # ============================
     # 전체 탭
@@ -117,14 +132,32 @@ if not prices_df.empty:
         count_by_cat = prices_df.groupby("category")["product"].count()
         st.bar_chart(count_by_cat, color="#50C878")
 
-        if prices_df["date"].nunique() >= 2:
+        # 추이 분석 (trend_analysis 모듈 사용)
+        trend_df = get_price_trend(prices_df)
+        if not trend_df.empty:
             st.subheader("📈 카테고리별 평균 가격 추이")
-            trend_df = prices_df.groupby(["date", "category"])["price"].mean().reset_index()
+
+            # 전체 기간 방향 요약
+            summaries = summarize_trends(prices_df)
+            if summaries:
+                sum_cols = st.columns(len(summaries))
+                for col, s in zip(sum_cols, summaries):
+                    icon = "📈" if s["direction"] == "up" else ("📉" if s["direction"] == "down" else "➡️")
+                    with col:
+                        st.metric(
+                            s["category"],
+                            f"{s['last_price']:,.0f}원",
+                            delta=f"{s['change_pct']:+.1f}%",
+                            delta_color="inverse" if s["direction"] == "down" else "normal"
+                        )
+                st.caption(f"기간: {summaries[0]['period']}")
+                st.divider()
+
             for cat in categories:
-                cat_trend = trend_df[trend_df["category"] == cat]
-                if len(cat_trend) >= 2:
+                cat_trend = get_category_trend(prices_df, cat)
+                if not cat_trend.empty:
                     st.caption(f"**{cat}**")
-                    st.line_chart(cat_trend, x="date", y="price", color="#4A90D9")
+                    st.line_chart(cat_trend, x="date", y="avg_price", color="#4A90D9")
         else:
             st.info("📈 가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
 
@@ -186,7 +219,7 @@ if not prices_df.empty:
     # ============================
     # 가격 변동 탭
     # ============================
-    with tabs[-3]:
+    with tab_change:
         st.subheader("📊 가격 변동 리포트")
 
         if has_changes and not changed_df.empty:
@@ -195,7 +228,6 @@ if not prices_df.empty:
             up_df = changed_df[changed_df["change"] > 0]
             down_df = changed_df[changed_df["change"] < 0]
 
-            # 요약
             sum_col1, sum_col2, sum_col3 = st.columns(3)
             with sum_col1:
                 st.metric("📈 인상 상품", f"{len(up_df)}개")
@@ -217,11 +249,7 @@ if not prices_df.empty:
                                 st.markdown(f"**{row['product'][:55]}**")
                                 st.caption(f"카테고리: {row['category']}")
                             with c2:
-                                st.metric(
-                                    "현재가",
-                                    f"{row['current_price']:,}원",
-                                    delta=f"+{row['change']:,}원"
-                                )
+                                st.metric("현재가", f"{row['current_price']:,}원", delta=f"+{row['change']:,}원")
                             with c3:
                                 st.metric("변동률", f"+{row['change_pct']}%")
                 else:
@@ -236,11 +264,7 @@ if not prices_df.empty:
                                 st.markdown(f"**{row['product'][:55]}**")
                                 st.caption(f"카테고리: {row['category']}")
                             with c2:
-                                st.metric(
-                                    "현재가",
-                                    f"{row['current_price']:,}원",
-                                    delta=f"{row['change']:,}원"
-                                )
+                                st.metric("현재가", f"{row['current_price']:,}원", delta=f"{row['change']:,}원")
                             with c3:
                                 st.metric("변동률", f"{row['change_pct']}%")
                 else:
@@ -251,7 +275,7 @@ if not prices_df.empty:
     # ============================
     # 이상치 탭
     # ============================
-    with tabs[-2]:
+    with tab_anomaly:
         st.subheader("⚠️ 이상치 탐지 결과")
 
         method_tab1, method_tab2, method_tab3 = st.tabs(
@@ -310,9 +334,111 @@ if not prices_df.empty:
                 st.success("✅ 이상치 없음!")
 
     # ============================
+    # 가격 예측 탭
+    # ============================
+    with tab_predict:
+        st.subheader("🔮 가격 예측")
+        st.caption("스펙을 입력하면 현재 시장 데이터 기반으로 적정 가격을 예측해드려요.")
+
+        pred_category = st.selectbox("카테고리 선택", list(FEATURE_EXTRACTORS.keys()), key="pred_cat")
+
+        model_info = get_trained_model(pred_category)
+
+        if model_info is None:
+            st.warning("데이터가 부족해 예측 모델을 만들 수 없어요. (카테고리당 최소 5개 필요)")
+        else:
+            r2 = model_info["best_r2"]
+            if r2 > 0.8:
+                quality_label, quality_color = "높음", "normal"
+            elif r2 > 0.5:
+                quality_label, quality_color = "보통", "off"
+            else:
+                quality_label, quality_color = "낮음 — 데이터 더 수집 필요", "off"
+
+            info_c1, info_c2, info_c3 = st.columns(3)
+            with info_c1:
+                st.metric("모델", model_info["model_name"])
+            with info_c2:
+                st.metric("R² 점수", f"{r2:.3f}")
+            with info_c3:
+                st.metric("학습 데이터", f"{model_info['data_count']}개")
+
+            st.divider()
+
+            # 카테고리별 입력 폼
+            features = {}
+
+            if pred_category == "DDR5 RAM":
+                c1, c2 = st.columns(2)
+                with c1:
+                    features["clock_mhz"] = st.number_input("클럭 (MHz)", 4800, 8000, 6000, 200)
+                    features["cl_timing"] = st.number_input("CL 타이밍", 28, 46, 30, 2)
+                    features["voltage"] = st.number_input("전압 (V)", 1.1, 1.5, 1.35, 0.05)
+                with c2:
+                    features["capacity_gb"] = st.selectbox("용량 (GB)", [8, 16, 32, 48, 64, 96])
+                    features["is_pack"] = 1 if st.checkbox("2개입(2x) 묶음") else 0
+                    features["has_led"] = 1 if st.checkbox("RGB/LED") else 0
+
+            elif pred_category == "NVMe SSD":
+                c1, c2 = st.columns(2)
+                with c1:
+                    features["pcie_gen"] = st.selectbox("PCIe 세대", [3, 4, 5])
+                    features["read_speed"] = st.number_input("순차읽기 (MB/s)", 0, 14000, 7000, 500)
+                    features["write_speed"] = st.number_input("순차쓰기 (MB/s)", 0, 14000, 6500, 500)
+                with c2:
+                    cap_val = st.selectbox("용량", ["250GB", "500GB", "1TB", "2TB", "4TB"])
+                    cap_map = {"250GB": 250, "500GB": 500, "1TB": 1024, "2TB": 2048, "4TB": 4096}
+                    features["capacity_gb"] = cap_map[cap_val]
+                    features["has_dram"] = 1 if st.checkbox("DRAM 탑재") else 0
+                    features["is_tlc"] = 1 if st.checkbox("TLC 낸드") else 0
+                    features["is_external"] = 1 if st.checkbox("외장형") else 0
+
+            elif pred_category == "그래픽카드":
+                c1, c2 = st.columns(2)
+                with c1:
+                    features["gpu_model"] = st.selectbox(
+                        "GPU 모델 번호", [4060, 4070, 4080, 4090, 5060, 5070, 5080, 5090]
+                    )
+                    features["vram_gb"] = st.number_input("VRAM (GB)", 8, 32, 12, 4)
+                with c2:
+                    features["boost_mhz"] = st.number_input("부스트 클럭 (MHz)", 1500, 3000, 2500, 100)
+                    features["length_mm"] = st.number_input("카드 길이 (mm)", 150, 400, 300, 10)
+                    features["power_w"] = st.number_input("정격 파워 (W)", 100, 800, 450, 50)
+
+            elif pred_category == "CPU":
+                c1, c2 = st.columns(2)
+                with c1:
+                    features["total_cores"] = st.number_input("총 코어 수", 4, 32, 14, 2)
+                    features["max_ghz"] = st.number_input("최대 클럭 (GHz)", 2.0, 6.0, 5.2, 0.1)
+                    features["generation"] = st.number_input("세대", 10, 15, 14, 1)
+                with c2:
+                    features["has_igpu"] = 1 if st.checkbox("내장 그래픽") else 0
+                    features["is_bulk"] = 1 if st.checkbox("벌크 제품") else 0
+                    features["is_series2"] = 1 if st.checkbox("시리즈2 (Arrow Lake)") else 0
+
+            elif pred_category == "게이밍 노트북":
+                c1, c2 = st.columns(2)
+                with c1:
+                    features["screen_inch"] = st.number_input("화면 크기 (인치)", 13.0, 18.0, 16.0, 0.5)
+                    features["weight_kg"] = st.number_input("무게 (kg)", 1.0, 4.0, 2.2, 0.1)
+                    features["brightness_nit"] = st.number_input("밝기 (nit)", 100, 1000, 300, 50)
+                with c2:
+                    features["cpu_ghz"] = st.number_input("CPU 클럭 (GHz)", 1.0, 5.0, 3.5, 0.1)
+                    ssd_val = st.selectbox("SSD 용량", ["512GB", "1TB", "2TB"])
+                    ssd_map = {"512GB": 512, "1TB": 1024, "2TB": 2048}
+                    features["ssd_gb"] = ssd_map[ssd_val]
+                    features["ram_gb"] = st.selectbox("RAM (GB)", [8, 16, 32, 64])
+
+            if st.button("예측하기", type="primary"):
+                predicted = predict_price(model_info, features)
+                st.success(f"### 예측 가격: {predicted:,.0f}원")
+                if r2 <= 0.5:
+                    st.caption("신뢰도가 낮아요 — 데이터가 더 쌓이면 정확도가 올라가요.")
+
+    # ============================
     # 뉴스 탭
     # ============================
-    with tabs[-1]:
+    with tab_news:
         st.subheader("📰 IT/과학 뉴스")
         if not news_df.empty:
             all_press = sorted(news_df["press"].unique())

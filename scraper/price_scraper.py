@@ -111,43 +111,62 @@ def extract_variants(parent):
 # ============================
 for category, query in CATEGORIES.items():
     url = f"https://search.danawa.com/dsearch.php?query={query}"
-    response = requests.get(url, headers=headers)
     print(f"\n{'='*60}")
-    print(f"📦 [{category}] 수집 중... (응답: {response.status_code})")
+    print(f"📦 [{category}] 수집 중...")
     print(f"{'='*60}")
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    names = soup.find_all("a", class_="click_log_product_standard_title_")
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+    except requests.exceptions.Timeout:
+        print(f"⚠️ [{category}] 요청 시간 초과 (15초). 건너뜁니다.")
+        continue
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ [{category}] 네트워크 오류: {e}. 건너뜁니다.")
+        continue
+
+    print(f"   응답: {response.status_code}")
+
+    try:
+        soup = BeautifulSoup(response.text, "html.parser")
+        names = soup.find_all("a", class_="click_log_product_standard_title_")
+    except Exception as e:
+        print(f"⚠️ [{category}] HTML 파싱 오류: {e}. 건너뜁니다.")
+        continue
 
     data_list = []
     for i, name_tag in enumerate(names):
-        product = name_tag.get_text(strip=True)
-        block = find_product_block(name_tag)
-        img_url = extract_image(block)
-        specs = extract_specs(block)
-        variants = extract_variants(block)
+        try:
+            product = name_tag.get_text(strip=True)
+            block = find_product_block(name_tag)
+            img_url = extract_image(block)
+            specs = extract_specs(block)
+            variants = extract_variants(block)
 
-        if variants:
-            for mem_text, var_price in variants:
-                full_name = f"{product} ({mem_text})"
-                print(f"{i+1}. {full_name}")
-                print(f"   가격: {var_price:,}원 | 이미지: {'✅' if img_url else '❌'}")
-                data_list.append((today, category, full_name, var_price, specs, img_url))
-        else:
-            price_tag = block.find("a", class_="click_log_product_standard_price_")
-            if not price_tag:
-                continue
-            cost_text = price_tag.get_text(strip=True)
-            try:
-                cost_num = int(cost_text.replace(",", "").replace("원", ""))
-            except ValueError:
-                continue
-            print(f"{i+1}. {product}")
-            print(f"   가격: {cost_num:,}원 | 이미지: {'✅' if img_url else '❌'}")
-            data_list.append((today, category, product, cost_num, specs, img_url))
+            if variants:
+                for mem_text, var_price in variants:
+                    full_name = f"{product} ({mem_text})"
+                    print(f"{i+1}. {full_name}")
+                    print(f"   가격: {var_price:,}원 | 이미지: {'✅' if img_url else '❌'}")
+                    data_list.append((today, category, full_name, var_price, specs, img_url))
+            else:
+                price_tag = block.find("a", class_="click_log_product_standard_price_")
+                if not price_tag:
+                    continue
+                cost_text = price_tag.get_text(strip=True)
+                try:
+                    cost_num = int(cost_text.replace(",", "").replace("원", ""))
+                except ValueError:
+                    continue
+                print(f"{i+1}. {product}")
+                print(f"   가격: {cost_num:,}원 | 이미지: {'✅' if img_url else '❌'}")
+                data_list.append((today, category, product, cost_num, specs, img_url))
 
-        if specs:
-            print(f"   스펙: {specs[:80]}...")
+            if specs:
+                print(f"   스펙: {specs[:80]}...")
+        except Exception as e:
+            print(f"   ⚠️ 상품 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
+            continue
 
     # DB 저장 (중복 무시)
     if data_list:
