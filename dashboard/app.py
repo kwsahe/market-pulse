@@ -39,7 +39,7 @@ def load_news():
     return df
 
 
-@st.cache_resource(show_spinner="모델 학습 중...")
+@st.cache_data(show_spinner="모델 학습 중...")
 def get_trained_model(category):
     """카테고리별 가격 예측 모델 학습 (캐시됨)"""
     return train_model(category)
@@ -55,9 +55,16 @@ st.caption("게이밍 노트북 & PC 부품 가격 추적 · ML 분석 · IT 뉴
 prices_df = load_prices()
 news_df = load_news()
 
-# ML 분석
-z_anomalies = detect_zscore(prices_df) if not prices_df.empty else pd.DataFrame()
-iqr_anomalies = detect_iqr(prices_df) if not prices_df.empty else pd.DataFrame()
+# 현재가 표시용 — 최신 수집일의 데이터만 사용
+if not prices_df.empty:
+    latest_date = prices_df["date"].max()
+    current_df = prices_df[prices_df["date"] == latest_date].copy()
+else:
+    current_df = pd.DataFrame()
+
+# ML 분석 (최신 데이터 기준)
+z_anomalies = detect_zscore(current_df) if not current_df.empty else pd.DataFrame()
+iqr_anomalies = detect_iqr(current_df) if not current_df.empty else pd.DataFrame()
 
 anomaly_products = set()
 if not z_anomalies.empty:
@@ -82,11 +89,11 @@ else:
 # ============================
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
-    st.metric("📦 상품", f"{len(prices_df)}개")
+    st.metric("📦 상품", f"{len(current_df)}개")
 with col2:
-    st.metric("📂 카테고리", f"{prices_df['category'].nunique() if not prices_df.empty else 0}개")
+    st.metric("📂 카테고리", f"{current_df['category'].nunique() if not current_df.empty else 0}개")
 with col3:
-    st.metric("💰 평균가", f"{prices_df['price'].mean():,.0f}원" if not prices_df.empty else "-")
+    st.metric("💰 평균가", f"{current_df['price'].mean():,.0f}원" if not current_df.empty else "-")
 with col4:
     st.metric("📈 인상", f"{up_count}개", delta=f"+{up_count}" if up_count else None)
 with col5:
@@ -166,7 +173,7 @@ if not prices_df.empty:
     # ============================
     for i, category in enumerate(categories):
         with tabs[i + 1]:
-            cat_df = prices_df[prices_df["category"] == category].copy()
+            cat_df = current_df[current_df["category"] == category].copy()
             st.subheader(f"{category} — {len(cat_df)}개 상품")
 
             s1, s2, s3, s4 = st.columns(4)
@@ -284,7 +291,7 @@ if not prices_df.empty:
 
         with method_tab1:
             for cat in categories:
-                cat_df = prices_df[prices_df["category"] == cat]
+                cat_df = current_df[current_df["category"] == cat]
                 st.markdown(f"### {tab_icons.get(cat, '🔧')} {cat}")
                 s1, s2, s3, s4, s5 = st.columns(5)
                 with s1:
