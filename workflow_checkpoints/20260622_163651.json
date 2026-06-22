@@ -1,0 +1,3027 @@
+{
+  "run_id": "20260622_163651",
+  "started_at": "2026-06-22T16:36:51.812442",
+  "status": "completed",
+  "error": null,
+  "prices_collected": 4886,
+  "prices_new": 550,
+  "news_collected": 487,
+  "news_new": 23,
+  "price_changes": [
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 768950,
+      "current_price": 1513840,
+      "change": 744890,
+      "change_pct": 96.87
+    },
+    {
+      "product": "G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB J \ud328\ud0a4\uc9c0 (256GB(64Gx4))",
+      "category": "DDR5 RAM",
+      "prev_price": 5850000,
+      "current_price": 11078660,
+      "change": 5228660,
+      "change_pct": 89.38
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1199000,
+      "current_price": 2199990,
+      "change": 1000990,
+      "change_pct": 83.49
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 1900000,
+      "current_price": 399000,
+      "change": -1501000,
+      "change_pct": -79.0
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 635000,
+      "current_price": 1100000,
+      "change": 465000,
+      "change_pct": 73.23
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Gold P31 M.2NVMe (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 800000,
+      "current_price": 375000,
+      "change": -425000,
+      "change_pct": -53.12
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 EVO Plus M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 746180,
+      "current_price": 1122400,
+      "change": 376220,
+      "change_pct": 50.42
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 399000,
+      "current_price": 597990,
+      "change": 198990,
+      "change_pct": 49.87
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PLUS G4 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 462950,
+      "current_price": 689990,
+      "change": 227040,
+      "change_pct": 49.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100 (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 207620,
+      "current_price": 296000,
+      "change": 88380,
+      "change_pct": 42.57
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 999000,
+      "current_price": 1368960,
+      "change": 369960,
+      "change_pct": 37.03
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400 (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 216120,
+      "current_price": 292800,
+      "change": 76680,
+      "change_pct": 35.48
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc38\ub958\ud329 \uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 369600,
+      "current_price": 494900,
+      "change": 125300,
+      "change_pct": 33.9
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700F (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 343620,
+      "current_price": 456090,
+      "change": 112470,
+      "change_pct": 32.73
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 473720,
+      "current_price": 624500,
+      "change": 150780,
+      "change_pct": 31.83
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PLUS G4 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 336570,
+      "current_price": 440990,
+      "change": 104420,
+      "change_pct": 31.02
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-10\uc138\ub300 10400F (\ucf54\uba67\ub808\uc774\ud06cS) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 128200,
+      "current_price": 165410,
+      "change": 37210,
+      "change_pct": 29.02
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 297940,
+      "current_price": 375900,
+      "change": 77960,
+      "change_pct": 26.17
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-4800 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 417180,
+      "current_price": 309000,
+      "change": -108180,
+      "change_pct": -25.93
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 330580,
+      "current_price": 245550,
+      "change": -85030,
+      "change_pct": -25.72
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1426000,
+      "current_price": 1785890,
+      "change": 359890,
+      "change_pct": 25.24
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 344650,
+      "current_price": 259270,
+      "change": -85380,
+      "change_pct": -24.77
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Platinum P51 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 547980,
+      "current_price": 681990,
+      "change": 134010,
+      "change_pct": 24.46
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100F (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 153880,
+      "current_price": 190000,
+      "change": 36120,
+      "change_pct": 23.47
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "prev_price": 2565600,
+      "current_price": 3166990,
+      "change": 601390,
+      "change_pct": 23.44
+    },
+    {
+      "product": "HP HyperX \uc624\uba58 15-gb0043AX (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 3026100,
+      "current_price": 2365030,
+      "change": -661070,
+      "change_pct": -21.85
+    },
+    {
+      "product": "ADATA LEGEND 900 M.2NVMe\ud30c\uc778\uc778\ud3ec (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 626050,
+      "current_price": 499000,
+      "change": -127050,
+      "change_pct": -20.29
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 Crucial P310 M.2NVMe\ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 343170,
+      "current_price": 409290,
+      "change": 66120,
+      "change_pct": 19.27
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 980 M.2NVMe (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 219000,
+      "current_price": 261000,
+      "change": 42000,
+      "change_pct": 19.18
+    },
+    {
+      "product": "ASUS TUF Gaming A14 FA401UM-RG007 (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1948000,
+      "current_price": 2320000,
+      "change": 372000,
+      "change_pct": 19.1
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14500 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 475320,
+      "current_price": 385610,
+      "change": -89710,
+      "change_pct": -18.87
+    },
+    {
+      "product": "ADATA LEGEND 900 M.2NVMe\ud30c\uc778\uc778\ud3ec (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 342950,
+      "current_price": 280000,
+      "change": -62950,
+      "change_pct": -18.36
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 295690,
+      "current_price": 241710,
+      "change": -53980,
+      "change_pct": -18.26
+    },
+    {
+      "product": "G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB J \ud328\ud0a4\uc9c0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 745890,
+      "current_price": 877100,
+      "change": 131210,
+      "change_pct": 17.59
+    },
+    {
+      "product": "Seagate \ud30c\uc774\uc5b4\ucfe0\ub2e4 X1070 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 803250,
+      "current_price": 939860,
+      "change": 136610,
+      "change_pct": 17.01
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 137840,
+      "current_price": 160950,
+      "change": 23110,
+      "change_pct": 16.77
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Platinum P41 M.2NVMe (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 296470,
+      "current_price": 346060,
+      "change": 49590,
+      "change_pct": 16.73
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 144739,
+      "current_price": 168900,
+      "change": 24161,
+      "change_pct": 16.69
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 147630,
+      "current_price": 172250,
+      "change": 24620,
+      "change_pct": 16.68
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 132080,
+      "current_price": 153940,
+      "change": 21860,
+      "change_pct": 16.55
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 604300,
+      "current_price": 703170,
+      "change": 98870,
+      "change_pct": 16.36
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 652500,
+      "current_price": 547020,
+      "change": -105480,
+      "change_pct": -16.17
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 245K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 307680,
+      "current_price": 258260,
+      "change": -49420,
+      "change_pct": -16.06
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 306370,
+      "current_price": 258590,
+      "change": -47780,
+      "change_pct": -15.6
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 980 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 326760,
+      "current_price": 377470,
+      "change": 50710,
+      "change_pct": 15.52
+    },
+    {
+      "product": "Seagate \ud30c\uc774\uc5b4\ucfe0\ub2e4 X1070 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 424150,
+      "current_price": 489000,
+      "change": 64850,
+      "change_pct": 15.29
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 717400,
+      "current_price": 826450,
+      "change": 109050,
+      "change_pct": 15.2
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 488310,
+      "current_price": 559000,
+      "change": 70690,
+      "change_pct": 14.48
+    },
+    {
+      "product": "\uc5d0\uc774\uc11c \ud504\ub808\ub370\ud130 \ud5ec\ub9ac\uc624\uc2a4 \ub124\uc624 16 AI PHN16-73-9797 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 3395000,
+      "current_price": 2909000,
+      "change": -486000,
+      "change_pct": -14.32
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 PRO M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 670000,
+      "current_price": 574990,
+      "change": -95010,
+      "change_pct": -14.18
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5090 \uc288\ud504\ub9bc SOC D7 32GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 6398750,
+      "current_price": 7298990,
+      "change": 900240,
+      "change_pct": 14.07
+    },
+    {
+      "product": "ESSENCORE KLEVV CRAS C910G M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 499060,
+      "current_price": 429000,
+      "change": -70060,
+      "change_pct": -14.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 196520,
+      "current_price": 223590,
+      "change": 27070,
+      "change_pct": 13.77
+    },
+    {
+      "product": "ASUS TUF Gaming A14 FA401UM-RG007 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2046760,
+      "current_price": 2322000,
+      "change": 275240,
+      "change_pct": 13.45
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT9 (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 424980,
+      "current_price": 367990,
+      "change": -56990,
+      "change_pct": -13.41
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 588930,
+      "current_price": 510000,
+      "change": -78930,
+      "change_pct": -13.4
+    },
+    {
+      "product": "Seagate \ud30c\uc774\uc5b4\ucfe0\ub2e4 X1070 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1614150,
+      "current_price": 1823040,
+      "change": 208890,
+      "change_pct": 12.94
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 149640,
+      "current_price": 167990,
+      "change": 18350,
+      "change_pct": 12.26
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 543300,
+      "current_price": 609880,
+      "change": 66580,
+      "change_pct": 12.25
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 570350,
+      "current_price": 500780,
+      "change": -69570,
+      "change_pct": -12.2
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 CrucialDDR5-5600 CL46 \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 293330,
+      "current_price": 329000,
+      "change": 35670,
+      "change_pct": 12.16
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Platinum P51 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 878980,
+      "current_price": 985830,
+      "change": 106850,
+      "change_pct": 12.16
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 528880,
+      "current_price": 592010,
+      "change": 63130,
+      "change_pct": 11.94
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 629290,
+      "current_price": 704100,
+      "change": 74810,
+      "change_pct": 11.89
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 980 M.2NVMe (250GB)",
+      "category": "NVMe SSD",
+      "prev_price": 202890,
+      "current_price": 226840,
+      "change": 23950,
+      "change_pct": 11.8
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c9 \uc2dc\ub9ac\uc9882 285K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 877530,
+      "current_price": 775980,
+      "change": -101550,
+      "change_pct": -11.57
+    },
+    {
+      "product": "ASUS TUF Gaming A14 FA401UM-RG007 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2650000,
+      "current_price": 2956250,
+      "change": 306250,
+      "change_pct": 11.56
+    },
+    {
+      "product": "MSI \uc0ac\uc774\ubcf4\uadf8 17 B2RWFKG-C5 (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1295890,
+      "current_price": 1149000,
+      "change": -146890,
+      "change_pct": -11.34
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWIG-U9 QHD+ WIN11 64GB\ub7a8 (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 5057080,
+      "current_price": 5630000,
+      "change": 572920,
+      "change_pct": 11.33
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ub178\ud2b8\ubd81DDR5-5600 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 337840,
+      "current_price": 299940,
+      "change": -37900,
+      "change_pct": -11.22
+    },
+    {
+      "product": "ADATADDR5-5600 CL46-45-45 \ud30c\uc778\uc778\ud3ec (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 524170,
+      "current_price": 582760,
+      "change": 58590,
+      "change_pct": 11.18
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB WHITE \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (48GB(24Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 945960,
+      "current_price": 1050000,
+      "change": 104040,
+      "change_pct": 11.0
+    },
+    {
+      "product": "MSI GF\uc2dc\ub9ac\uc988 \uc18c\ub4dc GF76 A AI B8VF-R7 WIN11 32GB\ub7a8 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2390000,
+      "current_price": 2129000,
+      "change": -261000,
+      "change_pct": -10.92
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 187610,
+      "current_price": 207600,
+      "change": 19990,
+      "change_pct": 10.66
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 255910,
+      "current_price": 228710,
+      "change": -27200,
+      "change_pct": -10.63
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4DDR5-5600 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 312000,
+      "current_price": 344990,
+      "change": 32990,
+      "change_pct": 10.57
+    },
+    {
+      "product": "ADATADDR5-6000 CL30 LANCER BLADE RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (48GB(24Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1064690,
+      "current_price": 952500,
+      "change": -112190,
+      "change_pct": -10.54
+    },
+    {
+      "product": "HP HyperX \uc624\uba58 15-gb0043AX (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2162520,
+      "current_price": 1934510,
+      "change": -228010,
+      "change_pct": -10.54
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 521130,
+      "current_price": 576000,
+      "change": 54870,
+      "change_pct": 10.53
+    },
+    {
+      "product": "GAINWARD\uc9c0\ud3ec\uc2a4RTX 5060 \uace0\uc2a4\ud2b8 D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 546890,
+      "current_price": 489330,
+      "change": -57560,
+      "change_pct": -10.52
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (\uc218\ub7c9\ubcc4\ubc30\uc1a1\ube44 32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 738440,
+      "current_price": 815720,
+      "change": 77280,
+      "change_pct": 10.47
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Gold P31 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 339180,
+      "current_price": 373990,
+      "change": 34810,
+      "change_pct": 10.26
+    },
+    {
+      "product": "\ud654\uc6e8\uc774 eKitStor Xtreme 201 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 299000,
+      "current_price": 269000,
+      "change": -30000,
+      "change_pct": -10.03
+    },
+    {
+      "product": "G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB J \ud328\ud0a4\uc9c0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1400000,
+      "current_price": 1540000,
+      "change": 140000,
+      "change_pct": 10.0
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 241756,
+      "current_price": 217790,
+      "change": -23966,
+      "change_pct": -9.91
+    },
+    {
+      "product": "Western Digital WD Blue SN5100 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 384410,
+      "current_price": 422370,
+      "change": 37960,
+      "change_pct": 9.87
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400 (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 239540,
+      "current_price": 263090,
+      "change": 23550,
+      "change_pct": 9.83
+    },
+    {
+      "product": "HP \uc624\uba58 16-ap0074AX (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1990000,
+      "current_price": 2185000,
+      "change": 195000,
+      "change_pct": 9.8
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14500 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 454600,
+      "current_price": 410800,
+      "change": -43800,
+      "change_pct": -9.63
+    },
+    {
+      "product": "Apacer AS2280P4X M.2NVMe (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 168040,
+      "current_price": 151850,
+      "change": -16190,
+      "change_pct": -9.63
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 234090,
+      "current_price": 211800,
+      "change": -22290,
+      "change_pct": -9.52
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 484790,
+      "current_price": 530530,
+      "change": 45740,
+      "change_pct": 9.44
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5060 DUAL OC D7 8GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 556490,
+      "current_price": 504400,
+      "change": -52090,
+      "change_pct": -9.36
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-5600 CL46 \ud30c\uc778\uc778\ud3ec (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 340390,
+      "current_price": 308780,
+      "change": -31610,
+      "change_pct": -9.29
+    },
+    {
+      "product": "ZOTAC GAMING\uc9c0\ud3ec\uc2a4RTX 5070 SOLID OC D7 12GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1067610,
+      "current_price": 969200,
+      "change": -98410,
+      "change_pct": -9.22
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9A1 M.2NVMe\ubc8c\ud06c (256GB)",
+      "category": "NVMe SSD",
+      "prev_price": 102990,
+      "current_price": 93500,
+      "change": -9490,
+      "change_pct": -9.21
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265KF (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 372650,
+      "current_price": 406950,
+      "change": 34300,
+      "change_pct": 9.2
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 209000,
+      "current_price": 189790,
+      "change": -19210,
+      "change_pct": -9.19
+    },
+    {
+      "product": "AGIDDR5-6000 CL30 TURBOJET UD858 RGB \ube14\ub799 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (48GB(24Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1142320,
+      "current_price": 1038240,
+      "change": -104080,
+      "change_pct": -9.11
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5060 \ubca4\ud22c\uc2a4 2X OC D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 557480,
+      "current_price": 507000,
+      "change": -50480,
+      "change_pct": -9.06
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9C1 M.2NVMe\ubc8c\ud06c (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 151300,
+      "current_price": 165000,
+      "change": 13700,
+      "change_pct": 9.05
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 394910,
+      "current_price": 430000,
+      "change": 35090,
+      "change_pct": 8.89
+    },
+    {
+      "product": "TeamGroupDDR5-5600 CL46 Elite \uc11c\ub9b0 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 202980,
+      "current_price": 185000,
+      "change": -17980,
+      "change_pct": -8.86
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 BOLT V \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 685000,
+      "current_price": 745000,
+      "change": 60000,
+      "change_pct": 8.76
+    },
+    {
+      "product": "ASUS TUF Gaming A14 FA401UM-RG007 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2298000,
+      "current_price": 2499000,
+      "change": 201000,
+      "change_pct": 8.75
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (24GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 455360,
+      "current_price": 416320,
+      "change": -39040,
+      "change_pct": -8.57
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Platinum P41 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 419000,
+      "current_price": 454060,
+      "change": 35060,
+      "change_pct": 8.37
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-10\uc138\ub300 10400F (\ucf54\uba67\ub808\uc774\ud06cS) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 161870,
+      "current_price": 175350,
+      "change": 13480,
+      "change_pct": 8.33
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14500 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 407010,
+      "current_price": 373590,
+      "change": -33420,
+      "change_pct": -8.21
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 EVO Plus M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 354930,
+      "current_price": 325810,
+      "change": -29120,
+      "change_pct": -8.2
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWHG-U7 QHD+ (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2785660,
+      "current_price": 2558460,
+      "change": -227200,
+      "change_pct": -8.16
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 298600,
+      "current_price": 322890,
+      "change": 24290,
+      "change_pct": 8.13
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 366280,
+      "current_price": 336500,
+      "change": -29780,
+      "change_pct": -8.13
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 473700,
+      "current_price": 511950,
+      "change": 38250,
+      "change_pct": 8.07
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 242200,
+      "current_price": 222670,
+      "change": -19530,
+      "change_pct": -8.06
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700F (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 426800,
+      "current_price": 460670,
+      "change": 33870,
+      "change_pct": 7.94
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9C1 M.2NVMe\ubc8c\ud06c (256GB)",
+      "category": "NVMe SSD",
+      "prev_price": 72000,
+      "current_price": 77700,
+      "change": 5700,
+      "change_pct": 7.92
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT9 (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 760000,
+      "current_price": 699990,
+      "change": -60010,
+      "change_pct": -7.9
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 469870,
+      "current_price": 506920,
+      "change": 37050,
+      "change_pct": 7.89
+    },
+    {
+      "product": "MSI \uc18c\ub4dc GF76 HX B14WFK-i7 QHD (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1910000,
+      "current_price": 1759530,
+      "change": -150470,
+      "change_pct": -7.88
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100F (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 110110,
+      "current_price": 118780,
+      "change": 8670,
+      "change_pct": 7.87
+    },
+    {
+      "product": "GIGABYTE\uc9c0\ud3ec\uc2a4RTX 5060 Ti WINDFORCE MAX OC D7 8GB \ud53c\uc528\ub514\ub809\ud2b8 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 567250,
+      "current_price": 610900,
+      "change": 43650,
+      "change_pct": 7.7
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (64GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 3979910,
+      "current_price": 3674990,
+      "change": -304920,
+      "change_pct": -7.66
+    },
+    {
+      "product": "COLORFUL\uc9c0\ud3ec\uc2a4RTX 5060 Ti GAMING DUO D7 8GB \ud53c\uc528\ub514\ub809\ud2b8 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 569760,
+      "current_price": 613000,
+      "change": 43240,
+      "change_pct": 7.59
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400F (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 174590,
+      "current_price": 187700,
+      "change": 13110,
+      "change_pct": 7.51
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5060 Ti \ubca4\ud22c\uc2a4 2X OC \ud50c\ub7ec\uc2a4 D7 16GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 844840,
+      "current_price": 906990,
+      "change": 62150,
+      "change_pct": 7.36
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (48GB(24Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 978400,
+      "current_price": 1050000,
+      "change": 71600,
+      "change_pct": 7.32
+    },
+    {
+      "product": "ADATADDR5-5600 CL46-45-45 \ud30c\uc778\uc778\ud3ec (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 329380,
+      "current_price": 305340,
+      "change": -24040,
+      "change_pct": -7.3
+    },
+    {
+      "product": "MSI \uc0ac\uc774\ubcf4\uadf8 17 B2RWFKG-C5 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1689000,
+      "current_price": 1566070,
+      "change": -122930,
+      "change_pct": -7.28
+    },
+    {
+      "product": "PATRIOTDDR5-5600 CL46 EVO (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 174950,
+      "current_price": 162320,
+      "change": -12630,
+      "change_pct": -7.22
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 226790,
+      "current_price": 242460,
+      "change": 15670,
+      "change_pct": 6.91
+    },
+    {
+      "product": "\uc5d0\uc774\uc11c \ud504\ub808\ub370\ud130 \ud5ec\ub9ac\uc624\uc2a4 \ub124\uc624 16 AI PHN16-73-9797 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 4687000,
+      "current_price": 4364000,
+      "change": -323000,
+      "change_pct": -6.89
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 399010,
+      "current_price": 425380,
+      "change": 26370,
+      "change_pct": 6.61
+    },
+    {
+      "product": "Western Digital WD BLACK SN850X M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 938990,
+      "current_price": 1001000,
+      "change": 62010,
+      "change_pct": 6.6
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700 (\uc5d8\ub354\ub808\uc774\ud06c) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 460800,
+      "current_price": 491100,
+      "change": 30300,
+      "change_pct": 6.58
+    },
+    {
+      "product": "\uc774\uc5e0\ud14d\uc9c0\ud3ec\uc2a4RTX 5060 MIRACLE WHITE D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 550380,
+      "current_price": 514900,
+      "change": -35480,
+      "change_pct": -6.45
+    },
+    {
+      "product": "Western Digital WD BLACK SN850X M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "prev_price": 2333000,
+      "current_price": 2183130,
+      "change": -149870,
+      "change_pct": -6.42
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWIG-U9 QHD+ WIN11 64GB\ub7a8 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 5160510,
+      "current_price": 5490000,
+      "change": 329490,
+      "change_pct": 6.38
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4DDR5-5600 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 717640,
+      "current_price": 671930,
+      "change": -45710,
+      "change_pct": -6.37
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 811690,
+      "current_price": 760130,
+      "change": -51560,
+      "change_pct": -6.35
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 377520,
+      "current_price": 401000,
+      "change": 23480,
+      "change_pct": 6.22
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 474790,
+      "current_price": 445540,
+      "change": -29250,
+      "change_pct": -6.16
+    },
+    {
+      "product": "Western Digital WD BLACK SN850X M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 376050,
+      "current_price": 352970,
+      "change": -23080,
+      "change_pct": -6.14
+    },
+    {
+      "product": "SK\ud558\uc774\ub2c9\uc2a4 Platinum P41 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 612460,
+      "current_price": 650000,
+      "change": 37540,
+      "change_pct": 6.13
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14500 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 464610,
+      "current_price": 436490,
+      "change": -28120,
+      "change_pct": -6.05
+    },
+    {
+      "product": "\uac24\ub7ed\uc2dc GALAX\uc9c0\ud3ec\uc2a4RTX 5060 Ti BLACK OC D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 599000,
+      "current_price": 634990,
+      "change": 35990,
+      "change_pct": 6.01
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 734960,
+      "current_price": 778900,
+      "change": 43940,
+      "change_pct": 5.98
+    },
+    {
+      "product": "\ud654\uc6e8\uc774 eKitStor Xtreme 201 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 505000,
+      "current_price": 475000,
+      "change": -30000,
+      "change_pct": -5.94
+    },
+    {
+      "product": "Western Digital WD Blue SN5000 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 831080,
+      "current_price": 879990,
+      "change": 48910,
+      "change_pct": 5.89
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265KF (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 431030,
+      "current_price": 456240,
+      "change": 25210,
+      "change_pct": 5.85
+    },
+    {
+      "product": "MSI \uc0ac\uc774\ubcf4\uadf8 17 B2RWFKG-C5 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1479000,
+      "current_price": 1392970,
+      "change": -86030,
+      "change_pct": -5.82
+    },
+    {
+      "product": "Western Digital WD Blue SN5000 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 294530,
+      "current_price": 277500,
+      "change": -17030,
+      "change_pct": -5.78
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 215000,
+      "current_price": 202720,
+      "change": -12280,
+      "change_pct": -5.71
+    },
+    {
+      "product": "ADATADDR5-5600 CL46-45-45 \ud30c\uc778\uc778\ud3ec (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 170910,
+      "current_price": 161350,
+      "change": -9560,
+      "change_pct": -5.59
+    },
+    {
+      "product": "ApacerDDR5-5200 CL40 NOX RGB BLACK \ud328\ud0a4\uc9c0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 658980,
+      "current_price": 622500,
+      "change": -36480,
+      "change_pct": -5.54
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 225F (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 198440,
+      "current_price": 187540,
+      "change": -10900,
+      "change_pct": -5.49
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-10\uc138\ub300 10400F (\ucf54\uba67\ub808\uc774\ud06cS) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 163010,
+      "current_price": 171820,
+      "change": 8810,
+      "change_pct": 5.4
+    },
+    {
+      "product": "\ud30c\uc774\uc2a8 ESO256GHLCJ-EL1 M.2NVMe\ubc8c\ud06c (256GB)",
+      "category": "NVMe SSD",
+      "prev_price": 61740,
+      "current_price": 65070,
+      "change": 3330,
+      "change_pct": 5.39
+    },
+    {
+      "product": "ADATA LEGEND 960 M.2NVMe\ud30c\uc778\uc778\ud3ec (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 649000,
+      "current_price": 614000,
+      "change": -35000,
+      "change_pct": -5.39
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 PRO M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 420990,
+      "current_price": 399000,
+      "change": -21990,
+      "change_pct": -5.22
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 185630,
+      "current_price": 195150,
+      "change": 9520,
+      "change_pct": 5.13
+    },
+    {
+      "product": "\ud0c0\ubb34\uc988DDR5-5600 CL46 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 552370,
+      "current_price": 580630,
+      "change": 28260,
+      "change_pct": 5.12
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 769060,
+      "current_price": 808130,
+      "change": 39070,
+      "change_pct": 5.08
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 365680,
+      "current_price": 384190,
+      "change": 18510,
+      "change_pct": 5.06
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 232870,
+      "current_price": 221120,
+      "change": -11750,
+      "change_pct": -5.05
+    },
+    {
+      "product": "HP HyperX \uc624\uba58 15-gb0043AX (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1748980,
+      "current_price": 1835000,
+      "change": 86020,
+      "change_pct": 4.92
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5080 \ubc45\uac00\ub4dc SOC D7 16GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 2339980,
+      "current_price": 2225790,
+      "change": -114190,
+      "change_pct": -4.88
+    },
+    {
+      "product": "HP \uc624\uba58 16-ap0074AX (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2231260,
+      "current_price": 2340000,
+      "change": 108740,
+      "change_pct": 4.87
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 544000,
+      "current_price": 517540,
+      "change": -26460,
+      "change_pct": -4.86
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 447120,
+      "current_price": 425590,
+      "change": -21530,
+      "change_pct": -4.82
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5070 \uac8c\uc774\ubc0d \ud2b8\ub9ac\uc624 OC \ud654\uc774\ud2b8 D7 12GB \ud2b8\ub77c\uc774\ud504\ub85c\uc8384 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1048890,
+      "current_price": 1099000,
+      "change": 50110,
+      "change_pct": 4.78
+    },
+    {
+      "product": "\ub808\ub178\ubc84 LOQ 15AHP10 R7 5060 (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2100000,
+      "current_price": 2200000,
+      "change": 100000,
+      "change_pct": 4.76
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 225F (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 234130,
+      "current_price": 223080,
+      "change": -11050,
+      "change_pct": -4.72
+    },
+    {
+      "product": "MSI GF\uc2dc\ub9ac\uc988 \uc18c\ub4dc GF76 A AI B8VF-R7 WIN11 32GB\ub7a8 (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1772840,
+      "current_price": 1855650,
+      "change": 82810,
+      "change_pct": 4.67
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9A1 M.2NVMe\ubc8c\ud06c (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 585600,
+      "current_price": 612850,
+      "change": 27250,
+      "change_pct": 4.65
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 478240,
+      "current_price": 456100,
+      "change": -22140,
+      "change_pct": -4.63
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 245KF (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 254720,
+      "current_price": 242960,
+      "change": -11760,
+      "change_pct": -4.62
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWHG-U7 QHD+ (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2883000,
+      "current_price": 2750190,
+      "change": -132810,
+      "change_pct": -4.61
+    },
+    {
+      "product": "MSI \uc0ac\uc774\ubcf4\uadf8 17 B2RWFKG-C5 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2332390,
+      "current_price": 2225400,
+      "change": -106990,
+      "change_pct": -4.59
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-5600 CL46 AMD \ud30c\uc778\uc778\ud3ec (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 168950,
+      "current_price": 161240,
+      "change": -7710,
+      "change_pct": -4.56
+    },
+    {
+      "product": "ESSENCORE KLEVV CRAS C715 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 272430,
+      "current_price": 284790,
+      "change": 12360,
+      "change_pct": 4.54
+    },
+    {
+      "product": "Western Digital WD Blue SN5100 M.2NVMe (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 208280,
+      "current_price": 199000,
+      "change": -9280,
+      "change_pct": -4.46
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 EVO Plus M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 517200,
+      "current_price": 539990,
+      "change": 22790,
+      "change_pct": 4.41
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 705000,
+      "current_price": 736000,
+      "change": 31000,
+      "change_pct": 4.4
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5060 Ti \ubca4\ud22c\uc2a4 2X OC \ud50c\ub7ec\uc2a4 D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 590560,
+      "current_price": 615750,
+      "change": 25190,
+      "change_pct": 4.27
+    },
+    {
+      "product": "\uac24\ub7ed\uc2dc GALAX\uc9c0\ud3ec\uc2a4RTX 5070 Ti BLACK 2X OC D7 16GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1598000,
+      "current_price": 1530000,
+      "change": -68000,
+      "change_pct": -4.26
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 250KF Plus (\uc560\ub85c\uc6b0\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 306200,
+      "current_price": 319210,
+      "change": 13010,
+      "change_pct": 4.25
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100 (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 227340,
+      "current_price": 236980,
+      "change": 9640,
+      "change_pct": 4.24
+    },
+    {
+      "product": "TeamGroupDDR5-5600 CL46 Elite \uc11c\ub9b0 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 650100,
+      "current_price": 677490,
+      "change": 27390,
+      "change_pct": 4.21
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-4800 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 173290,
+      "current_price": 166000,
+      "change": -7290,
+      "change_pct": -4.21
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5070 Ti \uac8c\uc774\ubc0d \ud2b8\ub9ac\uc624 OC D7 16GB \ud2b8\ub77c\uc774\ud504\ub85c\uc8384 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1669890,
+      "current_price": 1601000,
+      "change": -68890,
+      "change_pct": -4.13
+    },
+    {
+      "product": "AGIDDR5-6000 CL30 TURBOJET UD858 RGB \ube14\ub799 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 681500,
+      "current_price": 709680,
+      "change": 28180,
+      "change_pct": 4.13
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 225 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 264090,
+      "current_price": 274990,
+      "change": 10900,
+      "change_pct": 4.13
+    },
+    {
+      "product": "AGIDDR5-6000 CL30 TURBOJET UD858 RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 684960,
+      "current_price": 712960,
+      "change": 28000,
+      "change_pct": 4.09
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 849670,
+      "current_price": 815030,
+      "change": -34640,
+      "change_pct": -4.08
+    },
+    {
+      "product": "ASUS TUF Gaming A14 FA401UM-RG007 (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2595000,
+      "current_price": 2700000,
+      "change": 105000,
+      "change_pct": 4.05
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c9 \uc2dc\ub9ac\uc9882 285 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 897700,
+      "current_price": 934000,
+      "change": 36300,
+      "change_pct": 4.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 518260,
+      "current_price": 497650,
+      "change": -20610,
+      "change_pct": -3.98
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 1017500,
+      "current_price": 1058000,
+      "change": 40500,
+      "change_pct": 3.98
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-10\uc138\ub300 10400F (\ucf54\uba67\ub808\uc774\ud06cS) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 150770,
+      "current_price": 156740,
+      "change": 5970,
+      "change_pct": 3.96
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 CrucialDDR5-5600 CL46 \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 559290,
+      "current_price": 581370,
+      "change": 22080,
+      "change_pct": 3.95
+    },
+    {
+      "product": "ZOTAC GAMING\uc9c0\ud3ec\uc2a4RTX 5070 Ti SOLID OC D7 16GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1559990,
+      "current_price": 1620980,
+      "change": 60990,
+      "change_pct": 3.91
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWHG-U7 QHD+ (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 3451000,
+      "current_price": 3584000,
+      "change": 133000,
+      "change_pct": 3.85
+    },
+    {
+      "product": "\uc778\ud154\ud504\ub85c\uc138\uc11c300 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 151250,
+      "current_price": 157050,
+      "change": 5800,
+      "change_pct": 3.83
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 823890,
+      "current_price": 792660,
+      "change": -31230,
+      "change_pct": -3.79
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 484370,
+      "current_price": 501920,
+      "change": 17550,
+      "change_pct": 3.62
+    },
+    {
+      "product": "MSI \uc18c\ub4dc GF76 HX B14WFK-i7 QHD (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2098890,
+      "current_price": 2024830,
+      "change": -74060,
+      "change_pct": -3.53
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5060 Ti DUAL D7 8GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 574760,
+      "current_price": 594990,
+      "change": 20230,
+      "change_pct": 3.52
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 270K Plus (\uc560\ub85c\uc6b0\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 522160,
+      "current_price": 505000,
+      "change": -17160,
+      "change_pct": -3.29
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ub178\ud2b8\ubd81DDR5-5600 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 546590,
+      "current_price": 564470,
+      "change": 17880,
+      "change_pct": 3.27
+    },
+    {
+      "product": "\ud0c0\ubb34\uc988DDR5-5600 CL46 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 170160,
+      "current_price": 164590,
+      "change": -5570,
+      "change_pct": -3.27
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-14\uc138\ub300 14100 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 253000,
+      "current_price": 244800,
+      "change": -8200,
+      "change_pct": -3.24
+    },
+    {
+      "product": "ADATADDR5-6000 CL30 LANCER BLADE RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \ud30c\uc778\uc778\ud3ec (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1432120,
+      "current_price": 1478380,
+      "change": 46260,
+      "change_pct": 3.23
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9C1 M.2NVMe\ubc8c\ud06c (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 319000,
+      "current_price": 309000,
+      "change": -10000,
+      "change_pct": -3.13
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 Crucial P310 M.2NVMe\ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 177470,
+      "current_price": 183000,
+      "change": 5530,
+      "change_pct": 3.12
+    },
+    {
+      "product": "PATRIOTDDR5-6000 CL30 SIGNATURE PREMIUM EVO \ud654\uc774\ud2b8 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 297580,
+      "current_price": 288390,
+      "change": -9190,
+      "change_pct": -3.09
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-5600 CL46 AMD \ud30c\uc778\uc778\ud3ec (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 299000,
+      "current_price": 289770,
+      "change": -9230,
+      "change_pct": -3.09
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 245KF (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 289300,
+      "current_price": 298200,
+      "change": 8900,
+      "change_pct": 3.08
+    },
+    {
+      "product": "PATRIOTDDR5-6000 CL30 SIGNATURE PREMIUM EVO \ube14\ub799 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 297630,
+      "current_price": 288490,
+      "change": -9140,
+      "change_pct": -3.07
+    },
+    {
+      "product": "\uc778\ud154\ud504\ub85c\uc138\uc11c300 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 152140,
+      "current_price": 156800,
+      "change": 4660,
+      "change_pct": 3.06
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT9 (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1413980,
+      "current_price": 1456960,
+      "change": 42980,
+      "change_pct": 3.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 824060,
+      "current_price": 798980,
+      "change": -25080,
+      "change_pct": -3.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-12\uc138\ub300 12400F (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 215390,
+      "current_price": 221890,
+      "change": 6500,
+      "change_pct": 3.02
+    },
+    {
+      "product": "ApacerDDR5-6000 CL38 NOX RGB BLACK \ud328\ud0a4\uc9c0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 678820,
+      "current_price": 699000,
+      "change": 20180,
+      "change_pct": 2.97
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 BOLT V \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1408460,
+      "current_price": 1450000,
+      "change": 41540,
+      "change_pct": 2.95
+    },
+    {
+      "product": "ApacerDDR5-6000 CL38 NOX RGB SILVER \ud328\ud0a4\uc9c0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 678950,
+      "current_price": 698990,
+      "change": 20040,
+      "change_pct": 2.95
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 CrucialDDR5-5600 CL46 \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (64GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 1280000,
+      "current_price": 1317590,
+      "change": 37590,
+      "change_pct": 2.94
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5060 Ti INFINITY 3 D7 16GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 858810,
+      "current_price": 884000,
+      "change": 25190,
+      "change_pct": 2.93
+    },
+    {
+      "product": "MSI GF\uc2dc\ub9ac\uc988 \uc18c\ub4dc GF76 A AI B8VF-R7 WIN11 32GB\ub7a8 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1974000,
+      "current_price": 2031290,
+      "change": 57290,
+      "change_pct": 2.9
+    },
+    {
+      "product": "ADATA XPG SX8200 Pro M.2NVMe\ud30c\uc778\uc778\ud3ec (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 165000,
+      "current_price": 169670,
+      "change": 4670,
+      "change_pct": 2.83
+    },
+    {
+      "product": "HP \uc624\uba58 16-ap0074AX (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2392940,
+      "current_price": 2460500,
+      "change": 67560,
+      "change_pct": 2.82
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 668620,
+      "current_price": 650000,
+      "change": -18620,
+      "change_pct": -2.78
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-10\uc138\ub300 10400F (\ucf54\uba67\ub808\uc774\ud06cS) (\uc911\uace0)",
+      "category": "CPU",
+      "prev_price": 145000,
+      "current_price": 149000,
+      "change": 4000,
+      "change_pct": 2.76
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 1867990,
+      "current_price": 1919000,
+      "change": 51010,
+      "change_pct": 2.73
+    },
+    {
+      "product": "\uc5d0\uc774\uc11c \ud504\ub808\ub370\ud130 \ud5ec\ub9ac\uc624\uc2a4 \ub124\uc624 16 AI PHN16-73-9797 (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 4420000,
+      "current_price": 4300000,
+      "change": -120000,
+      "change_pct": -2.71
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 934990,
+      "current_price": 959940,
+      "change": 24950,
+      "change_pct": 2.67
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-5600 CL46 \ud30c\uc778\uc778\ud3ec (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 617790,
+      "current_price": 601480,
+      "change": -16310,
+      "change_pct": -2.64
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 842820,
+      "current_price": 820570,
+      "change": -22250,
+      "change_pct": -2.64
+    },
+    {
+      "product": "MSI GF\uc2dc\ub9ac\uc988 \uc18c\ub4dc GF76 A AI B8VF-R7 WIN11 32GB\ub7a8 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1898950,
+      "current_price": 1948800,
+      "change": 49850,
+      "change_pct": 2.63
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5070 INFINITY 3 D7 12GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 966550,
+      "current_price": 991000,
+      "change": 24450,
+      "change_pct": 2.53
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 250K Plus (\uc560\ub85c\uc6b0\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 335000,
+      "current_price": 343490,
+      "change": 8490,
+      "change_pct": 2.53
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c9 \uc2dc\ub9ac\uc9882 285 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 883700,
+      "current_price": 862140,
+      "change": -21560,
+      "change_pct": -2.44
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9A1 M.2NVMe\ubc8c\ud06c (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 207000,
+      "current_price": 202000,
+      "change": -5000,
+      "change_pct": -2.42
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265F (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 490270,
+      "current_price": 501890,
+      "change": 11620,
+      "change_pct": 2.37
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700F (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 427680,
+      "current_price": 437410,
+      "change": 9730,
+      "change_pct": 2.28
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB WHITE \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1508460,
+      "current_price": 1542590,
+      "change": 34130,
+      "change_pct": 2.26
+    },
+    {
+      "product": "TeamGroupDDR5-5600 CL46 Elite \uc11c\ub9b0 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 348870,
+      "current_price": 340990,
+      "change": -7880,
+      "change_pct": -2.26
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 166280,
+      "current_price": 170000,
+      "change": 3720,
+      "change_pct": 2.24
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 250KF Plus (\uc560\ub85c\uc6b0\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 336200,
+      "current_price": 343630,
+      "change": 7430,
+      "change_pct": 2.21
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 968890,
+      "current_price": 990000,
+      "change": 21110,
+      "change_pct": 2.18
+    },
+    {
+      "product": "\ub808\ub178\ubc84 LOQ 15AHP10 R7 5060 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1858050,
+      "current_price": 1817980,
+      "change": -40070,
+      "change_pct": -2.16
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (8TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1731150,
+      "current_price": 1767940,
+      "change": 36790,
+      "change_pct": 2.13
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 460000,
+      "current_price": 469730,
+      "change": 9730,
+      "change_pct": 2.12
+    },
+    {
+      "product": "TeamGroup T-CREATEDDR5-5600 CL46 CLASSIC \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 730790,
+      "current_price": 745970,
+      "change": 15180,
+      "change_pct": 2.08
+    },
+    {
+      "product": "ZOTAC GAMING\uc9c0\ud3ec\uc2a4RTX 5060 Ti Twin Edge OC D7 8GB ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 578590,
+      "current_price": 590530,
+      "change": 11940,
+      "change_pct": 2.06
+    },
+    {
+      "product": "Western Digital WD BLACK SN850X M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 531490,
+      "current_price": 521000,
+      "change": -10490,
+      "change_pct": -1.97
+    },
+    {
+      "product": "Western Digital WD Blue SN5100 M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 309990,
+      "current_price": 304060,
+      "change": -5930,
+      "change_pct": -1.91
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 737920,
+      "current_price": 751930,
+      "change": 14010,
+      "change_pct": 1.9
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWIG-U9 QHD+ WIN11 64GB\ub7a8 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 4503590,
+      "current_price": 4589000,
+      "change": 85410,
+      "change_pct": 1.9
+    },
+    {
+      "product": "Western Digital WD Blue SN5100 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 822000,
+      "current_price": 837650,
+      "change": 15650,
+      "change_pct": 1.9
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWIG-U9 QHD+ WIN11 64GB\ub7a8 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 4642360,
+      "current_price": 4729000,
+      "change": 86640,
+      "change_pct": 1.87
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc38\ub958\ud329 \uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 249370,
+      "current_price": 244700,
+      "change": -4670,
+      "change_pct": -1.87
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c9 \uc2dc\ub9ac\uc9882 285 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 915000,
+      "current_price": 931830,
+      "change": 16830,
+      "change_pct": 1.84
+    },
+    {
+      "product": "ESSENCORE KLEVV CRAS C910G M.2NVMe (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 278070,
+      "current_price": 272980,
+      "change": -5090,
+      "change_pct": -1.83
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-12\uc138\ub300 12700 (\uc5d8\ub354\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 534080,
+      "current_price": 543600,
+      "change": 9520,
+      "change_pct": 1.78
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5080 GAMINGPRO D7 16GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 2006660,
+      "current_price": 2041000,
+      "change": 34340,
+      "change_pct": 1.71
+    },
+    {
+      "product": "GIGABYTE AORUS\uc9c0\ud3ec\uc2a4RTX 5080 MASTER ICE D7 16GB \ud53c\uc528\ub514\ub809\ud2b8 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 2398760,
+      "current_price": 2358990,
+      "change": -39770,
+      "change_pct": -1.66
+    },
+    {
+      "product": "ADATA LEGEND 960 M.2NVMe\ud30c\uc778\uc778\ud3ec (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 359940,
+      "current_price": 354000,
+      "change": -5940,
+      "change_pct": -1.65
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 597750,
+      "current_price": 587990,
+      "change": -9760,
+      "change_pct": -1.63
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400F (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 248700,
+      "current_price": 244700,
+      "change": -4000,
+      "change_pct": -1.61
+    },
+    {
+      "product": "\ud0c0\ubb34\uc988DDR5-5600 CL46 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 295880,
+      "current_price": 291210,
+      "change": -4670,
+      "change_pct": -1.58
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265F (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 502760,
+      "current_price": 510570,
+      "change": 7810,
+      "change_pct": 1.55
+    },
+    {
+      "product": "GIGABYTE\uc9c0\ud3ec\uc2a4RTX 5080 GAMING OC D7 16GB \uc81c\uc774\uc528\ud604 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 2053540,
+      "current_price": 2084900,
+      "change": 31360,
+      "change_pct": 1.53
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 663190,
+      "current_price": 653340,
+      "change": -9850,
+      "change_pct": -1.49
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 288800,
+      "current_price": 293000,
+      "change": 4200,
+      "change_pct": 1.45
+    },
+    {
+      "product": "HP \uc624\uba58 16-ap0074AX (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2935000,
+      "current_price": 2894000,
+      "change": -41000,
+      "change_pct": -1.4
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 CrucialDDR5-5600 CL46 \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 164170,
+      "current_price": 161880,
+      "change": -2290,
+      "change_pct": -1.39
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 245K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 336210,
+      "current_price": 340880,
+      "change": 4670,
+      "change_pct": 1.39
+    },
+    {
+      "product": "MSI \ubca1\ud130 16 HX AI A2XWHG-U7 QHD+ (SSD 512GB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2529000,
+      "current_price": 2494230,
+      "change": -34770,
+      "change_pct": -1.37
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ub178\ud2b8\ubd81DDR5-5600 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 153080,
+      "current_price": 151000,
+      "change": -2080,
+      "change_pct": -1.36
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c7 \uc2dc\ub9ac\uc9882 265F (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c + \ucfe8\ub7ec)",
+      "category": "CPU",
+      "prev_price": 517970,
+      "current_price": 525000,
+      "change": 7030,
+      "change_pct": 1.36
+    },
+    {
+      "product": "\uc778\ud154\ud504\ub85c\uc138\uc11c300 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 140598,
+      "current_price": 142500,
+      "change": 1902,
+      "change_pct": 1.35
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 PM9A1 M.2NVMe\ubc8c\ud06c (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 309000,
+      "current_price": 304900,
+      "change": -4100,
+      "change_pct": -1.33
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1529590,
+      "current_price": 1550000,
+      "change": 20410,
+      "change_pct": 1.33
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-4800 (32GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 584480,
+      "current_price": 592000,
+      "change": 7520,
+      "change_pct": 1.29
+    },
+    {
+      "product": "PALIT\uc9c0\ud3ec\uc2a4RTX 5070 Ti GAMINGPRO-S D7 16GB \uc774\uc5e0\ud14d ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1515030,
+      "current_price": 1534000,
+      "change": 18970,
+      "change_pct": 1.25
+    },
+    {
+      "product": "\uc5d0\uc774\uc11c \ud504\ub808\ub370\ud130 \ud5ec\ub9ac\uc624\uc2a4 \ub124\uc624 16 AI PHN16-73-9797 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 3498890,
+      "current_price": 3459000,
+      "change": -39890,
+      "change_pct": -1.14
+    },
+    {
+      "product": "ADATADDR5-6000 CL30 LANCER BLADE RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1531260,
+      "current_price": 1548410,
+      "change": 17150,
+      "change_pct": 1.12
+    },
+    {
+      "product": "TeamGroup T-CREATEDDR5-5600 CL46 CLASSIC \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1286230,
+      "current_price": 1300000,
+      "change": 13770,
+      "change_pct": 1.07
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL28 URBANE V RGB \ube14\ub799 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 785950,
+      "current_price": 777700,
+      "change": -8250,
+      "change_pct": -1.05
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 CRAS V RGB WHITE \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 767650,
+      "current_price": 760000,
+      "change": -7650,
+      "change_pct": -1.0
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i3-12\uc138\ub300 12100 (\uc5d8\ub354\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 202000,
+      "current_price": 200000,
+      "change": -2000,
+      "change_pct": -0.99
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 225 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 248560,
+      "current_price": 251000,
+      "change": 2440,
+      "change_pct": 0.98
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i7-14\uc138\ub300 14700KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 485640,
+      "current_price": 481970,
+      "change": -3670,
+      "change_pct": -0.76
+    },
+    {
+      "product": "ApacerDDR5-6000 CL38 NOX RGB SILVER \ud328\ud0a4\uc9c0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1187480,
+      "current_price": 1178590,
+      "change": -8890,
+      "change_pct": -0.75
+    },
+    {
+      "product": "Western Digital WD Blue SN5000 M.2NVMe (500GB)",
+      "category": "NVMe SSD",
+      "prev_price": 214460,
+      "current_price": 216010,
+      "change": 1550,
+      "change_pct": 0.72
+    },
+    {
+      "product": "\ub808\ub178\ubc84 LOQ 15AHP10 R7 5060 (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1709920,
+      "current_price": 1697980,
+      "change": -11940,
+      "change_pct": -0.7
+    },
+    {
+      "product": "PATRIOTDDR5-5600 CL46 EVO (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 287790,
+      "current_price": 285980,
+      "change": -1810,
+      "change_pct": -0.63
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900K (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 812370,
+      "current_price": 817500,
+      "change": 5130,
+      "change_pct": 0.63
+    },
+    {
+      "product": "\ub9c8\uc774\ud06c\ub860 Crucial P310 M.2NVMe\ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 (1TB)",
+      "category": "NVMe SSD",
+      "prev_price": 268130,
+      "current_price": 269800,
+      "change": 1670,
+      "change_pct": 0.62
+    },
+    {
+      "product": "ESSENCORE KLEVV CRAS C715 M.2NVMe (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 156990,
+      "current_price": 157960,
+      "change": 970,
+      "change_pct": 0.62
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (\uc218\ub7c9\ubcc4\ubc30\uc1a1\ube44 16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 328240,
+      "current_price": 330000,
+      "change": 1760,
+      "change_pct": 0.54
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 990 PRO M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "prev_price": 1344840,
+      "current_price": 1337980,
+      "change": -6860,
+      "change_pct": -0.51
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 235 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "prev_price": 388580,
+      "current_price": 390540,
+      "change": 1960,
+      "change_pct": 0.5
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 235 (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 405870,
+      "current_price": 403870,
+      "change": -2000,
+      "change_pct": -0.49
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14600KF (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "prev_price": 314220,
+      "current_price": 315720,
+      "change": 1500,
+      "change_pct": 0.48
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL30 FIT V \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 674750,
+      "current_price": 678000,
+      "change": 3250,
+      "change_pct": 0.48
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 317590,
+      "current_price": 318970,
+      "change": 1380,
+      "change_pct": 0.43
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c9 \uc2dc\ub9ac\uc9882 285K (\uc560\ub85c\uc6b0\ub808\uc774\ud06c) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 904270,
+      "current_price": 908000,
+      "change": 3730,
+      "change_pct": 0.41
+    },
+    {
+      "product": "MSI \uc18c\ub4dc GF76 HX B14WFK-i7 QHD (SSD 1TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 1898890,
+      "current_price": 1906140,
+      "change": 7250,
+      "change_pct": 0.38
+    },
+    {
+      "product": "ADATADDR5-6000 CL30 LANCER BLADE RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 746380,
+      "current_price": 748790,
+      "change": 2410,
+      "change_pct": 0.32
+    },
+    {
+      "product": "GeILDDR5-5600 CL46 PRISTINE V (16GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 312980,
+      "current_price": 312000,
+      "change": -980,
+      "change_pct": -0.31
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 432600,
+      "current_price": 433960,
+      "change": 1360,
+      "change_pct": 0.31
+    },
+    {
+      "product": "ApacerDDR5-5200 CL40 NOX RGB BLACK \ud328\ud0a4\uc9c0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1017700,
+      "current_price": 1015000,
+      "change": -2700,
+      "change_pct": -0.27
+    },
+    {
+      "product": "ESSENCORE KLEVVDDR5-6000 CL28 URBANE V RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \uc11c\ub9b0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 779310,
+      "current_price": 777800,
+      "change": -1510,
+      "change_pct": -0.19
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5070 \uac8c\uc774\ubc0d \ud2b8\ub9ac\uc624 OC D7 12GB \ud2b8\ub77c\uc774\ud504\ub85c\uc8384 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "prev_price": 1082960,
+      "current_price": 1085000,
+      "change": 2040,
+      "change_pct": 0.19
+    },
+    {
+      "product": "GeILDDR5-6000 CL38 GEMINI RGB White \ud328\ud0a4\uc9c0 (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 689880,
+      "current_price": 688780,
+      "change": -1100,
+      "change_pct": -0.16
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 861600,
+      "current_price": 862790,
+      "change": 1190,
+      "change_pct": 0.14
+    },
+    {
+      "product": "ApacerDDR5-6000 CL38 NOX RGB BLACK \ud328\ud0a4\uc9c0 (64GB(32Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 1188970,
+      "current_price": 1189990,
+      "change": 1020,
+      "change_pct": 0.09
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (128GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 8719950,
+      "current_price": 8726550,
+      "change": 6600,
+      "change_pct": 0.08
+    },
+    {
+      "product": "Western Digital WD Blue SN5000 M.2NVMe (2TB)",
+      "category": "NVMe SSD",
+      "prev_price": 388520,
+      "current_price": 388370,
+      "change": -150,
+      "change_pct": -0.04
+    },
+    {
+      "product": "ADATADDR5-6000 CL30 LANCER BLADE RGB \ud654\uc774\ud2b8 \ud328\ud0a4\uc9c0 \ud30c\uc778\uc778\ud3ec (32GB(16Gx2))",
+      "category": "DDR5 RAM",
+      "prev_price": 711530,
+      "current_price": 711230,
+      "change": -300,
+      "change_pct": -0.04
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4 \uc6b8\ud2b8\ub77c5 \uc2dc\ub9ac\uc9882 250K Plus (\uc560\ub85c\uc6b0\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "prev_price": 357360,
+      "current_price": 357500,
+      "change": 140,
+      "change_pct": 0.04
+    },
+    {
+      "product": "ADATA LEGEND 900 M.2NVMe\ud30c\uc778\uc778\ud3ec (512GB)",
+      "category": "NVMe SSD",
+      "prev_price": 183950,
+      "current_price": 183900,
+      "change": -50,
+      "change_pct": -0.03
+    },
+    {
+      "product": "G.SKILLDDR5-5600 CL36 FLARE X5 AMD \ube14\ub799 (8GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 222580,
+      "current_price": 222600,
+      "change": 20,
+      "change_pct": 0.01
+    },
+    {
+      "product": "MSI GF\uc2dc\ub9ac\uc988 \uc18c\ub4dc GF76 A AI B8VF-R7 WIN11 32GB\ub7a8 (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "prev_price": 2279040,
+      "current_price": 2279050,
+      "change": 10,
+      "change_pct": 0.0
+    },
+    {
+      "product": "ADATADDR5-5600 CL46-45-45 \ud30c\uc778\uc778\ud3ec (64GB)",
+      "category": "DDR5 RAM",
+      "prev_price": 1359970,
+      "current_price": 1359960,
+      "change": -10,
+      "change_pct": -0.0
+    }
+  ],
+  "anomalies": [
+    {
+      "product": "Sandisk Optimus GX PRO 8100 M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 5084000,
+      "method": "Z-score",
+      "detail": "Z=5.74"
+    },
+    {
+      "product": "Western Digital WD BLACK SN8100 M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 4537150,
+      "method": "Z-score",
+      "detail": "Z=5.03"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 3166990,
+      "method": "Z-score",
+      "detail": "Z=3.26"
+    },
+    {
+      "product": "G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB J \ud328\ud0a4\uc9c0 (256GB(64Gx4))",
+      "category": "DDR5 RAM",
+      "price": 11078660,
+      "method": "Z-score",
+      "detail": "Z=6.66"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (128GB)",
+      "category": "DDR5 RAM",
+      "price": 8726550,
+      "method": "Z-score",
+      "detail": "Z=5.12"
+    },
+    {
+      "product": "ASUS ROG Astral\uc9c0\ud3ec\uc2a4RTX 5090 BTF OC D7 32GB \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 6900000,
+      "method": "Z-score",
+      "detail": "Z=3.21"
+    },
+    {
+      "product": "GIGABYTE AORUS\uc9c0\ud3ec\uc2a4RTX 5090 MASTER D7 32GB \uc81c\uc774\uc528\ud604 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 6789760,
+      "method": "Z-score",
+      "detail": "Z=3.14"
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5090 \uc288\ud504\ub9bc SOC D7 32GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 7298990,
+      "method": "Z-score",
+      "detail": "Z=3.44"
+    },
+    {
+      "product": "GIGABYTE AORUS MASTER 18 BZHC6 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7058000,
+      "method": "Z-score",
+      "detail": "Z=2.63"
+    },
+    {
+      "product": "MSI \ub808\uc774\ub354 16 Max HX B2WI-U9+ QHD+ OLED W11 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7394120,
+      "method": "Z-score",
+      "detail": "Z=2.84"
+    },
+    {
+      "product": "MSI \ud0c0\uc774\ud0c4 18 HX AI A2WJ-U9+ UHD+ Mini LED W11 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 9329000,
+      "method": "Z-score",
+      "detail": "Z=4.10"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7779000,
+      "method": "Z-score",
+      "detail": "Z=3.09"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 9830000,
+      "method": "Z-score",
+      "detail": "Z=4.43"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (\uc0bc\uc131 20% \ud658\uae09)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7779000,
+      "method": "Z-score",
+      "detail": "Z=3.09"
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "price": 1058000,
+      "method": "Z-score",
+      "detail": "Z=2.61"
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "price": 1368960,
+      "method": "Z-score",
+      "detail": "Z=3.86"
+    },
+    {
+      "product": "Sandisk Extreme PortableSSDV2 E61 (8TB)",
+      "category": "NVMe SSD",
+      "price": 1767940,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Sandisk Optimus GX PRO 8100 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "price": 2543000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Sandisk Optimus GX PRO 8100 M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 5084000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Seagate \ud30c\uc774\uc5b4\ucfe0\ub2e4 X1070 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "price": 1823040,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Western Digital WD BLACK SN8100 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "price": 1818000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Western Digital WD BLACK SN8100 M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 4537150,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Western Digital WD BLACK SN850P \ud788\ud2b8\uc2f1\ud06c for PS5 M.2NVMe\ud574\uc678\uad6c\ub9e4 (8TB)",
+      "category": "NVMe SSD",
+      "price": 1898200,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "Western Digital WD BLACK SN850X M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 2183130,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "price": 1785890,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (8TB)",
+      "category": "NVMe SSD",
+      "price": 3166990,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (4TB)",
+      "category": "NVMe SSD",
+      "price": 1513840,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT9 (4TB)",
+      "category": "NVMe SSD",
+      "price": 1456960,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (4TB)",
+      "category": "NVMe SSD",
+      "price": 2199990,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -417,985~1,341,975"
+    },
+    {
+      "product": "G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB J \ud328\ud0a4\uc9c0 (256GB(64Gx4))",
+      "category": "DDR5 RAM",
+      "price": 11078660,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -722,012~2,027,208"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (128GB)",
+      "category": "DDR5 RAM",
+      "price": 8726550,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -722,012~2,027,208"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (64GB)",
+      "category": "DDR5 RAM",
+      "price": 3674990,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -722,012~2,027,208"
+    },
+    {
+      "product": "ASUS ROG Astral\uc9c0\ud3ec\uc2a4RTX 5090 BTF OC D7 32GB \ub300\uc6d0\uc528\ud2f0\uc5d0\uc2a4 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 6900000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -852,210~3,007,010"
+    },
+    {
+      "product": "GIGABYTE AORUS\uc9c0\ud3ec\uc2a4RTX 5090 MASTER D7 32GB \uc81c\uc774\uc528\ud604 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 6789760,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -852,210~3,007,010"
+    },
+    {
+      "product": "MSI\uc9c0\ud3ec\uc2a4RTX 5090 \uc288\ud504\ub9bc SOC D7 32GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()",
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "price": 7298990,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -852,210~3,007,010"
+    },
+    {
+      "product": "GIGABYTE AORUS MASTER 18 BZHC6 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 6399000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "GIGABYTE AORUS MASTER 18 BZHC6 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7058000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "MSI \ub808\uc774\ub354 16 Max HX B2WI-U9+ QHD+ OLED W11 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 6552390,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "MSI \ub808\uc774\ub354 16 Max HX B2WI-U9+ QHD+ OLED W11 (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7394120,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "MSI \ud0c0\uc774\ud0c4 18 HX AI A2WJ-U9+ UHD+ Mini LED W11 (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 9329000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd814 \uc6b8\ud2b8\ub77c NT960XGL-X94A (SSD 3TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 5985000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd814 \uc6b8\ud2b8\ub77c NT960XGL-X94A (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 6133280,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X72A (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 6097990,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (SSD 2TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7779000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (SSD 4TB)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 9830000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc0bc\uc131\uc804\uc790 \uac24\ub7ed\uc2dc\ubd816 \uc6b8\ud2b8\ub77c NT960UJH-X94A (\uc0bc\uc131 20% \ud658\uae09)",
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "price": 7779000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -458,260~5,975,580"
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)",
+      "category": "CPU",
+      "price": 1000000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -214,126~947,044"
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\uc815\ud488)",
+      "category": "CPU",
+      "price": 1058000,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -214,126~947,044"
+    },
+    {
+      "product": "\uc778\ud154 \ucf54\uc5b4i9-14\uc138\ub300 14900KS (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ud574\uc678\uad6c\ub9e4)",
+      "category": "CPU",
+      "price": 1368960,
+      "method": "IQR",
+      "detail": "\ubc94\uc704 -214,126~947,044"
+    }
+  ],
+  "trend_summary": [
+    {
+      "category": "NVMe SSD",
+      "direction": "up",
+      "change_pct": 15.74,
+      "first_price": 553555.2586206896,
+      "last_price": 640701.1570247934,
+      "period": "2026-03-30 \u2192 2026-06-22"
+    },
+    {
+      "category": "DDR5 RAM",
+      "direction": "up",
+      "change_pct": 8.3,
+      "first_price": 878004.1176470588,
+      "last_price": 950921.4285714285,
+      "period": "2026-03-30 \u2192 2026-06-22"
+    },
+    {
+      "category": "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+      "direction": "up",
+      "change_pct": 10.75,
+      "first_price": 2725678.7134502926,
+      "last_price": 3018627.076023392,
+      "period": "2026-03-30 \u2192 2026-06-22"
+    },
+    {
+      "category": "\uadf8\ub798\ud53d\uce74\ub4dc",
+      "direction": "up",
+      "change_pct": 3.83,
+      "first_price": 1441499.75,
+      "last_price": 1496693.75,
+      "period": "2026-03-30 \u2192 2026-06-22"
+    },
+    {
+      "category": "CPU",
+      "direction": "up",
+      "change_pct": 6.18,
+      "first_price": 388392.1875,
+      "last_price": 412409.4029850746,
+      "period": "2026-03-30 \u2192 2026-06-22"
+    }
+  ],
+  "report_markdown": "# Market Pulse \ub9ac\ud3ec\ud2b8\n\n**\uc0dd\uc131\uc77c:** 2026-06-22 16:37:12\n**\uc2e4\ud589 ID:** 20260622_163651\n**\uc18c\uc694\uc2dc\uac04:** 0.0\ucd08\n\n## \ud83d\udcca \uc694\uc57d\n- **\uac00\uaca9 \ub370\uc774\ud130:** 4886\uac1c (\uc2e0\uaddc: 550\uac1c)\n- **\ub274\uc2a4 \ub370\uc774\ud130:** 487\uac1c (\uc2e0\uaddc: 23\uac1c)\n- **\uce74\ud14c\uace0\ub9ac:** NVMe SSD, DDR5 RAM, \uac8c\uc774\ubc0d \ub178\ud2b8\ubd81, \uadf8\ub798\ud53d\uce74\ub4dc, CPU\n- **\ucd1d \uc0c1\ud488:** 4886\uac1c\n\n## \ud83d\udcc8 \uac00\uaca9 \ubcc0\ub3d9 (327\uac1c)\n- **\uc778\uc0c1:** 191\uac1c\n- **\uc778\ud558:** 136\uac1c\n\n### TOP 5 \uc778\uc0c1\n- **\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (4TB)** (NVMe SSD)\n  768,950\uc6d0 \u2192 1,513,840\uc6d0 (+96.87%)\n- **G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB** (DDR5 RAM)\n  5,850,000\uc6d0 \u2192 11,078,660\uc6d0 (+89.38%)\n- **\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (4TB)** (NVMe SSD)\n  1,199,000\uc6d0 \u2192 2,199,990\uc6d0 (+83.49%)\n- **\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (2TB)** (NVMe SSD)\n  635,000\uc6d0 \u2192 1,100,000\uc6d0 (+73.23%)\n- **\uc0bc\uc131\uc804\uc790 990 EVO Plus M.2NVMe (4TB)** (NVMe SSD)\n  746,180\uc6d0 \u2192 1,122,400\uc6d0 (+50.42%)\n\n### TOP 5 \uc778\ud558\n- **\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (500GB)** (NVMe SSD)\n  1,900,000\uc6d0 \u2192 399,000\uc6d0 (-79.00%)\n- **SK\ud558\uc774\ub2c9\uc2a4 Gold P31 M.2NVMe (500GB)** (NVMe SSD)\n  800,000\uc6d0 \u2192 375,000\uc6d0 (-53.12%)\n- **\uc0bc\uc131\uc804\uc790DDR5-4800 (16GB)** (DDR5 RAM)\n  417,180\uc6d0 \u2192 309,000\uc6d0 (-25.93%)\n- **\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)** (CPU)\n  330,580\uc6d0 \u2192 245,550\uc6d0 (-25.72%)\n- **\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec** (CPU)\n  344,650\uc6d0 \u2192 259,270\uc6d0 (-24.77%)\n\n## \u26a0\ufe0f \uc774\uc0c1\uce58 (49\uac1c)\n\n- **Sandisk Optimus GX PRO 8100 M.2NVMe (8TB** (NVMe SSD)\n  \uac00\uaca9: 5,084,000\uc6d0 | \ubc29\ubc95: Z-score (Z=5.74)\n- **Western Digital WD BLACK SN8100 M.2NVMe ** (NVMe SSD)\n  \uac00\uaca9: 4,537,150\uc6d0 | \ubc29\ubc95: Z-score (Z=5.03)\n- **\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (8TB)** (NVMe SSD)\n  \uac00\uaca9: 3,166,990\uc6d0 | \ubc29\ubc95: Z-score (Z=3.26)\n- **G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB** (DDR5 RAM)\n  \uac00\uaca9: 11,078,660\uc6d0 | \ubc29\ubc95: Z-score (Z=6.66)\n- **\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (128GB)** (DDR5 RAM)\n  \uac00\uaca9: 8,726,550\uc6d0 | \ubc29\ubc95: Z-score (Z=5.12)\n- **ASUS ROG Astral\uc9c0\ud3ec\uc2a4RTX 5090 BTF OC D7 32G** (\uadf8\ub798\ud53d\uce74\ub4dc)\n  \uac00\uaca9: 6,900,000\uc6d0 | \ubc29\ubc95: Z-score (Z=3.21)\n- **GIGABYTE AORUS\uc9c0\ud3ec\uc2a4RTX 5090 MASTER D7 32GB** (\uadf8\ub798\ud53d\uce74\ub4dc)\n  \uac00\uaca9: 6,789,760\uc6d0 | \ubc29\ubc95: Z-score (Z=3.14)\n- **MSI\uc9c0\ud3ec\uc2a4RTX 5090 \uc288\ud504\ub9bc SOC D7 32GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()** (\uadf8\ub798\ud53d\uce74\ub4dc)\n  \uac00\uaca9: 7,298,990\uc6d0 | \ubc29\ubc95: Z-score (Z=3.44)\n- **GIGABYTE AORUS MASTER 18 BZHC6 (SSD 4TB)** (\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81)\n  \uac00\uaca9: 7,058,000\uc6d0 | \ubc29\ubc95: Z-score (Z=2.63)\n- **MSI \ub808\uc774\ub354 16 Max HX B2WI-U9+ QHD+ OLED W11** (\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81)\n  \uac00\uaca9: 7,394,120\uc6d0 | \ubc29\ubc95: Z-score (Z=2.84)\n\n## \ud83d\udcc8 \uce74\ud14c\uace0\ub9ac \ud2b8\ub80c\ub4dc\n\n- \ud83d\udcc8 **NVMe SSD**: 553,555\uc6d0 \u2192 640,701\uc6d0 (+15.74%)\n- \ud83d\udcc8 **DDR5 RAM**: 878,004\uc6d0 \u2192 950,921\uc6d0 (+8.30%)\n- \ud83d\udcc8 **\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81**: 2,725,679\uc6d0 \u2192 3,018,627\uc6d0 (+10.75%)\n- \ud83d\udcc8 **\uadf8\ub798\ud53d\uce74\ub4dc**: 1,441,500\uc6d0 \u2192 1,496,694\uc6d0 (+3.83%)\n- \ud83d\udcc8 **CPU**: 388,392\uc6d0 \u2192 412,409\uc6d0 (+6.18%)\n",
+  "report_html": "\n<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Market Pulse Report</title>\n    <style>\n        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; }\n        h1 { color: #2c3e50; } h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 5px; }\n        .summary { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }\n        .up { color: #e74c3c; } .down { color: #27ae60; }\n    </style>\n</head>\n<body>\n    <h1 style='color:#333;'>Market Pulse \ub9ac\ud3ec\ud2b8<br>\n<br>\n<b>\uc0dd\uc131\uc77c:<b> 2026-06-22 16:37:12<br>\n<b>\uc2e4\ud589 ID:<b> 20260622_163651<br>\n<b>\uc18c\uc694\uc2dc\uac04:<b> 0.0\ucd08<br>\n<br>\n#<h1 style='color:#333;'>\ud83d\udcca \uc694\uc57d<br>\n<li><b>\uac00\uaca9 \ub370\uc774\ud130:<b> 4886\uac1c (\uc2e0\uaddc: 550\uac1c)<br>\n<li><b>\ub274\uc2a4 \ub370\uc774\ud130:<b> 487\uac1c (\uc2e0\uaddc: 23\uac1c)<br>\n<li><b>\uce74\ud14c\uace0\ub9ac:<b> NVMe SSD, DDR5 RAM, \uac8c\uc774\ubc0d \ub178\ud2b8\ubd81, \uadf8\ub798\ud53d\uce74\ub4dc, CPU<br>\n<li><b>\ucd1d \uc0c1\ud488:<b> 4886\uac1c<br>\n<br>\n#<h1 style='color:#333;'>\ud83d\udcc8 \uac00\uaca9 \ubcc0\ub3d9 (327\uac1c)<br>\n<li><b>\uc778\uc0c1:<b> 191\uac1c<br>\n<li><b>\uc778\ud558:<b> 136\uac1c<br>\n<br>\n##<h1 style='color:#333;'>TOP 5 \uc778\uc0c1<br>\n<li><b>\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (4TB)<b> (NVMe SSD)<br>\n  768,950\uc6d0 \u2192 1,513,840\uc6d0 (+96.87%)<br>\n<li><b>G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB<b> (DDR5 RAM)<br>\n  5,850,000\uc6d0 \u2192 11,078,660\uc6d0 (+89.38%)<br>\n<li><b>\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (4TB)<b> (NVMe SSD)<br>\n  1,199,000\uc6d0 \u2192 2,199,990\uc6d0 (+83.49%)<br>\n<li><b>\ud0a4\uc624\uc2dc\uc544 EXCERIA PRO G2 M.2NVMe (2TB)<b> (NVMe SSD)<br>\n  635,000\uc6d0 \u2192 1,100,000\uc6d0 (+73.23%)<br>\n<li><b>\uc0bc\uc131\uc804\uc790 990 EVO Plus M.2NVMe (4TB)<b> (NVMe SSD)<br>\n  746,180\uc6d0 \u2192 1,122,400\uc6d0 (+50.42%)<br>\n<br>\n##<h1 style='color:#333;'>TOP 5 \uc778\ud558<br>\n<li><b>\uc0bc\uc131\uc804\uc790 \ud3ec\ud130\ube14SSDT7 (500GB)<b> (NVMe SSD)<br>\n  1,900,000\uc6d0 \u2192 399,000\uc6d0 (-79.00%)<br>\n<li><b>SK\ud558\uc774\ub2c9\uc2a4 Gold P31 M.2NVMe (500GB)<b> (NVMe SSD)<br>\n  800,000\uc6d0 \u2192 375,000\uc6d0 (-53.12%)<br>\n<li><b>\uc0bc\uc131\uc804\uc790DDR5-4800 (16GB)<b> (DDR5 RAM)<br>\n  417,180\uc6d0 \u2192 309,000\uc6d0 (-25.93%)<br>\n<li><b>\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c)<b> (CPU)<br>\n  330,580\uc6d0 \u2192 245,550\uc6d0 (-25.72%)<br>\n<li><b>\uc778\ud154 \ucf54\uc5b4i5-14\uc138\ub300 14400 (\ub7a9\ud130\ub808\uc774\ud06c \ub9ac\ud504\ub808\uc2dc) (\ubc8c\ud06c + \ucfe8\ub7ec<b> (CPU)<br>\n  344,650\uc6d0 \u2192 259,270\uc6d0 (-24.77%)<br>\n<br>\n#<h1 style='color:#333;'>\u26a0\ufe0f \uc774\uc0c1\uce58 (49\uac1c)<br>\n<br>\n<li><b>Sandisk Optimus GX PRO 8100 M.2NVMe (8TB<b> (NVMe SSD)<br>\n  \uac00\uaca9: 5,084,000\uc6d0 | \ubc29\ubc95: Z-score (Z=5.74)<br>\n<li><b>Western Digital WD BLACK SN8100 M.2NVMe <b> (NVMe SSD)<br>\n  \uac00\uaca9: 4,537,150\uc6d0 | \ubc29\ubc95: Z-score (Z=5.03)<br>\n<li><b>\uc0bc\uc131\uc804\uc790 9100 PRO M.2NVMe (8TB)<b> (NVMe SSD)<br>\n  \uac00\uaca9: 3,166,990\uc6d0 | \ubc29\ubc95: Z-score (Z=3.26)<br>\n<li><b>G.SKILLDDR5-6000 CL36 TRIDENT Z5 NEO RGB<b> (DDR5 RAM)<br>\n  \uac00\uaca9: 11,078,660\uc6d0 | \ubc29\ubc95: Z-score (Z=6.66)<br>\n<li><b>\uc0bc\uc131\uc804\uc790DDR5-5600 ECC/REG (128GB)<b> (DDR5 RAM)<br>\n  \uac00\uaca9: 8,726,550\uc6d0 | \ubc29\ubc95: Z-score (Z=5.12)<br>\n<li><b>ASUS ROG Astral\uc9c0\ud3ec\uc2a4RTX 5090 BTF OC D7 32G<b> (\uadf8\ub798\ud53d\uce74\ub4dc)<br>\n  \uac00\uaca9: 6,900,000\uc6d0 | \ubc29\ubc95: Z-score (Z=3.21)<br>\n<li><b>GIGABYTE AORUS\uc9c0\ud3ec\uc2a4RTX 5090 MASTER D7 32GB<b> (\uadf8\ub798\ud53d\uce74\ub4dc)<br>\n  \uac00\uaca9: 6,789,760\uc6d0 | \ubc29\ubc95: Z-score (Z=3.14)<br>\n<li><b>MSI\uc9c0\ud3ec\uc2a4RTX 5090 \uc288\ud504\ub9bc SOC D7 32GB \ud558\uc774\ud37c\ud504\ub85c\uc838 ()<b> (\uadf8\ub798\ud53d\uce74\ub4dc)<br>\n  \uac00\uaca9: 7,298,990\uc6d0 | \ubc29\ubc95: Z-score (Z=3.44)<br>\n<li><b>GIGABYTE AORUS MASTER 18 BZHC6 (SSD 4TB)<b> (\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81)<br>\n  \uac00\uaca9: 7,058,000\uc6d0 | \ubc29\ubc95: Z-score (Z=2.63)<br>\n<li><b>MSI \ub808\uc774\ub354 16 Max HX B2WI-U9+ QHD+ OLED W11<b> (\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81)<br>\n  \uac00\uaca9: 7,394,120\uc6d0 | \ubc29\ubc95: Z-score (Z=2.84)<br>\n<br>\n#<h1 style='color:#333;'>\ud83d\udcc8 \uce74\ud14c\uace0\ub9ac \ud2b8\ub80c\ub4dc<br>\n<br>\n<li>\ud83d\udcc8 <b>NVMe SSD<b>: 553,555\uc6d0 \u2192 640,701\uc6d0 (+15.74%)<br>\n<li>\ud83d\udcc8 <b>DDR5 RAM<b>: 878,004\uc6d0 \u2192 950,921\uc6d0 (+8.30%)<br>\n<li>\ud83d\udcc8 <b>\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81<b>: 2,725,679\uc6d0 \u2192 3,018,627\uc6d0 (+10.75%)<br>\n<li>\ud83d\udcc8 <b>\uadf8\ub798\ud53d\uce74\ub4dc<b>: 1,441,500\uc6d0 \u2192 1,496,694\uc6d0 (+3.83%)<br>\n<li>\ud83d\udcc8 <b>CPU<b>: 388,392\uc6d0 \u2192 412,409\uc6d0 (+6.18%)<br>\n\n</body>\n</html>\n",
+  "report_path": "C:\\Users\\sangh\\Desktop\\Code\\market-pulse\\reports\\report_20260622_163651.md",
+  "duration_seconds": 20.692717,
+  "categories": [
+    "NVMe SSD",
+    "DDR5 RAM",
+    "\uac8c\uc774\ubc0d \ub178\ud2b8\ubd81",
+    "\uadf8\ub798\ud53d\uce74\ub4dc",
+    "CPU"
+  ],
+  "total_products": 4886
+}

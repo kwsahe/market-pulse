@@ -64,21 +64,35 @@ python workflow/main.py
 
 ### **2. 대시보드 실행**
 
-Streamlit 웹 대시보드에서 워크플로우 제어 및 리포트 조회:
+두 가지 대시보드가 있습니다:
+
+#### **A. 데이터 분석 대시보드** (실시간 조회)
+수집된 데이터를 직접 조회하고 ML 분석 결과를 시각화합니다.
+
+```bash
+# Windows
+run_data_dashboard.bat
+
+# 또는 직접
+streamlit run dashboard/app.py --server.port 8410
+```
+- **포트**: http://localhost:8410
+- **용도**: 특정 상품 가격 추이 조회, 이상치 상세 분석, ML 예측 결과 확인
+- **전제 조건**: `run_scrapers.bat` 로 데이터를 먼저 수집해야 함
+
+#### **B. 워크플로우 제어 대시보드** (자동화)
+워크플로우 실행, 리포트 생성 및 관리를 합니다.
 
 ```bash
 # Windows
 run_dashboard.bat
 
 # 또는 직접
-streamlit run workflow_dashboard/app.py
+streamlit run workflow_dashboard/app.py --server.port 8420
 ```
-
-**대시보드 기능:**
-- 🚀 워크플로우 즉시 실행
-- 📊 실시간 진행 상황 모니터링
-- 📁 이전 리포트 조회
-- 📥 리포트 다운로드
+- **포트**: http://localhost:8420
+- **용도**: 자동 리포트 생성, 과거 리포트 조회, 워크플로우 상태 모니터링
+- **전제 조건**: 별도 데이터 수집 불필요 (워크플로우가 자동 수행)
 
 ---
 
@@ -87,6 +101,8 @@ streamlit run workflow_dashboard/app.py
 ```bash
 run_scrapers.bat
 ```
+- **용도**: 데이터만 수집하고 분석/리포트는 수동으로 진행할 때
+- **다음 단계**: `dashboard/app.py` 에서 데이터 조회
 
 ---
 
