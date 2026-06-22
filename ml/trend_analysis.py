@@ -2,20 +2,11 @@
 # 카테고리별 가격 추이 분석 모듈
 
 import pandas as pd
-import sqlite3
 import os
+import sys
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
-def load_prices():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT date, category, product, price FROM prices ORDER BY date",
-        conn
-    )
-    conn.close()
-    return df
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database.db_manager import load_prices
 
 
 def get_price_trend(df):

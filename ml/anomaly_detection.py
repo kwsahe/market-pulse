@@ -4,24 +4,11 @@
 # 방법 2: IQR — 사분위 범위 기반 (더 안정적)
 
 import pandas as pd
-import sqlite3
-import os
 import sys
+import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
-def load_prices():
-    """DB에서 가격 데이터를 DataFrame으로 불러오기"""
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT date, category, product, price, specs, image_url FROM prices",
-        conn
-    )
-    conn.close()
-    return df
+from database.db_manager import load_prices
 
 
 # ============================

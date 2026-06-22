@@ -10,7 +10,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database.db_manager import init_db, insert_many_prices
+from database.db_manager import init_db, insert_many_prices, load_prices
 
 # ============================
 # 1단계: DB 초기화
@@ -112,17 +112,17 @@ def extract_variants(parent):
 for category, query in CATEGORIES.items():
     url = f"https://search.danawa.com/dsearch.php?query={query}"
     print(f"\n{'='*60}")
-    print(f"📦 [{category}] 수집 중...")
+    print(f"[+] [{category}] 수집 중...")
     print(f"{'='*60}")
 
     try:
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.exceptions.Timeout:
-        print(f"⚠️ [{category}] 요청 시간 초과 (15초). 건너뜁니다.")
+        print(f"[!] [{category}] 요청 시간 초과 (15초). 건너뜁니다.")
         continue
     except requests.exceptions.RequestException as e:
-        print(f"⚠️ [{category}] 네트워크 오류: {e}. 건너뜁니다.")
+        print(f"[!] [{category}] 네트워크 오류: {e}. 건너뜁니다.")
         continue
 
     print(f"   응답: {response.status_code}")
@@ -147,7 +147,8 @@ for category, query in CATEGORIES.items():
                 for mem_text, var_price in variants:
                     full_name = f"{product} ({mem_text})"
                     print(f"{i+1}. {full_name}")
-                    print(f"   가격: {var_price:,}원 | 이미지: {'✅' if img_url else '❌'}")
+                    img_status = "OK" if img_url else "NO"
+                    print(f"   가격: {var_price:,}원 | 이미지: {img_status}")
                     data_list.append((today, category, full_name, var_price, specs, img_url))
             else:
                 price_tag = block.find("a", class_="click_log_product_standard_price_")
@@ -159,13 +160,14 @@ for category, query in CATEGORIES.items():
                 except ValueError:
                     continue
                 print(f"{i+1}. {product}")
-                print(f"   가격: {cost_num:,}원 | 이미지: {'✅' if img_url else '❌'}")
+                img_status = "OK" if img_url else "NO"
+                print(f"   가격: {cost_num:,}원 | 이미지: {img_status}")
                 data_list.append((today, category, product, cost_num, specs, img_url))
 
             if specs:
                 print(f"   스펙: {specs[:80]}...")
         except Exception as e:
-            print(f"   ⚠️ 상품 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
+            print(f"   [!] 상품 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
             continue
 
     # DB 저장 (중복 무시)
@@ -173,10 +175,10 @@ for category, query in CATEGORIES.items():
         new_count = insert_many_prices(data_list)
         total_count += len(data_list)
         total_new += new_count
-        print(f"\n✅ [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 중복 건너뜀: {len(data_list) - new_count}개")
     else:
-        print(f"\n⚠️ [{category}] 수집된 상품이 없어요.")
+        print(f"\n[!] [{category}] 수집된 상품이 없어요.")
 
 print(f"\n{'='*60}")
-print(f"🎉 전체 수집: {total_count}개 | 신규 저장: {total_new}개 | 중복 건너뜀: {total_count - total_new}개")
+print(f"[OK] 전체 수집: {total_count}개 | 신규 저장: {total_new}개 | 중복 건너뜀: {total_count - total_new}개")
 print(f"{'='*60}")

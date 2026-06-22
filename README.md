@@ -1,196 +1,243 @@
 # 📊 Market Pulse
 
-게이밍 노트북 & PC 부품 가격 자동 수집 · ML 분석 · IT 뉴스 대시보드
+게이밍 노트북 & PC 부품 가격 자동 수집 · ML 분석 · **LangGraph 기반 자동 리포트** · IT 뉴스 대시보드
 
 ---
 
-## 스크린샷
-
-### 메인 대시보드 — 전체 요약
-
-![대시보드 전체](screenshots/readme_01_overview.png)
-
-### 카테고리별 상품 뷰 (최신 수집일 기준)
-
-![NVMe SSD](screenshots/readme_02_nvme_ssd.png)
-
-### 가격 변동 리포트
-
-![가격 변동](screenshots/readme_07_price_change.png)
-
-### 이상치 탐지
-
-![이상치](screenshots/readme_08_anomaly.png)
-
-### 가격 예측 (ML)
-
-![가격 예측](screenshots/readme_09_prediction.png)
-
-### IT/과학 뉴스
-
-![뉴스](screenshots/readme_10_news.png)
-
----
-
-## 프로젝트 소개
-
-다나와에서 게이밍 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU 가격을 매일 자동으로 수집하고, 네이버 IT/과학 뉴스를 모아 하나의 대시보드에서 확인할 수 있는 시스템입니다.
-
-데이터가 쌓일수록 가격 추이 분석, 이상치 탐지, 가격 예측 정확도가 높아집니다.
-
-## 주요 기능
+## 🚀 주요 기능
 
 | 기능 | 설명 |
 |------|------|
-| **가격 자동 수집** | 다나와 5개 카테고리 상품 가격·스펙·이미지 수집 |
-| **뉴스 자동 수집** | 네이버 IT/과학 섹션 뉴스 제목·언론사·발행시간 수집 |
-| **중복 방지** | 같은 날 같은 상품은 한 번만 저장 (`INSERT OR IGNORE`) |
-| **이상치 탐지** | Z-score · IQR 두 가지 통계 방법으로 비정상 가격 감지 |
-| **가격 변동 감지** | 전날 대비 인상/인하 상품 자동 리포트 |
-| **가격 예측** | 스펙 기반 ML 모델로 적정 가격 예측 (Linear Regression / Random Forest) |
-| **트렌드 분석** | 카테고리별 날짜별 평균가 추이 · 전체 방향 요약 |
-| **대시보드** | Streamlit 웹 대시보드에서 모든 데이터를 시각적으로 확인 |
+| **자동 데이터 수집** | 다나와 5 개 카테고리 + 네이버 뉴스 매일 자동 수집 |
+| **LangGraph 워크플로우** | 체크포인트, 재시도, 상태 추적 가능한 자동화 파이프라인 |
+| **실시간 대시보드** | 워크플로우 실행/모니터링 및 리포트 조회 (Streamlit) |
+| **이상치 탐지** | Z-score · IQR 통계 기반으로 비정상 가격 감지 |
+| **가격 변동 리포트** | 전날 대비 인상/인하 상품 자동 분석 |
+| **가격 예측 (ML)** | 스펙 기반 Linear Regression / Random Forest |
+| **트렌드 분석** | 카테고리별 평균가 추이 및 상승/하락 방향 |
+| **자동 리포트 생성** | Markdown + HTML 형식으로 매일 자동 저장 |
 
-## 수집 카테고리
+---
 
-| 카테고리 | 수집 항목 | 출처 |
-|---------|----------|------|
-| 게이밍 노트북 | 가격, SSD 용량별 변형, 스펙, 이미지 | 다나와 |
-| DDR5 RAM | 가격, 용량별 변형, 클럭/타이밍, 이미지 | 다나와 |
-| NVMe SSD | 가격, 용량별 변형, 읽기/쓰기 속도, 이미지 | 다나와 |
-| 그래픽카드 | 가격, GPU 모델, VRAM, 이미지 | 다나와 |
-| CPU | 가격, 정품/벌크 변형, 코어/클럭, 이미지 | 다나와 |
-| IT 뉴스 | 제목, 언론사, 발행시간 | 네이버 뉴스 |
-
-## 기술 스택
-
-| 역할 | 도구 |
-|------|------|
-| 스크래핑 | Python, requests, BeautifulSoup |
-| 데이터 저장 | SQLite |
-| ML 분석 | scikit-learn, pandas, numpy, scipy |
-| 대시보드 | Streamlit |
-| 자동화 | Windows 작업 스케줄러 + bat |
-
-## 프로젝트 구조
-
-```
-market-pulse/
-├── README.md
-├── requirements.txt
-├── run_scrapers.bat          # 자동 실행 배치 파일
-├── scraper/
-│   ├── price_scraper.py      # 다나와 가격/스펙/이미지 수집
-│   └── news_scraper.py       # 네이버 뉴스 수집
-├── database/
-│   ├── db_manager.py         # DB 초기화 및 관리
-│   └── data.db               # SQLite DB (gitignore)
-├── ml/
-│   ├── anomaly_detection.py  # 이상치 탐지 (Z-score, IQR)
-│   ├── price_change.py       # 가격 변동 감지
-│   ├── price_prediction.py   # 스펙 기반 가격 예측
-│   └── trend_analysis.py     # 날짜별 가격 추이 분석
-└── dashboard/
-    └── app.py                # Streamlit 대시보드
-```
-
-## 설치 방법
+## 📦 설치 방법
 
 ```bash
 # 레포지토리 클론
-git clone https://github.com/유저명/market-pulse.git
+git clone https://github.com/your-username/market-pulse.git
 cd market-pulse
 
-# 라이브러리 설치
+# 의존성 설치
 pip install -r requirements.txt
 ```
 
-## 사용 방법
+---
 
-### 1. 데이터 수집
+## 🎮 사용 방법
+
+### **1. 자동 리포트 생성 (추천)**
+
+LangGraph 워크플로우로 한 번에 실행:
 
 ```bash
-# DB 초기화 (최초 1회)
-python database/db_manager.py
+# Windows
+run_workflow.bat
 
-# 가격 수집
-python scraper/price_scraper.py
+# 또는 직접
+python workflow/main.py
+```
 
-# 뉴스 수집
-python scraper/news_scraper.py
+**실행 흐름:**
+1. DB 초기화
+2. 가격 데이터 수집 (다나와)
+3. 뉴스 데이터 수집 (네이버)
+4. 가격 변동 분석
+5. 이상치 탐지
+6. 트렌드 분석
+7. 리포트 생성 (Markdown + HTML)
 
-# 또는 배치 파일로 한번에
+**결과:**
+- `reports/report_YYYYMMDD_HHMMSS.md`
+- `reports/report_YYYYMMDD_HHMMSS.html`
+- `workflow_checkpoints/` (중간 상태 저장)
+
+---
+
+### **2. 대시보드 실행**
+
+Streamlit 웹 대시보드에서 워크플로우 제어 및 리포트 조회:
+
+```bash
+# Windows
+run_dashboard.bat
+
+# 또는 직접
+streamlit run workflow_dashboard/app.py
+```
+
+**대시보드 기능:**
+- 🚀 워크플로우 즉시 실행
+- 📊 실시간 진행 상황 모니터링
+- 📁 이전 리포트 조회
+- 📥 리포트 다운로드
+
+---
+
+### **3. 기존 스크래퍼만 실행**
+
+```bash
 run_scrapers.bat
 ```
 
-### 2. ML 분석 (단독 실행)
+---
+
+### **4. ML 분석만 실행**
 
 ```bash
 # 이상치 탐지
 python ml/anomaly_detection.py
 
-# 가격 변동 리포트 (2일 이상 데이터 필요)
+# 가격 변동
 python ml/price_change.py
 
-# 가격 예측 모델
+# 가격 예측
 python ml/price_prediction.py
 
-# 추이 분석
+# 트렌드 분석
 python ml/trend_analysis.py
 ```
 
-### 3. 대시보드 실행
+---
 
-```bash
-python -m streamlit run dashboard/app.py
-```
+## 📊 수집 카테고리
 
-브라우저에서 `http://localhost:8501`로 접속하면 대시보드를 볼 수 있습니다.
+| 카테고리 | 수집 항목 |
+|---------|----------|
+| 게이밍 노트북 | 가격, SSD 용량, 스펙, 이미지 |
+| DDR5 RAM | 가격, 용량, 클럭, 타이밍 |
+| NVMe SSD | 가격, 용량, 읽기/쓰기 속도 |
+| 그래픽카드 | 가격, GPU 모델, VRAM |
+| CPU | 가격, 코어 수, 클럭 |
+| IT 뉴스 | 제목, 언론사, 발행시간 |
 
-### 4. 자동화 (선택)
+---
 
-Windows 작업 스케줄러에 `run_scrapers.bat`을 등록하면 매일 자동으로 데이터를 수집합니다.
-
-## ML 모델 설명
-
-### 이상치 탐지
-
-- **Z-score** — 카테고리 평균에서 표준편차 2.5배 이상 벗어난 가격을 이상치로 판단
-- **IQR** — 사분위범위(Q1~Q3)의 1.5배를 벗어난 가격을 이상치로 판단
-- 두 방법 모두 **최신 수집일 데이터 기준**으로 동작
-
-### 가격 변동 감지
-
-- 전날 같은 상품의 가격과 비교해서 인상/인하 금액과 변동률 계산
-- 변동률 절대값 기준으로 TOP 정렬
-
-### 가격 예측
-
-- 스펙 텍스트에서 숫자 특성을 추출 (용량, 클럭, 코어 수 등)
-- Linear Regression과 Random Forest를 비교해서 더 정확한 모델을 자동 선택
-- 교차 검증(5-fold) R² 점수로 모델 정확도 평가
-
-### 트렌드 분석
-
-- 카테고리별 날짜별 평균가 추이를 계산
-- 전체 기간 대비 첫날·마지막날 가격 비교로 상승/하락/유지 방향 요약
-- 2일 이상 데이터 수집 시 활성화
-
-## 요구사항
+## 🏗️ 프로젝트 구조
 
 ```
-requests
-beautifulsoup4
-streamlit
-pandas
-numpy
-scikit-learn
-scipy
+market-pulse/
+├── workflow/                 # LangGraph 워크플로우
+│   ├── state.py             # 상태 정의 (TypedDict)
+│   ├── nodes.py             # 각 단계 실행 함수
+│   ├── graph.py             # 워크플로우 그래프 구성
+│   ├── checkpoint.py        # 체크포인트 저장/복구
+│   ├── report_generator.py  # 리포트 생성 (MD/HTML)
+│   └── main.py              # 실행 진입점
+├── workflow_dashboard/       # Streamlit 대시보드
+│   └── app.py
+├── workflow_checkpoints/     # 자동 생성: 중간 상태 저장
+├── reports/                  # 자동 생성: 생성된 리포트
+├── scraper/                  # 데이터 수집 스크래퍼
+│   ├── price_scraper.py
+│   └── news_scraper.py
+├── database/                 # DB 관리
+│   ├── db_manager.py
+│   └── data.db
+├── ml/                       # 머신러닝 분석
+│   ├── anomaly_detection.py
+│   ├── price_change.py
+│   ├── price_prediction.py
+│   └── trend_analysis.py
+├── run_workflow.bat          # 워크플로우 실행
+├── run_dashboard.bat         # 대시보드 실행
+├── run_scrapers.bat          # 기존 스크래퍼 실행
+└── requirements.txt
 ```
 
-## 앞으로 할 것
+---
 
-- [ ] 시계열 가격 예측 (데이터 축적 후 Prophet 적용)
-- [ ] 가격 알림 (특정 상품 목표가 도달 시 알림)
-- [ ] 대시보드에 가격 예측 결과 반영
-- [ ] 뉴스 키워드 추출 (TF-IDF)
+## 🔧 기술 스택
+
+| 역할 | 도구 |
+|------|------|
+| **워크플로우** | LangGraph (StateGraph, 체크포인트) |
+| **스크래핑** | requests, BeautifulSoup |
+| **데이터 저장** | SQLite |
+| **ML 분석** | scikit-learn, pandas, numpy, scipy |
+| **대시보드** | Streamlit |
+| **자동화** | Windows 작업 스케줄러 + bat |
+
+---
+
+## 📈 LangGraph 워크플로우 구조
+
+```
+init_db
+   ↓
+collect_prices ──┐
+                 ├→ (병렬 실행 가능)
+collect_news ────┘
+   ↓
+analyze_changes
+   ↓
+detect_anomalies
+   ↓
+analyze_trends
+   ↓
+generate_report
+   ↓
+finalize
+```
+
+**특징:**
+- ✅ 각 단계 후 체크포인트 자동 저장
+- ✅ 에러 발생 시 해당 단계에서 재시작 가능
+- ✅ 상태 추적 및 모니터링
+- ✅ 향후 병렬 실행/조건 분기 확장 가능
+
+---
+
+## 📝 예시 리포트
+
+```markdown
+# Market Pulse 리포트
+
+**생성일:** 2026-06-22 15:17:33
+**실행 ID:** 20260622_151733
+**소요시간:** 24.4 초
+
+## 📊 요약
+- **가격 데이터:** 4886 개 (신규: 550 개)
+- **뉴스 데이터:** 442 개 (신규: 28 개)
+- **카테고리:** 게이밍 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU
+- **총 상품:** 4886 개
+
+## 📈 가격 변동 (327 개)
+- **인상:** 191 개
+- **인하:** 136 개
+
+### TOP 5 인상
+- **삼성 990 EVO Plus M.2NVMe (4TB)** (NVMe SSD)
+  746,180 원 → 1,122,400 원 (+50.42%)
+...
+```
+
+---
+
+## 🔮 향후 계획
+
+- [ ] 워크플로우 병렬 실행 최적화
+- [ ] Slack/이메일 알림 통합
+- [ ] LLM 기반 뉴스 요약 및 키워드 추출
+- [ ] 가격 예측 모델 대시보드 연동
+- [ ] 시계열 예측 (Prophet) 추가
+- [ ] Docker 컨테이너화
+
+---
+
+## 📄 라이선스
+
+MIT License
+
+---
+
+**Made with ❤️ by Market Pulse Team**

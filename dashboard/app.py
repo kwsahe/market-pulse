@@ -3,46 +3,25 @@
 
 import streamlit as st
 import pandas as pd
-import sqlite3
 import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from database.db_manager import load_prices, load_news
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
 from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
 from ml.price_prediction import train_model, predict_price, FEATURE_EXTRACTORS
 
-# ============================
-# DB 연결
-# ============================
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
-def load_prices():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT date, category, product, price, specs, image_url FROM prices ORDER BY date",
-        conn
-    )
-    conn.close()
-    return df
-
-
-def load_news():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT collected_at, press, title, published_at FROM news ORDER BY published_at DESC",
-        conn
-    )
-    conn.close()
-    return df
-
 
 @st.cache_data(show_spinner="모델 학습 중...")
 def get_trained_model(category):
     """카테고리별 가격 예측 모델 학습 (캐시됨)"""
-    return train_model(category)
+    try:
+        return train_model(category)
+    except Exception as e:
+        st.error(f"모델 학습 실패 ({category}): {e}")
+        return None
 
 
 # ============================

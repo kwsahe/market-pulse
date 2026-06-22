@@ -3,23 +3,11 @@
 # 전날 대비 가격이 오르거나 내린 상품을 찾아내요
 
 import pandas as pd
-import sqlite3
-import os
 import sys
+import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
-def load_prices():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT date, category, product, price FROM prices ORDER BY date",
-        conn
-    )
-    conn.close()
-    return df
+from database.db_manager import load_prices
 
 
 def detect_price_changes():
@@ -79,27 +67,27 @@ def run_report():
     if isinstance(result, tuple):
         changed, latest_date, prev_date = result
     else:
-        print("📊 가격 변동 데이터가 충분하지 않아요.")
+        print("[!] 가격 변동 데이터가 충분하지 않아요.")
         return
 
-    print(f"📊 가격 변동 리포트 ({prev_date} → {latest_date})")
+    print(f"[+] 가격 변동 리포트 ({prev_date} → {latest_date})")
     print(f"{'='*70}")
 
     if changed.empty:
-        print("✅ 가격 변동 없음! 모든 상품의 가격이 동일해요.")
+        print("[OK] 가격 변동 없음! 모든 상품의 가격이 동일해요.")
         return
 
     # 가격 인상 상품
     up = changed[changed["change"] > 0]
     down = changed[changed["change"] < 0]
 
-    print(f"\n📈 가격 인상: {len(up)}개 상품")
-    print(f"📉 가격 인하: {len(down)}개 상품")
+    print(f"\n[+] 가격 인상: {len(up)}개 상품")
+    print(f"[-] 가격 인하: {len(down)}개 상품")
     print(f"{'='*70}")
 
     if not up.empty:
         print(f"\n{'─'*70}")
-        print("📈 가격 인상 TOP 10")
+        print("[+] 가격 인상 TOP 10")
         print(f"{'─'*70}")
         for _, row in up.head(10).iterrows():
             print(f"   {row['product'][:50]}")
@@ -108,7 +96,7 @@ def run_report():
 
     if not down.empty:
         print(f"\n{'─'*70}")
-        print("📉 가격 인하 TOP 10")
+        print("[-] 가격 인하 TOP 10")
         print(f"{'─'*70}")
         for _, row in down.head(10).iterrows():
             print(f"   {row['product'][:50]}")
@@ -116,7 +104,7 @@ def run_report():
             print()
 
     print(f"{'='*70}")
-    print(f"📋 요약: 인상 {len(up)}개, 인하 {len(down)}개, 총 변동 {len(changed)}개")
+    print(f"[+] 요약: 인상 {len(up)}개, 인하 {len(down)}개, 총 변동 {len(changed)}개")
     print(f"{'='*70}")
 
 

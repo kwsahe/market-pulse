@@ -10,7 +10,6 @@
 
 import pandas as pd
 import numpy as np
-import sqlite3
 import re
 import os
 import sys
@@ -18,20 +17,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "database", "data.db")
-
-
-def load_prices():
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query(
-        "SELECT date, category, product, price, specs FROM prices",
-        conn
-    )
-    conn.close()
-    return df
+from database.db_manager import load_prices
 
 
 # ============================
@@ -273,33 +262,39 @@ def train_model(category):
     X = features_df[useful_cols].values
     y = cat_df["price"].values
 
-    # 스케일링 (특성 값 범위 통일)
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    # 모델 1: Linear Regression (Pipeline으로 스케일링 포함)
+    lr_pipeline = Pipeline([
+        ("scaler", StandardScaler()),
+        ("model", LinearRegression())
+    ])
+    lr_scores = cross_val_score(lr_pipeline, X, y, cv=min(5, len(X)), scoring="r2")
 
-    # 모델 1: Linear Regression
-    lr = LinearRegression()
-    lr_scores = cross_val_score(lr, X_scaled, y, cv=min(5, len(X)), scoring="r2")
-
-    # 모델 2: Random Forest (더 복잡한 패턴 학습 가능)
-    rf = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf_scores = cross_val_score(rf, X_scaled, y, cv=min(5, len(X)), scoring="r2")
+    # 모델 2: Random Forest (트리 기반이라 스케일링 불필요하지만 일관성을 위해 Pipeline 사용)
+    rf_pipeline = Pipeline([
+        ("scaler", StandardScaler()),
+        ("model", RandomForestRegressor(n_estimators=100, random_state=42))
+    ])
+    rf_scores = cross_val_score(rf_pipeline, X, y, cv=min(5, len(X)), scoring="r2")
 
     # 더 나은 모델 선택
     if rf_scores.mean() > lr_scores.mean():
-        best_model = rf
+        best_pipeline = rf_pipeline
         best_name = "Random Forest"
         best_score = rf_scores.mean()
     else:
-        best_model = lr
+        best_pipeline = lr_pipeline
         best_name = "Linear Regression"
         best_score = lr_scores.mean()
 
     # 전체 데이터로 최종 학습
-    best_model.fit(X_scaled, y)
+    best_pipeline.fit(X, y)
+
+    # 스케일러 추출 (예측 시 사용)
+    scaler = best_pipeline.named_steps["scaler"]
+    model = best_pipeline.named_steps["model"]
 
     return {
-        "model": best_model,
+        "model": model,
         "model_name": best_name,
         "features": useful_cols,
         "scaler": scaler,
