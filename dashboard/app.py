@@ -12,6 +12,7 @@ from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
 from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
 from ml.price_prediction import train_model, predict_price, FEATURE_EXTRACTORS
+import dashboard.laptop_view as laptop_view
 
 
 @st.cache_data(show_spinner="모델 학습 중...")
@@ -152,6 +153,11 @@ if not prices_df.empty:
     # ============================
     for i, category in enumerate(categories):
         with tabs[i + 1]:
+            if category == "게이밍 노트북":
+                st.subheader(f"{category} — RTX5080 / RTX5090")
+                laptop_view.render(current_df, changed_df, has_changes)
+                continue
+
             cat_df = current_df[current_df["category"] == category].copy()
             st.subheader(f"{category} — {len(cat_df)}개 상품")
 

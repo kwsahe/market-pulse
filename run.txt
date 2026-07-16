@@ -15,7 +15,7 @@ python workflow/main.py
 run_dashboard.bat
 
 # 또는 직접
-streamlit run workflow_dashboard/app.py
+streamlit run workflow_dashboard/app.py --server.port 8020
 
 1. 기존 대시보드 (데이터 조회용)
 위치: dashboard/app.py
@@ -25,10 +25,10 @@ ML 분석 결과 (이상치, 변동, 예측) 시각화
 카테고리별 상품 목록
 
 실행:
-streamlit run dashboard/app.py
+streamlit run dashboard/app.py --server.port 8010
 
 # 또는
-python -m streamlit run dashboard/app.py
+python -m streamlit run dashboard/app.py --server.port 8010
 
 2. 새 대시보드 (워크플로우 제어용)
 위치: workflow_dashboard/app.py
@@ -38,7 +38,7 @@ LangGraph 워크플로우 실행/모니터링
 체크포인트 관리
 
 실행:
-streamlit run workflow_dashboard/app.py
+streamlit run workflow_dashboard/app.py --server.port 8020
 
 # 또는
 run_dashboard.bat

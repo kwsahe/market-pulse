@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "market-pulse-dashboard",
+      "runtimeExecutable": "streamlit",
+      "runtimeArgs": ["run", "dashboard/app.py", "--server.port", "8410", "--server.headless", "true"],
+      "port": 8410
+    }
+  ]
+}

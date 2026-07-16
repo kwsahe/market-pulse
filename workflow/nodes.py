@@ -39,7 +39,7 @@ def node_collect_prices(state: ReportState) -> ReportState:
             cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             capture_output=True,
             text=True,
-            timeout=300
+            timeout=600
         )
         if result.returncode == 0:
             df = load_prices()
