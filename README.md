@@ -74,9 +74,9 @@ python workflow/main.py
 run_data_dashboard.bat
 
 # 또는 직접
-streamlit run dashboard/app.py --server.port 8410
+streamlit run dashboard/app.py --server.port 8010
 ```
-- **포트**: http://localhost:8410
+- **포트**: http://localhost:8010
 - **용도**: 특정 상품 가격 추이 조회, 이상치 상세 분석, ML 예측 결과 확인
 - **전제 조건**: `run_scrapers.bat` 로 데이터를 먼저 수집해야 함
 
@@ -88,9 +88,9 @@ streamlit run dashboard/app.py --server.port 8410
 run_dashboard.bat
 
 # 또는 직접
-streamlit run workflow_dashboard/app.py --server.port 8420
+streamlit run workflow_dashboard/app.py --server.port 8020
 ```
-- **포트**: http://localhost:8420
+- **포트**: http://localhost:8020
 - **용도**: 자동 리포트 생성, 과거 리포트 조회, 워크플로우 상태 모니터링
 - **전제 조건**: 별도 데이터 수집 불필요 (워크플로우가 자동 수행)
 

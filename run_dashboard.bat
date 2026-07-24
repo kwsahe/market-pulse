@@ -7,9 +7,9 @@ echo.
 cd /d "%~dp0"
 
 echo [Streamlit] 워크플로우 대시보드 시작...
-echo 포트: http://localhost:8420
+echo 포트: http://localhost:8020
 echo.
-streamlit run workflow_dashboard/app.py --server.port 8420
+streamlit run workflow_dashboard/app.py --server.port 8020
 echo.
 
 echo ============================

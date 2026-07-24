@@ -4,8 +4,8 @@
     {
       "name": "market-pulse-dashboard",
       "runtimeExecutable": "streamlit",
-      "runtimeArgs": ["run", "dashboard/app.py", "--server.port", "8410", "--server.headless", "true"],
-      "port": 8410
+      "runtimeArgs": ["run", "dashboard/app.py", "--server.port", "8010", "--server.headless", "true"],
+      "port": 8010
     }
   ]
 }

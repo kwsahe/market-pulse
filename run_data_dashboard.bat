@@ -7,9 +7,9 @@ echo.
 cd /d "%~dp0"
 
 echo [Streamlit] 데이터 분석 대시보드 시작...
-echo 포트: http://localhost:8410
+echo 포트: http://localhost:8010
 echo.
-streamlit run dashboard/app.py --server.port 8410
+streamlit run dashboard/app.py --server.port 8010
 echo.
 
 echo ============================

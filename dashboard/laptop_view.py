@@ -10,6 +10,7 @@ from database.db_manager import (
     load_laptop_price_history, load_laptop_best_buy_stats,
     get_tracked_pcodes, set_laptop_tracked,
 )
+from dashboard.theme import price_change_badge, best_buy_badge, card_marker, section_header
 
 FILTER_SPEC_KEYS = ["GPU 칩셋", "제조회사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
 
@@ -69,9 +70,10 @@ def _render_best_buy(current_price: int, pcode: str, best_buy_df: pd.DataFrame) 
     savings = current_price - best_price
     if savings > 0:
         pct = savings / current_price * 100
-        st.caption(f"🕒 **{best_date}**에 샀으면 **{savings:,}원** 이득이었어요 (-{pct:.1f}%)")
+        text = f"🕒 {best_date}에 샀으면 {savings:,}원 이득이었어요 (-{pct:.1f}%)"
+        st.markdown(best_buy_badge(text, is_best_now=False), unsafe_allow_html=True)
     else:
-        st.caption("🏆 지금이 역대 최저가예요!")
+        st.markdown(best_buy_badge("🏆 지금이 역대 최저가예요!", is_best_now=True), unsafe_allow_html=True)
 
 
 def _apply_spec_filter(pcodes: set, spec_pivot: pd.DataFrame, key: str, selected_values: list) -> set:
@@ -131,6 +133,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
         pcode = row["pcode"]
         with cols[idx % 2]:
             with st.container(border=True):
+                card_marker()
                 img_col, info_col = st.columns([1, 2])
                 with img_col:
                     main_imgs = images_df[(images_df["pcode"] == pcode) & (images_df["image_type"] == "main")]
@@ -149,10 +152,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                         change_row = changed_df[changed_df["product"] == row["product"]]
                         if not change_row.empty:
                             ch = change_row.iloc[0]
-                            if ch["change"] > 0:
-                                st.caption(f"📈 +{ch['change']:,}원 (+{ch['change_pct']}%)")
-                            else:
-                                st.caption(f"📉 {ch['change']:,}원 ({ch['change_pct']}%)")
+                            st.markdown(price_change_badge(ch["change"], ch["change_pct"]), unsafe_allow_html=True)
 
                     _render_best_buy(row["price"], pcode, best_buy_df)
 
@@ -202,6 +202,7 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
     for _, row in tracked_df.iterrows():
         pcode = row["pcode"]
         with st.container(border=True):
+            card_marker()
             c1, c2 = st.columns([1, 2])
             with c1:
                 main_imgs = images_df[(images_df["pcode"] == pcode) & (images_df["image_type"] == "main")]
