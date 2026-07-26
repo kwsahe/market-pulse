@@ -41,6 +41,14 @@ LAPTOP_QUERIES = [
     ("RTX5090+노트북", "RTX5090"),
 ]
 
+# AI 노트북(로컬 RAM으로 AI 구동 가능한 노트북) — 맥북 M5 시리즈 + 라이젠 AI Max(대용량 통합메모리)
+AI_LAPTOP_CATEGORY = "AI 노트북"
+AI_LAPTOP_DEFAULT_CATE = "11354187"  # 다나와 "AI 노트북" 카테고리 (fallback)
+AI_LAPTOP_QUERIES = [
+    ("M5+맥북", "Apple M5"),
+    ("라이젠+AI+Max+노트북", "Ryzen AI Max"),
+]
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                   "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -122,38 +130,56 @@ def extract_pcode(href):
     return m.group(1) if m else None
 
 
-def extract_cate(href):
+def extract_cate(href, default_cate=LAPTOP_DEFAULT_CATE):
     """상품 상세 링크에서 카테고리 코드 추출 (상세페이지 스펙 조회에 필요)"""
     m = re.search(r"cate=(\d+)", href or "")
-    return m.group(1) if m else LAPTOP_DEFAULT_CATE
+    return m.group(1) if m else default_cate
 
 
-def collect_gaming_laptops():
-    """RTX5080/5090 게이밍 노트북 수집 — 목록 + 상세페이지(전체 스펙/이미지) 모두 저장"""
+def _has_unified_memory(spec_dict):
+    """CPU/GPU/NPU가 하나의 메모리 풀을 공유하는 '통합메모리' 노트북인지 판별.
+    애플 실리콘은 구조적으로 항상 통합메모리. AMD는 라이젠AI Max/Max+ 칩 + LPDDR5x 온보드
+    조합일 때만 해당 — 이름에 'AI'가 들어간 일반 라이젠AI 7/9(DDR5, 일반 CPU+VRAM 분리 구조)는 제외.
+    (다나와 검색이 "라이젠 AI Max"로 HP 오멘 MAX 시리즈 같은 무관한 상품명도 함께 잡아오기 때문에 필요)"""
+    maker = spec_dict.get("CPU 제조사", "")
+    cpu_detail = spec_dict.get("CPU 세분류", "")
+    ram_type = spec_dict.get("램 타입", "")
+    if "애플" in maker or "Apple" in maker:
+        return True
+    if "AI Max" in cpu_detail and ("LPDDR5x" in ram_type or "온보드" in ram_type):
+        return True
+    return False
+
+
+def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋", validate_fn=None):
+    """상세 스펙/이미지까지 수집하는 노트북 카테고리 공용 수집기
+    (게이밍 노트북 RTX5080/5090, AI 노트북 등 pcode 기반 노트북 수집에 재사용)
+    validate_fn(spec_dict)이 주어지면 상세 스펙을 먼저 확인해서 False면 통째로 건너뛴다."""
     print(f"\n{'='*60}")
-    print(f"[+] [{LAPTOP_CATEGORY}] RTX5080/5090 수집 중...")
+    print(f"[+] [{category}] 수집 중...")
     print(f"{'='*60}")
 
     data_list = []
     seen_pcodes = set()
+    new_products = []
 
-    for query, gpu_hint in LAPTOP_QUERIES:
+    for query, chip_hint in queries:
         url = f"https://search.danawa.com/dsearch.php?query={query}"
         try:
             response = requests.get(url, headers=headers, timeout=15)
             response.raise_for_status()
         except requests.exceptions.Timeout:
-            print(f"[!] [{gpu_hint}] 요청 시간 초과 (15초). 건너뜁니다.")
+            print(f"[!] [{chip_hint}] 요청 시간 초과 (15초). 건너뜁니다.")
             continue
         except requests.exceptions.RequestException as e:
-            print(f"[!] [{gpu_hint}] 네트워크 오류: {e}. 건너뜁니다.")
+            print(f"[!] [{chip_hint}] 네트워크 오류: {e}. 건너뜁니다.")
             continue
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
             names = soup.find_all("a", class_="click_log_product_standard_title_")
         except Exception as e:
-            print(f"⚠️ [{gpu_hint}] HTML 파싱 오류: {e}. 건너뜁니다.")
+            print(f"⚠️ [{chip_hint}] HTML 파싱 오류: {e}. 건너뜁니다.")
             continue
 
         for i, name_tag in enumerate(names):
@@ -163,19 +189,33 @@ def collect_gaming_laptops():
                 pcode = extract_pcode(href)
                 if not pcode or pcode in seen_pcodes:
                     continue
-                seen_pcodes.add(pcode)
-                cate = extract_cate(href)
+                cate = extract_cate(href, default_cate=default_cate)
 
                 block = find_product_block(name_tag)
                 img_url = extract_image(block)
                 specs = extract_specs(block)
                 variants = extract_variants(block)
 
+                # validate_fn이 있으면 상세 스펙부터 확인해서 조건에 안 맞으면 통째로 건너뛴다
+                # (예: "라이젠 AI Max 노트북" 검색이 HP 오멘 MAX 시리즈처럼 이름만 비슷한 무관한 상품도 같이 잡아옴)
+                detail = None
+                if validate_fn:
+                    try:
+                        detail = fetch_product_detail(pcode, cate)
+                    except Exception as e:
+                        print(f"   [!] 상세정보 조회 실패 (pcode={pcode}): {e}. 건너뜁니다.")
+                        continue
+                    if not validate_fn(detail["spec_dict"]):
+                        print(f"   [SKIP] 조건에 맞지 않아 제외: {product[:50]}")
+                        continue
+
+                seen_pcodes.add(pcode)
+
                 if variants:
                     for mem_text, var_price in variants:
                         full_name = f"{product} ({mem_text})"
                         print(f"{len(seen_pcodes)}. {full_name}")
-                        data_list.append((today, LAPTOP_CATEGORY, full_name, var_price, specs, img_url, pcode))
+                        data_list.append((today, category, full_name, var_price, specs, img_url, pcode))
                 else:
                     price_tag = block.find("a", class_="click_log_product_standard_price_")
                     if not price_tag:
@@ -186,13 +226,17 @@ def collect_gaming_laptops():
                     except ValueError:
                         continue
                     print(f"{len(seen_pcodes)}. {product}")
-                    data_list.append((today, LAPTOP_CATEGORY, product, cost_num, specs, img_url, pcode))
+                    data_list.append((today, category, product, cost_num, specs, img_url, pcode))
 
                 # 상세페이지: 전체 스펙 + 상세정보(홍보) 이미지 수집
                 try:
-                    detail = fetch_product_detail(pcode, cate)
-                    gpu_model = detail["spec_dict"].get("GPU 칩셋", gpu_hint)
-                    upsert_laptop_product(pcode, product, gpu_model, detail["detail_url"], detail["raw_spec_text"])
+                    if detail is None:
+                        detail = fetch_product_detail(pcode, cate)
+                    chip_model = detail["spec_dict"].get(chip_spec_key, chip_hint)
+                    is_new = upsert_laptop_product(pcode, product, chip_model, detail["detail_url"], detail["raw_spec_text"])
+                    if is_new:
+                        new_products.append(product)
+                        print(f"   [NEW] 신제품 발견!")
                     save_laptop_specs(pcode, detail["spec_dict"])
 
                     images = []
@@ -212,11 +256,26 @@ def collect_gaming_laptops():
 
     if data_list:
         new_count = insert_many_laptop_prices(data_list)
-        print(f"\n[OK] [{LAPTOP_CATEGORY}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 고유 상품: {len(seen_pcodes)}개")
+        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 고유 상품: {len(seen_pcodes)}개")
+        if new_products:
+            print(f"[NEW] 신제품 {len(new_products)}종 발견: {', '.join(new_products)}")
         return len(data_list), new_count
     else:
-        print(f"\n[!] [{LAPTOP_CATEGORY}] 수집된 상품이 없어요.")
+        print(f"\n[!] [{category}] 수집된 상품이 없어요.")
         return 0, 0
+
+
+def collect_gaming_laptops():
+    """RTX5080/5090 게이밍 노트북 수집 — 목록 + 상세페이지(전체 스펙/이미지) 모두 저장"""
+    return _collect_laptops(LAPTOP_CATEGORY, LAPTOP_QUERIES, LAPTOP_DEFAULT_CATE, chip_spec_key="GPU 칩셋")
+
+
+def collect_ai_laptops():
+    """AI 노트북(통합메모리로 로컬 AI 구동 가능한 노트북만) 수집 — 애플 실리콘 / 라이젠AI Max·Max+(LPDDR5x 온보드)만 통과"""
+    return _collect_laptops(
+        AI_LAPTOP_CATEGORY, AI_LAPTOP_QUERIES, AI_LAPTOP_DEFAULT_CATE,
+        chip_spec_key="CPU 세분류", validate_fn=_has_unified_memory,
+    )
 
 
 # ============================
@@ -298,6 +357,13 @@ for category, query in CATEGORIES.items():
 laptop_count, laptop_new = collect_gaming_laptops()
 total_count += laptop_count
 total_new += laptop_new
+
+# ============================
+# 5단계: AI 노트북(맥북 M5 / 라이젠 AI Max) 수집
+# ============================
+ai_laptop_count, ai_laptop_new = collect_ai_laptops()
+total_count += ai_laptop_count
+total_new += ai_laptop_new
 
 print(f"\n{'='*60}")
 print(f"[OK] 전체 수집: {total_count}개 | 신규 저장: {total_new}개 | 중복 건너뜀: {total_count - total_new}개")

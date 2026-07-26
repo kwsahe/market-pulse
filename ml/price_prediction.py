@@ -15,7 +15,7 @@ import os
 import sys
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
@@ -222,6 +222,42 @@ FEATURE_EXTRACTORS = {
 
 
 # ============================
+# 특성명 한글 라벨 (대시보드 표시용)
+# ============================
+FEATURE_LABELS = {
+    "screen_inch": "화면 크기(인치)",
+    "weight_kg": "무게(kg)",
+    "brightness_nit": "밝기(nit)",
+    "cpu_ghz": "CPU 클럭(GHz)",
+    "ssd_gb": "SSD 용량(GB)",
+    "ram_gb": "RAM 용량(GB)",
+    "clock_mhz": "클럭(MHz)",
+    "cl_timing": "CL 타이밍",
+    "voltage": "전압(V)",
+    "capacity_gb": "용량(GB)",
+    "is_pack": "2개입 묶음",
+    "has_led": "RGB/LED",
+    "pcie_gen": "PCIe 세대",
+    "read_speed": "순차읽기(MB/s)",
+    "write_speed": "순차쓰기(MB/s)",
+    "has_dram": "DRAM 탑재",
+    "is_tlc": "TLC 낸드",
+    "is_external": "외장형",
+    "gpu_model": "GPU 모델번호",
+    "vram_gb": "VRAM(GB)",
+    "boost_mhz": "부스트 클럭(MHz)",
+    "length_mm": "카드 길이(mm)",
+    "power_w": "정격 파워(W)",
+    "total_cores": "총 코어 수",
+    "max_ghz": "최대 클럭(GHz)",
+    "has_igpu": "내장그래픽",
+    "is_bulk": "벌크 제품",
+    "generation": "세대",
+    "is_series2": "시리즈2(최신)",
+}
+
+
+# ============================
 # 모델 학습 & 평가
 # ============================
 def train_model(category):
@@ -286,6 +322,16 @@ def train_model(category):
         best_name = "Linear Regression"
         best_score = lr_scores.mean()
 
+    # out-of-fold 예측으로 잔차 분포 계산 → 예측 신뢰구간(80% 구간)에 사용
+    cv_n = min(5, len(X))
+    try:
+        oof_pred = cross_val_predict(best_pipeline, X, y, cv=cv_n)
+        residuals = y - oof_pred
+        residual_p10 = float(np.percentile(residuals, 10))
+        residual_p90 = float(np.percentile(residuals, 90))
+    except ValueError:
+        residual_p10 = residual_p90 = 0.0
+
     # 전체 데이터로 최종 학습
     best_pipeline.fit(X, y)
 
@@ -303,6 +349,8 @@ def train_model(category):
         "best_r2": best_score,
         "data_count": len(cat_df),
         "category": category,
+        "residual_p10": residual_p10,
+        "residual_p90": residual_p90,
     }
 
 
@@ -321,6 +369,67 @@ def predict_price(model_info, features_dict):
 
     predicted = model.predict(X_scaled)[0]
     return max(0, predicted)  # 음수 방지
+
+
+def predict_price_range(model_info, features_dict):
+    """예측가 + 신뢰구간(80%). out-of-fold 잔차의 10~90 퍼센타일을 예측값에 더해 범위를 만든다."""
+    predicted = predict_price(model_info, features_dict)
+    low = max(0, predicted + model_info.get("residual_p10", 0))
+    high = max(0, predicted + model_info.get("residual_p90", 0))
+    return predicted, low, high
+
+
+def compute_feature_contributions(model_info, features_dict):
+    """스펙별 가격 기여도.
+
+    모든 특성을 '학습 데이터 평균'(스케일 기준 0)으로 고정한 기준선(baseline) 예측가에서,
+    특성 하나씩만 실제 값으로 바꿨을 때 예측가가 얼마나 움직이는지를 그 특성의 기여도로 본다.
+    모델 종류(선형/트리 기반)에 관계없이 동일하게 적용 가능한 단순 marginal contribution 방식.
+    """
+    model = model_info["model"]
+    scaler = model_info["scaler"]
+    feature_names = model_info["features"]
+
+    X_scaled = scaler.transform([[features_dict.get(f, 0) for f in feature_names]])
+    baseline_scaled = np.zeros((1, len(feature_names)))
+    baseline_pred = model.predict(baseline_scaled)[0]
+
+    contributions = []
+    for i, fname in enumerate(feature_names):
+        X_partial = baseline_scaled.copy()
+        X_partial[0, i] = X_scaled[0, i]
+        partial_pred = model.predict(X_partial)[0]
+        contributions.append({
+            "feature": fname,
+            "label": FEATURE_LABELS.get(fname, fname),
+            "value": features_dict.get(fname, 0),
+            "contribution": partial_pred - baseline_pred,
+        })
+    contributions.sort(key=lambda c: abs(c["contribution"]), reverse=True)
+    return contributions, baseline_pred
+
+
+def find_similar_products(cat_df, target_features, extractor, model_info, exclude_product=None, top_n=5):
+    """스펙(스케일된 특성 공간에서의 거리)이 가장 비슷한 다른 제품들을 찾는다."""
+    scaler = model_info["scaler"]
+    feature_names = model_info["features"]
+
+    target_vec = scaler.transform([[target_features.get(f, 0) for f in feature_names]])[0]
+
+    rows = []
+    for _, row in cat_df.iterrows():
+        if exclude_product is not None and row["product"] == exclude_product:
+            continue
+        feats = extractor(row)
+        vec = scaler.transform([[feats.get(f, 0) for f in feature_names]])[0]
+        distance = float(np.linalg.norm(vec - target_vec))
+        rows.append({"product": row["product"], "price": row["price"], "distance": distance})
+
+    if not rows:
+        return pd.DataFrame(columns=["product", "price", "distance"])
+
+    similar_df = pd.DataFrame(rows).sort_values("distance").head(top_n).reset_index(drop=True)
+    return similar_df
 
 
 # ============================

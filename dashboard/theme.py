@@ -4,16 +4,37 @@
 
 import streamlit as st
 
+# UI 크롬(탭/헤더/보더 등 장식용) — 데이터 인코딩에는 쓰지 않음
 CYAN = "#22D3EE"
 VIOLET = "#8B5CF6"
-GREEN = "#34D399"
-RED = "#F87171"
-AMBER = "#FBBF24"
+
+# 상태 색상(dataviz 스킬의 validate_palette.js로 배경 #0D0F14 기준 검증 완료).
+# 기존 파스텔톤(#34D399/#F87171/#FBBF24)은 명도 밴드·CVD 분리 기준을 통과하지 못해 교체함.
+# red-green 조합은 적록색맹에서 근본적으로 구분이 어려워(ΔE 4.1) 배지에 이모지+수치를 항상 병기해 보완.
+GREEN = "#0CA30C"   # 가격 인하 / 이득 (good)
+RED = "#D03B3B"     # 가격 인상 (critical)
+AMBER = "#FAB219"   # 이상치 경고 (warning)
+
+# 카테고리 고정 색상(다른 차트에서도 항상 같은 카테고리는 같은 색) — validate_palette.js 통과
+CATEGORY_COLORS = {
+    "게이밍 노트북": "#3987E5",
+    "DDR5 RAM": "#D95926",
+    "NVMe SSD": "#199E70",
+    "그래픽카드": "#C98500",
+    "CPU": "#D55181",
+    "AI 노트북": "#9085E9",
+}
+DEFAULT_CATEGORY_COLOR = "#8B93A7"
+
 SURFACE = "#171A21"
 SURFACE_RAISED = "#1E222C"
 BORDER = "#2D3340"
 TEXT = "#F3F4F6"
 MUTED = "#8B93A7"
+
+
+def category_color(category: str) -> str:
+    return CATEGORY_COLORS.get(category, DEFAULT_CATEGORY_COLOR)
 
 
 def inject_css() -> None:
@@ -93,6 +114,31 @@ def inject_css() -> None:
             0% {{ box-shadow: 0 0 0 0 rgba(52,211,153,0.55); }}
             70% {{ box-shadow: 0 0 0 8px rgba(52,211,153,0); }}
             100% {{ box-shadow: 0 0 0 0 rgba(52,211,153,0); }}
+        }}
+        .mp-date-pill {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: {SURFACE};
+            color: {MUTED};
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid {BORDER};
+            white-space: nowrap;
+        }}
+        .mp-new-badge {{
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: {VIOLET};
+            color: #fff;
+            letter-spacing: .02em;
+            margin-left: 6px;
+            vertical-align: middle;
         }}
 
         /* ---------- 커스텀 통계 카드 ---------- */
@@ -284,15 +330,17 @@ def card_marker() -> None:
     st.markdown('<div class="mp-card-marker"></div>', unsafe_allow_html=True)
 
 
-def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 중") -> None:
-    """그라디언트 타이틀 + LIVE 펄스 배지가 있는 히어로 헤더"""
+def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 중", date_label: str = "") -> None:
+    """그라디언트 타이틀 + 오늘 날짜 + LIVE 펄스 배지가 있는 히어로 헤더"""
     # 참고: Streamlit의 markdown 렌더러는 CommonMark 규칙상 HTML 블록 중간에
     # 빈 줄(또는 공백만 있는 줄)이 있으면 거기서 끊고 이후를 코드블록으로 취급한다.
     # 여러 div를 이어붙일 때는 반드시 줄바꿈/들여쓰기 없는 한 줄 HTML로 만들어야 한다.
+    date_html = f'<div class="mp-date-pill">📅 {date_label}</div>' if date_label else ""
     html = (
         f'<div class="mp-hero"><div><h1 class="mp-hero-title">{title}</h1>'
         f'<div class="mp-hero-sub">{subtitle}</div></div>'
-        f'<div class="mp-live-pill"><span class="mp-live-dot"></span>{live_label}</div></div>'
+        f'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'
+        f'{date_html}<div class="mp-live-pill"><span class="mp-live-dot"></span>{live_label}</div></div></div>'
     )
     st.markdown(html, unsafe_allow_html=True)
 
@@ -332,3 +380,8 @@ def best_buy_badge(text: str, is_best_now: bool) -> str:
     if is_best_now:
         return f'<span class="mp-badge mp-badge-best">{text}</span>'
     return f'<span class="mp-muted">{text}</span>'
+
+
+def new_badge() -> str:
+    """신제품 표시 뱃지 HTML"""
+    return '<span class="mp-new-badge">🆕 NEW</span>'

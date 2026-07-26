@@ -3,20 +3,85 @@
 
 import streamlit as st
 import pandas as pd
+import altair as alt
 import os
 import sys
+from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from database.db_manager import load_prices, load_news
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
 from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
-from ml.price_prediction import train_model, predict_price, FEATURE_EXTRACTORS
+from ml.price_prediction import (
+    train_model, predict_price, predict_price_range, FEATURE_EXTRACTORS, FEATURE_LABELS,
+    compute_feature_contributions, find_similar_products,
+    extract_ram_features, extract_ssd_features,
+)
 import dashboard.laptop_view as laptop_view
 from dashboard.theme import (
     inject_css, price_change_badge, hero_header, stat_cards, section_header, card_marker,
-    CYAN, RED, GREEN, AMBER,
+    CYAN, RED, GREEN, AMBER, CATEGORY_COLORS, category_color, SURFACE, BORDER, MUTED,
 )
+
+
+def _category_bar_chart(series: pd.Series, y_title: str):
+    """카테고리별 고정 색상 + 범례가 있는 막대 차트 (dataviz 스킬: 카테고리 색상은 고정 순서, 범례 필수)"""
+    df = series.reset_index()
+    df.columns = ["category", "value"]
+    domain = list(CATEGORY_COLORS.keys())
+    range_ = list(CATEGORY_COLORS.values())
+    chart = (
+        alt.Chart(df)
+        .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
+        .encode(
+            x=alt.X("category:N", title=None, sort=None),
+            y=alt.Y("value:Q", title=y_title),
+            color=alt.Color("category:N", title="카테고리", scale=alt.Scale(domain=domain, range=range_)),
+            tooltip=["category", "value"],
+        )
+        .configure_view(strokeWidth=0)
+        .configure_axis(gridColor=BORDER, domainColor=BORDER, labelColor=MUTED, titleColor=MUTED)
+        .configure_legend(labelColor=MUTED, titleColor=MUTED)
+        .properties(background="transparent")
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _render_change_card(row: pd.Series, lookup_df: pd.DataFrame) -> None:
+    """가격 인상/인하 카드 — 이미지+스펙까지 같이 보여줘서 어떤 상품인지 바로 알 수 있게"""
+    detail = lookup_df[lookup_df["product"] == row["product"]]
+    image_url = detail.iloc[0]["image_url"] if not detail.empty else ""
+    specs = detail.iloc[0]["specs"] if not detail.empty else ""
+
+    with st.container(border=True):
+        card_marker()
+        img_col, info_col = st.columns([1, 3])
+        with img_col:
+            if image_url and str(image_url).startswith("http"):
+                st.image(image_url, width=110)
+            else:
+                st.caption("이미지 없음")
+        with info_col:
+            st.markdown(f"**{row['product'][:60]}**")
+            st.caption(f"카테고리: {row['category']}")
+            p1, p2 = st.columns([2, 1])
+            with p1:
+                st.markdown(f"💰 {row['prev_price']:,}원 → **{row['current_price']:,}원**")
+            with p2:
+                st.markdown(price_change_badge(row["change"], row["change_pct"]), unsafe_allow_html=True)
+            if specs and str(specs).strip():
+                with st.expander("📋 상세 스펙"):
+                    st.caption(specs)
+
+
+def _format_capacity_label(capacity_gb: int) -> str:
+    """128, 256, 512, 1024(=1TB) 같은 용량 값을 다나와 스타일 라벨로 변환"""
+    if not capacity_gb or capacity_gb <= 0:
+        return "정보없음"
+    if capacity_gb >= 1024 and capacity_gb % 1024 == 0:
+        return f"{capacity_gb // 1024}TB"
+    return f"{capacity_gb}GB"
 
 
 @st.cache_data(show_spinner="모델 학습 중...")
@@ -34,7 +99,16 @@ def get_trained_model(category):
 # ============================
 st.set_page_config(page_title="Market Pulse", page_icon="📊", layout="wide")
 inject_css()
-hero_header("📊 Market Pulse", "RTX5080 / RTX5090 게이밍 노트북 & PC 부품 가격 추적 · ML 분석 · IT 뉴스 대시보드")
+
+WEEKDAY_KR = ["월", "화", "수", "목", "금", "토", "일"]
+today_kr = datetime.now()
+today_label = f"{today_kr.strftime('%Y.%m.%d')} ({WEEKDAY_KR[today_kr.weekday()]})"
+
+hero_header(
+    "📊 Market Pulse",
+    "RTX5080 / RTX5090 게이밍 노트북 & PC 부품 가격 추적 · ML 분석 · IT 뉴스 대시보드",
+    date_label=today_label,
+)
 
 prices_df = load_prices()
 news_df = load_news()
@@ -90,7 +164,7 @@ if not prices_df.empty:
     categories = prices_df["category"].unique().tolist()
     tab_icons = {
         "게이밍 노트북": "💻", "DDR5 RAM": "🧩",
-        "NVMe SSD": "💾", "그래픽카드": "🎮", "CPU": "⚡"
+        "NVMe SSD": "💾", "그래픽카드": "🎮", "CPU": "⚡", "AI 노트북": "🧠"
     }
     tab_labels = (
         ["📋 전체"]
@@ -112,11 +186,11 @@ if not prices_df.empty:
     with tabs[0]:
         section_header("📊", "카테고리별 평균 가격")
         avg_by_cat = prices_df.groupby("category")["price"].mean().sort_values(ascending=False)
-        st.bar_chart(avg_by_cat, color=CYAN)
+        _category_bar_chart(avg_by_cat, "평균가(원)")
 
         section_header("📦", "카테고리별 상품 수")
         count_by_cat = prices_df.groupby("category")["product"].count()
-        st.bar_chart(count_by_cat, color=GREEN)
+        _category_bar_chart(count_by_cat, "상품 수")
 
         # 추이 분석 (trend_analysis 모듈 사용)
         trend_df = get_price_trend(prices_df)
@@ -143,7 +217,7 @@ if not prices_df.empty:
                 cat_trend = get_category_trend(prices_df, cat)
                 if not cat_trend.empty:
                     st.caption(f"**{cat}**")
-                    st.line_chart(cat_trend, x="date", y="avg_price", color="#4A90D9")
+                    st.line_chart(cat_trend, x="date", y="avg_price", color=category_color(cat))
         else:
             st.info("📈 가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
 
@@ -154,7 +228,16 @@ if not prices_df.empty:
         with tabs[i + 1]:
             if category == "게이밍 노트북":
                 section_header(tab_icons.get(category, "🔧"), category, "RTX5080 / RTX5090")
-                laptop_view.render(current_df, changed_df, has_changes)
+                laptop_view.render(current_df, changed_df, has_changes, category="게이밍 노트북")
+                continue
+
+            if category == "AI 노트북":
+                section_header(tab_icons.get(category, "🔧"), category, "맥북 M5 / 라이젠 AI Max — 로컬 RAM으로 AI 구동 가능한 노트북")
+                laptop_view.render(
+                    current_df, changed_df, has_changes,
+                    category="AI 노트북", filter_spec_keys=laptop_view.AI_FILTER_SPEC_KEYS,
+                    empty_message="AI 노트북(맥북 M5/라이젠 AI Max) 데이터가 아직 없어요. run_scrapers.bat 을 실행해주세요!",
+                )
                 continue
 
             cat_df = current_df[current_df["category"] == category].copy()
@@ -170,8 +253,26 @@ if not prices_df.empty:
             with s4:
                 st.metric("중간값", f"{cat_df['price'].median():,.0f}원")
 
+            capacity_extractor = {"NVMe SSD": extract_ssd_features, "DDR5 RAM": extract_ram_features}.get(category)
+            if capacity_extractor:
+                cat_df["_capacity_gb"] = cat_df.apply(lambda r: capacity_extractor(r).get("capacity_gb", 0), axis=1)
+                cat_df["_capacity_label"] = cat_df["_capacity_gb"].apply(_format_capacity_label)
+                capacity_order = sorted(cat_df["_capacity_gb"].unique())
+                capacity_options = [_format_capacity_label(c) for c in capacity_order] + ["전체"]
+                selected_capacity = st.selectbox(
+                    "용량 선택", capacity_options, index=len(capacity_options) - 1, key=f"cap_filter_{category}"
+                )
+                if selected_capacity != "전체":
+                    cat_df = cat_df[cat_df["_capacity_label"] == selected_capacity]
+
             sort_order = st.selectbox("정렬", ["가격 낮은 순", "가격 높은 순"], key=f"sort_{category}")
             cat_df = cat_df.sort_values("price", ascending=(sort_order == "가격 낮은 순"))
+
+            if capacity_extractor:
+                st.caption(f"{len(cat_df)}개 상품 표시 중")
+
+            if cat_df.empty:
+                st.info("조건에 맞는 상품이 없어요. 필터를 조정해보세요.")
 
             cols = st.columns(2)
             for j, (_, row) in enumerate(cat_df.iterrows()):
@@ -232,32 +333,14 @@ if not prices_df.empty:
             with change_tab1:
                 if not up_df.empty:
                     for _, row in up_df.iterrows():
-                        with st.container(border=True):
-                            card_marker()
-                            c1, c2, c3 = st.columns([3, 1, 1])
-                            with c1:
-                                st.markdown(f"**{row['product'][:55]}**")
-                                st.caption(f"카테고리: {row['category']}")
-                            with c2:
-                                st.metric("현재가", f"{row['current_price']:,}원", delta=f"+{row['change']:,}원")
-                            with c3:
-                                st.metric("변동률", f"+{row['change_pct']}%")
+                        _render_change_card(row, current_df)
                 else:
                     st.success("가격 인상 상품 없음!")
 
             with change_tab2:
                 if not down_df.empty:
                     for _, row in down_df.iterrows():
-                        with st.container(border=True):
-                            card_marker()
-                            c1, c2, c3 = st.columns([3, 1, 1])
-                            with c1:
-                                st.markdown(f"**{row['product'][:55]}**")
-                                st.caption(f"카테고리: {row['category']}")
-                            with c2:
-                                st.metric("현재가", f"{row['current_price']:,}원", delta=f"{row['change']:,}원")
-                            with c3:
-                                st.metric("변동률", f"{row['change_pct']}%")
+                        _render_change_card(row, current_df)
                 else:
                     st.success("가격 인하 상품 없음!")
         else:
@@ -330,22 +413,19 @@ if not prices_df.empty:
     # 가격 예측 탭
     # ============================
     with tab_predict:
-        section_header("🔮", "가격 예측", "스펙을 입력하면 현재 시장 데이터 기반으로 적정 가격을 예측해드려요.")
+        section_header("🔮", "가격 예측", "제품을 선택하면 스펙 기반 적정 가격을 예측하고 실제 판매가와 비교해드려요.")
 
         pred_category = st.selectbox("카테고리 선택", list(FEATURE_EXTRACTORS.keys()), key="pred_cat")
 
         model_info = get_trained_model(pred_category)
+        pred_cat_df = current_df[current_df["category"] == pred_category].copy()
 
         if model_info is None:
             st.warning("데이터가 부족해 예측 모델을 만들 수 없어요. (카테고리당 최소 5개 필요)")
+        elif pred_cat_df.empty:
+            st.info("이 카테고리에 조회할 상품이 없어요.")
         else:
             r2 = model_info["best_r2"]
-            if r2 > 0.8:
-                quality_label, quality_color = "높음", "normal"
-            elif r2 > 0.5:
-                quality_label, quality_color = "보통", "off"
-            else:
-                quality_label, quality_color = "낮음 — 데이터 더 수집 필요", "off"
 
             info_c1, info_c2, info_c3 = st.columns(3)
             with info_c1:
@@ -357,75 +437,96 @@ if not prices_df.empty:
 
             st.divider()
 
-            # 카테고리별 입력 폼
-            features = {}
+            product_options = pred_cat_df["product"].tolist()
+            selected_product = st.selectbox("제품 선택", product_options, key="pred_product")
+            row = pred_cat_df[pred_cat_df["product"] == selected_product].iloc[0]
 
-            if pred_category == "DDR5 RAM":
-                c1, c2 = st.columns(2)
-                with c1:
-                    features["clock_mhz"] = st.number_input("클럭 (MHz)", 4800, 8000, 6000, 200)
-                    features["cl_timing"] = st.number_input("CL 타이밍", 28, 46, 30, 2)
-                    features["voltage"] = st.number_input("전압 (V)", 1.1, 1.5, 1.35, 0.05)
-                with c2:
-                    features["capacity_gb"] = st.selectbox("용량 (GB)", [8, 16, 32, 48, 64, 96])
-                    features["is_pack"] = 1 if st.checkbox("2개입(2x) 묶음") else 0
-                    features["has_led"] = 1 if st.checkbox("RGB/LED") else 0
+            extractor = FEATURE_EXTRACTORS[pred_category]
+            features = extractor(row)
+            predicted, pred_low, pred_high = predict_price_range(model_info, features)
+            actual = row["price"]
+            diff = actual - predicted
+            diff_pct = (diff / predicted * 100) if predicted else 0
 
-            elif pred_category == "NVMe SSD":
-                c1, c2 = st.columns(2)
-                with c1:
-                    features["pcie_gen"] = st.selectbox("PCIe 세대", [3, 4, 5])
-                    features["read_speed"] = st.number_input("순차읽기 (MB/s)", 0, 14000, 7000, 500)
-                    features["write_speed"] = st.number_input("순차쓰기 (MB/s)", 0, 14000, 6500, 500)
-                with c2:
-                    cap_val = st.selectbox("용량", ["250GB", "500GB", "1TB", "2TB", "4TB"])
-                    cap_map = {"250GB": 250, "500GB": 500, "1TB": 1024, "2TB": 2048, "4TB": 4096}
-                    features["capacity_gb"] = cap_map[cap_val]
-                    features["has_dram"] = 1 if st.checkbox("DRAM 탑재") else 0
-                    features["is_tlc"] = 1 if st.checkbox("TLC 낸드") else 0
-                    features["is_external"] = 1 if st.checkbox("외장형") else 0
+            img_col, result_col = st.columns([1, 3])
+            with img_col:
+                if row.get("image_url") and str(row["image_url"]).startswith("http"):
+                    st.image(row["image_url"], width=140)
+                else:
+                    st.caption("이미지 없음")
+            with result_col:
+                st.markdown(f"**{selected_product}**")
+                m1, m2, m3 = st.columns(3)
+                with m1:
+                    st.metric("실제 가격", f"{actual:,}원")
+                with m2:
+                    st.metric("예측 가격", f"{predicted:,.0f}원")
+                    st.caption(f"예상 범위(80%): {pred_low:,.0f} ~ {pred_high:,.0f}원")
+                with m3:
+                    st.metric("차이", f"{diff:+,.0f}원", delta=f"{diff_pct:+.1f}%", delta_color="inverse")
 
-            elif pred_category == "그래픽카드":
-                c1, c2 = st.columns(2)
-                with c1:
-                    features["gpu_model"] = st.selectbox(
-                        "GPU 모델 번호", [4060, 4070, 4080, 4090, 5060, 5070, 5080, 5090]
-                    )
-                    features["vram_gb"] = st.number_input("VRAM (GB)", 8, 32, 12, 4)
-                with c2:
-                    features["boost_mhz"] = st.number_input("부스트 클럭 (MHz)", 1500, 3000, 2500, 100)
-                    features["length_mm"] = st.number_input("카드 길이 (mm)", 150, 400, 300, 10)
-                    features["power_w"] = st.number_input("정격 파워 (W)", 100, 800, 450, 50)
+                if diff_pct > 10:
+                    st.warning(f"⚠️ 실제 가격이 예측보다 {diff_pct:.1f}% 높아요 — 고평가 가능성")
+                elif diff_pct < -10:
+                    st.success(f"💡 실제 가격이 예측보다 {abs(diff_pct):.1f}% 낮아요 — 저평가/좋은 가격일 수 있어요")
+                else:
+                    st.info("예측 가격과 실제 가격이 비슷해요 — 적정 가격대")
 
-            elif pred_category == "CPU":
-                c1, c2 = st.columns(2)
-                with c1:
-                    features["total_cores"] = st.number_input("총 코어 수", 4, 32, 14, 2)
-                    features["max_ghz"] = st.number_input("최대 클럭 (GHz)", 2.0, 6.0, 5.2, 0.1)
-                    features["generation"] = st.number_input("세대", 10, 15, 14, 1)
-                with c2:
-                    features["has_igpu"] = 1 if st.checkbox("내장 그래픽") else 0
-                    features["is_bulk"] = 1 if st.checkbox("벌크 제품") else 0
-                    features["is_series2"] = 1 if st.checkbox("시리즈2 (Arrow Lake)") else 0
-
-            elif pred_category == "게이밍 노트북":
-                c1, c2 = st.columns(2)
-                with c1:
-                    features["screen_inch"] = st.number_input("화면 크기 (인치)", 13.0, 18.0, 16.0, 0.5)
-                    features["weight_kg"] = st.number_input("무게 (kg)", 1.0, 4.0, 2.2, 0.1)
-                    features["brightness_nit"] = st.number_input("밝기 (nit)", 100, 1000, 300, 50)
-                with c2:
-                    features["cpu_ghz"] = st.number_input("CPU 클럭 (GHz)", 1.0, 5.0, 3.5, 0.1)
-                    ssd_val = st.selectbox("SSD 용량", ["512GB", "1TB", "2TB"])
-                    ssd_map = {"512GB": 512, "1TB": 1024, "2TB": 2048}
-                    features["ssd_gb"] = ssd_map[ssd_val]
-                    features["ram_gb"] = st.selectbox("RAM (GB)", [8, 16, 32, 64])
-
-            if st.button("예측하기", type="primary"):
-                predicted = predict_price(model_info, features)
-                st.success(f"### 예측 가격: {predicted:,.0f}원")
                 if r2 <= 0.5:
-                    st.caption("신뢰도가 낮아요 — 데이터가 더 쌓이면 정확도가 올라가요.")
+                    st.caption("⚠️ 모델 신뢰도가 낮아요 — 데이터가 더 쌓이면 정확도가 올라가요.")
+
+            st.divider()
+
+            # ---- 스펙별 가격 기여도 ----
+            contrib_col, similar_col = st.columns(2)
+            with contrib_col:
+                section_header("📊", "스펙별 가격 기여도", "모든 스펙이 평균일 때 대비, 이 스펙 값이 가격을 얼마나 움직였는지")
+                contributions, baseline_pred = compute_feature_contributions(model_info, features)
+                contrib_df = pd.DataFrame(contributions)
+                contrib_df = contrib_df[contrib_df["contribution"].abs() > 1]  # 사실상 0인 기여는 숨김
+                if contrib_df.empty:
+                    st.caption("뚜렷한 기여 스펙을 찾지 못했어요.")
+                else:
+                    chart = (
+                        alt.Chart(contrib_df)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("contribution:Q", title="가격 기여도(원)"),
+                            y=alt.Y("label:N", title=None, sort="-x"),
+                            color=alt.condition("datum.contribution > 0", alt.value(RED), alt.value(GREEN)),
+                            tooltip=[alt.Tooltip("label:N", title="스펙"), alt.Tooltip("value:N", title="값"), alt.Tooltip("contribution:Q", title="기여도(원)", format=",.0f")],
+                        )
+                        .configure_view(strokeWidth=0)
+                        .configure_axis(gridColor=BORDER, domainColor=BORDER, labelColor=MUTED, titleColor=MUTED)
+                        .properties(height=max(120, 28 * len(contrib_df)))
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+
+            # ---- 비슷한 스펙의 제품과 비교 ----
+            with similar_col:
+                section_header("🔍", "비슷한 스펙 제품 비교", "스펙이 가장 비슷한 다른 제품들의 실제 판매가")
+                similar_df = find_similar_products(
+                    pred_cat_df, features, extractor, model_info,
+                    exclude_product=selected_product, top_n=5,
+                )
+                if similar_df.empty:
+                    st.caption("비교할 제품이 없어요.")
+                else:
+                    for _, srow in similar_df.iterrows():
+                        sdiff = srow["price"] - actual
+                        badge = f"🔺 +{sdiff:,.0f}원" if sdiff > 0 else (f"🔻 {sdiff:,.0f}원" if sdiff < 0 else "동일")
+                        st.markdown(f"**{srow['product'][:45]}**")
+                        st.caption(f"{srow['price']:,.0f}원 · {selected_product[:20]} 대비 {badge}")
+
+            st.divider()
+
+            # ---- 스펙 특성 표 ----
+            with st.expander("📋 추출된 스펙 특성 보기"):
+                feature_rows = [
+                    {"스펙": FEATURE_LABELS.get(f, f), "값": v}
+                    for f, v in features.items()
+                ]
+                st.dataframe(pd.DataFrame(feature_rows), hide_index=True, use_container_width=True)
 
     # ============================
     # 뉴스 탭

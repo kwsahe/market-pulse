@@ -76,9 +76,16 @@ def init_db() -> None:
                 gpu_model TEXT,
                 detail_url TEXT,
                 raw_spec_text TEXT,
+                first_seen TEXT,
                 updated_at TEXT
             )
         """)
+        cursor.execute("PRAGMA table_info(laptop_products)")
+        laptop_cols = [row[1] for row in cursor.fetchall()]
+        if "first_seen" not in laptop_cols:
+            cursor.execute("ALTER TABLE laptop_products ADD COLUMN first_seen TEXT")
+            # 기존 행은 처음 관찰된 시점을 알 수 없으므로 updated_at으로 백필 (신제품 오탐 방지)
+            cursor.execute("UPDATE laptop_products SET first_seen = updated_at WHERE first_seen IS NULL")
 
         # 상세페이지 스펙표를 key-value로 펼쳐서 저장 (필터링용)
         cursor.execute("""
@@ -145,14 +152,17 @@ def insert_many_laptop_prices(data_list: list[tuple]) -> int:
         return cursor.rowcount
 
 
-def upsert_laptop_product(pcode: str, name: str, gpu_model: str, detail_url: str, raw_spec_text: str) -> None:
-    """노트북 상품 메타 정보 저장/갱신"""
+def upsert_laptop_product(pcode: str, name: str, gpu_model: str, detail_url: str, raw_spec_text: str) -> bool:
+    """노트북 상품 메타 정보 저장/갱신. first_seen은 최초 1회만 기록(신제품 판별용).
+    반환값: 이번 호출로 처음 추가된 신제품이면 True"""
     with get_connection() as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM laptop_products WHERE pcode = ?", (pcode,))
+        is_new = cursor.fetchone() is None
         cursor.execute(
             """
-            INSERT INTO laptop_products (pcode, name, gpu_model, detail_url, raw_spec_text, updated_at)
-            VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))
+            INSERT INTO laptop_products (pcode, name, gpu_model, detail_url, raw_spec_text, first_seen, updated_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
             ON CONFLICT(pcode) DO UPDATE SET
                 name=excluded.name,
                 gpu_model=excluded.gpu_model,
@@ -163,6 +173,7 @@ def upsert_laptop_product(pcode: str, name: str, gpu_model: str, detail_url: str
             (pcode, name, gpu_model, detail_url, raw_spec_text)
         )
         conn.commit()
+        return is_new
 
 
 def save_laptop_specs(pcode: str, spec_dict: dict) -> None:
@@ -236,7 +247,7 @@ def load_laptop_price_history(pcode: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def load_laptop_best_buy_stats() -> pd.DataFrame:
+def load_laptop_best_buy_stats(category: str = "게이밍 노트북") -> pd.DataFrame:
     """노트북별 역대 최저가 + 그 날짜 (pcode 단위, 날짜별 최저가 기준으로 계산)
     반환 컬럼: pcode, best_date, best_price"""
     try:
@@ -245,10 +256,10 @@ def load_laptop_best_buy_stats() -> pd.DataFrame:
                 """
                 SELECT pcode, date, MIN(price) AS price
                 FROM prices
-                WHERE category = '게이밍 노트북' AND pcode IS NOT NULL AND pcode != ''
+                WHERE category = ? AND pcode IS NOT NULL AND pcode != ''
                 GROUP BY pcode, date
                 """,
-                conn
+                conn, params=(category,)
             )
         if daily.empty:
             return pd.DataFrame(columns=["pcode", "best_date", "best_price"])

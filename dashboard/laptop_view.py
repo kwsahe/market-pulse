@@ -1,5 +1,6 @@
 # dashboard/laptop_view.py
-# 게이밍 노트북(RTX5080/5090) 전용 탭 — 상세 스펙 필터링, 집중 추적, 이미지 갤러리, 가격 변동 연동
+# 노트북 전용 탭 (게이밍 노트북 RTX5080/5090, AI 노트북 등) — 상세 스펙 필터링,
+# 집중 추적, 이미지 갤러리, 가격 변동 연동. render()에 category를 넘겨 여러 탭에서 재사용한다.
 
 import re
 import pandas as pd
@@ -10,9 +11,10 @@ from database.db_manager import (
     load_laptop_price_history, load_laptop_best_buy_stats,
     get_tracked_pcodes, set_laptop_tracked,
 )
-from dashboard.theme import price_change_badge, best_buy_badge, card_marker, section_header
+from dashboard.theme import price_change_badge, best_buy_badge, card_marker, section_header, category_color, new_badge
 
-FILTER_SPEC_KEYS = ["GPU 칩셋", "제조회사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
+DEFAULT_FILTER_SPEC_KEYS = ["GPU 칩셋", "제조회사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
+AI_FILTER_SPEC_KEYS = ["CPU 제조사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
 
 
 def _clean_value(value: str) -> str:
@@ -28,34 +30,62 @@ def _pivot_specs(specs_df: pd.DataFrame) -> pd.DataFrame:
     return specs_df.pivot(index="pcode", columns="spec_key", values="spec_value")
 
 
-def render(current_df: pd.DataFrame, changed_df: pd.DataFrame, has_changes: bool) -> None:
-    """게이밍 노트북 탭 렌더링 진입점"""
-    laptop_df = current_df[current_df["category"] == "게이밍 노트북"].copy()
+def render(
+    current_df: pd.DataFrame,
+    changed_df: pd.DataFrame,
+    has_changes: bool,
+    category: str = "게이밍 노트북",
+    filter_spec_keys: list = None,
+    empty_message: str = None,
+) -> None:
+    """노트북 탭 렌더링 진입점 (category로 게이밍 노트북/AI 노트북 등 구분)"""
+    filter_spec_keys = filter_spec_keys or DEFAULT_FILTER_SPEC_KEYS
+    empty_message = empty_message or f"{category} 상세 데이터가 아직 없어요. run_scrapers.bat 을 실행해주세요!"
+
+    laptop_df = current_df[current_df["category"] == category].copy()
     laptop_df = laptop_df[laptop_df["pcode"].notna() & (laptop_df["pcode"] != "")]
 
     if laptop_df.empty:
-        st.info("RTX5080/5090 노트북 상세 데이터가 아직 없어요. run_scrapers.bat 을 실행해주세요!")
+        st.info(empty_message)
         return
 
     # 같은 상품(pcode)의 SSD/RAM 변형 중 최저가만 대표로 표시
     laptop_df = laptop_df.sort_values("price").drop_duplicates(subset="pcode", keep="first")
 
+    # laptop_specs/laptop_images는 pcode 기준 전역 테이블이라 카테고리로 미리 좁혀야
+    # 필터 옵션에 다른 카테고리(예: 게이밍 노트북의 인텔/라이젠9) 값이 섞여 나오지 않는다.
+    category_pcodes = set(laptop_df["pcode"])
     specs_df = load_laptop_specs()
+    specs_df = specs_df[specs_df["pcode"].isin(category_pcodes)]
     images_df = load_laptop_images()
-    best_buy_df = load_laptop_best_buy_stats()
+    images_df = images_df[images_df["pcode"].isin(category_pcodes)]
+    best_buy_df = load_laptop_best_buy_stats(category)
+    products_df = load_laptop_products()
     spec_pivot = _pivot_specs(specs_df)
     tracked = set(get_tracked_pcodes())
 
+    # 이번 스크래핑 회차(최신 수집일)에 처음 잡힌 상품 = 신제품
+    latest_date = laptop_df["date"].max()
+    new_pcodes = set()
+    if not products_df.empty and "first_seen" in products_df.columns:
+        first_seen_date = products_df["first_seen"].astype(str).str[:10]
+        new_pcodes = set(products_df.loc[first_seen_date == latest_date, "pcode"])
+    new_pcodes &= set(laptop_df["pcode"])
+
+    if new_pcodes:
+        st.success(f"🆕 오늘({latest_date}) 새로 발견된 노트북 {len(new_pcodes)}종이 있어요!")
+
+    key_prefix = re.sub(r"\W+", "_", category)
     tab_all, tab_tracked = st.tabs([f"📋 전체 ({len(laptop_df)})", f"🎯 추적 중 ({len(tracked)})"])
 
     with tab_all:
-        filtered_df = _render_filters(laptop_df, spec_pivot)
+        filtered_df = _render_filters(laptop_df, spec_pivot, filter_spec_keys, key_prefix)
         st.caption(f"{len(filtered_df)}개 상품 표시 중")
         st.divider()
-        _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes)
+        _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, new_pcodes)
 
     with tab_tracked:
-        _render_tracked(laptop_df, tracked, images_df, best_buy_df)
+        _render_tracked(laptop_df, tracked, images_df, best_buy_df, category)
 
 
 def _render_best_buy(current_price: int, pcode: str, best_buy_df: pd.DataFrame) -> None:
@@ -90,24 +120,25 @@ def _apply_spec_filter(pcodes: set, spec_pivot: pd.DataFrame, key: str, selected
     return pcodes & (keep | no_info)
 
 
-def _render_filters(laptop_df: pd.DataFrame, spec_pivot: pd.DataFrame) -> pd.DataFrame:
+def _render_filters(laptop_df: pd.DataFrame, spec_pivot: pd.DataFrame, filter_spec_keys: list, key_prefix: str) -> pd.DataFrame:
     with st.expander("🔍 필터", expanded=True):
-        cols = list(st.columns(3)) + list(st.columns(3))
+        n = len(filter_spec_keys)
+        cols = list(st.columns(3)) + (list(st.columns(3)) if n > 3 else [])
         selections = {}
-        for i, key in enumerate(FILTER_SPEC_KEYS[:6]):
+        for i, key in enumerate(filter_spec_keys[:6]):
             with cols[i]:
                 if key in spec_pivot.columns:
                     options = sorted({_clean_value(v) for v in spec_pivot[key].dropna()})
                 else:
                     options = []
-                selections[key] = st.multiselect(key, options, default=options, key=f"lt_filter_{key}")
+                selections[key] = st.multiselect(key, options, default=options, key=f"lt_filter_{key_prefix}_{key}")
 
         min_price = int(laptop_df["price"].min())
         max_price = int(laptop_df["price"].max())
         if min_price < max_price:
             price_range = st.slider(
                 "가격대(원)", min_price, max_price, (min_price, max_price),
-                step=100_000, key="lt_filter_price"
+                step=100_000, key=f"lt_filter_{key_prefix}_price"
             )
         else:
             price_range = (min_price, max_price)
@@ -123,10 +154,26 @@ def _render_filters(laptop_df: pd.DataFrame, spec_pivot: pd.DataFrame) -> pd.Dat
     return filtered
 
 
-def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes) -> None:
+@st.dialog("🖼️ 노트북 이미지", width="large")
+def _image_dialog(product_name: str, prod_imgs: pd.DataFrame) -> None:
+    """대표/상세정보 이미지를 별도 창(모달)으로 크게 보여준다"""
+    st.markdown(f"**{product_name}**")
+    if prod_imgs.empty:
+        st.caption("이미지 없음")
+        return
+    main_imgs = prod_imgs[prod_imgs["image_type"] == "main"]
+    detail_imgs = prod_imgs[prod_imgs["image_type"] == "detail"]
+    if not main_imgs.empty:
+        st.image(main_imgs.iloc[0]["image_url"], caption="대표 이미지", use_container_width=True)
+    for _, img_row in detail_imgs.iterrows():
+        st.image(img_row["image_url"], caption="상세정보", use_container_width=True)
+
+
+def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, new_pcodes=None) -> None:
     if filtered_df.empty:
         st.info("조건에 맞는 노트북이 없어요. 필터를 조정해보세요.")
         return
+    new_pcodes = new_pcodes or set()
 
     cols = st.columns(2)
     for idx, (_, row) in enumerate(filtered_df.iterrows()):
@@ -145,7 +192,10 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                         st.caption("이미지 없음")
 
                 with info_col:
-                    st.markdown(f"**{row['product'][:55]}**")
+                    name_html = f"**{row['product'][:55]}**"
+                    if pcode in new_pcodes:
+                        name_html += " " + new_badge()
+                    st.markdown(name_html, unsafe_allow_html=True)
                     st.markdown(f"💰 **{row['price']:,}원**")
 
                     if has_changes and not changed_df.empty:
@@ -164,14 +214,9 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
 
                 gallery_col, spec_col = st.columns(2)
                 with gallery_col:
-                    with st.expander("🖼️ 이미지"):
-                        prod_imgs = images_df[images_df["pcode"] == pcode]
-                        if prod_imgs.empty:
-                            st.caption("이미지 없음")
-                        else:
-                            for _, img_row in prod_imgs.iterrows():
-                                label = "대표 이미지" if img_row["image_type"] == "main" else "상세정보"
-                                st.image(img_row["image_url"], caption=label, use_container_width=True)
+                    prod_imgs = images_df[images_df["pcode"] == pcode]
+                    if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"imgbtn_{pcode}", use_container_width=True):
+                        _image_dialog(row["product"], prod_imgs)
                 with spec_col:
                     with st.expander("📋 전체 스펙"):
                         prod_specs = specs_df[specs_df["pcode"] == pcode]
@@ -189,7 +234,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                 st.caption(f"수집일: {row['date']}")
 
 
-def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame) -> None:
+def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame, category: str) -> None:
     if not tracked:
         st.info("추적 중인 모델이 없어요. '전체' 탭에서 🎯 집중 추적 체크박스를 눌러보세요!")
         return
@@ -208,6 +253,9 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
                 main_imgs = images_df[(images_df["pcode"] == pcode) & (images_df["image_type"] == "main")]
                 if not main_imgs.empty:
                     st.image(main_imgs.iloc[0]["image_url"], width=140)
+                prod_imgs = images_df[images_df["pcode"] == pcode]
+                if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"tracked_imgbtn_{pcode}"):
+                    _image_dialog(row["product"], prod_imgs)
             with c2:
                 st.markdown(f"**{row['product']}**")
                 st.markdown(f"💰 현재가 **{row['price']:,}원**")
@@ -218,6 +266,6 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
 
             history = load_laptop_price_history(pcode)
             if len(history) >= 2:
-                st.line_chart(history, x="date", y="price", color="#E8734A")
+                st.line_chart(history, x="date", y="price", color=category_color(category))
             else:
                 st.caption("가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
