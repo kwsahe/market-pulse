@@ -9,6 +9,16 @@ import pandas as pd
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data.db")
 
+# 카테고리별 내부 상품번호 접두사 (RAM-1, SSD-1, GC-1, CPU-1, GN-1, AN-1 ...)
+CATEGORY_PREFIX = {
+    "DDR5 RAM": "RAM",
+    "NVMe SSD": "SSD",
+    "그래픽카드": "GC",
+    "CPU": "CPU",
+    "게이밍 노트북": "GN",
+    "AI 노트북": "AN",
+}
+
 
 @contextmanager
 def get_connection():
@@ -120,8 +130,21 @@ def init_db() -> None:
             )
         """)
 
+        # 카테고리 공통 상품번호 레지스트리 (RAM-1, SSD-1, GC-1, CPU-1, GN-1, AN-1 ...)
+        # match_key: 노트북류는 danawa pcode, 부품류(RAM/SSD/GC/CPU)는 상품명 텍스트 자체가 SKU 단위라 그대로 사용
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS product_registry (
+                internal_code TEXT PRIMARY KEY,
+                category TEXT NOT NULL,
+                match_key TEXT NOT NULL,
+                display_name TEXT NOT NULL,
+                first_seen TEXT NOT NULL,
+                UNIQUE(category, match_key)
+            )
+        """)
+
         conn.commit()
-    print("[OK] DB 초기화 완료! 테이블: prices, news, laptop_products, laptop_specs, laptop_images, tracked_laptops")
+    print("[OK] DB 초기화 완료! 테이블: prices, news, laptop_products, laptop_specs, laptop_images, tracked_laptops, product_registry")
 
 
 def insert_many_prices(data_list: list[tuple]) -> int:
@@ -174,6 +197,93 @@ def upsert_laptop_product(pcode: str, name: str, gpu_model: str, detail_url: str
         )
         conn.commit()
         return is_new
+
+
+def get_or_create_product_code(category: str, match_key: str, display_name: str) -> str:
+    """카테고리+식별키(pcode 또는 상품명)에 대응하는 내부 상품번호를 찾거나 새로 발급.
+    이미 등록돼 있으면 코드만 반환(표시명 갱신), 없으면 해당 카테고리의 다음 순번으로 새로 발급."""
+    prefix = CATEGORY_PREFIX.get(category, "ITEM")
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT internal_code FROM product_registry WHERE category = ? AND match_key = ?",
+            (category, match_key)
+        )
+        row = cursor.fetchone()
+        if row:
+            cursor.execute(
+                "UPDATE product_registry SET display_name = ? WHERE internal_code = ?",
+                (display_name, row["internal_code"])
+            )
+            conn.commit()
+            return row["internal_code"]
+
+        cursor.execute("SELECT COUNT(*) AS c FROM product_registry WHERE category = ?", (category,))
+        next_n = cursor.fetchone()["c"] + 1
+        internal_code = f"{prefix}-{next_n}"
+        cursor.execute(
+            """
+            INSERT INTO product_registry (internal_code, category, match_key, display_name, first_seen)
+            VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
+            """,
+            (internal_code, category, match_key, display_name)
+        )
+        conn.commit()
+        return internal_code
+
+
+def backfill_product_registry() -> int:
+    """기존에 수집된 prices 데이터 전체에 상품번호를 발급 (없는 것만). pcode가 있으면 pcode,
+    없으면(과거 부품 데이터) 상품명을 식별키로 사용. 스키마 도입 후 1회 실행용."""
+    with get_connection() as conn:
+        rows = conn.execute("SELECT DISTINCT category, product, pcode FROM prices").fetchall()
+    registered = 0
+    for r in rows:
+        match_key = r["pcode"] if r["pcode"] else r["product"]
+        get_or_create_product_code(r["category"], match_key, r["product"])
+        registered += 1
+    return registered
+
+
+def load_product_registry(category: str = None) -> pd.DataFrame:
+    """상품번호 레지스트리 전체(또는 특정 카테고리) 조회"""
+    try:
+        with get_connection() as conn:
+            if category:
+                return pd.read_sql_query(
+                    "SELECT * FROM product_registry WHERE category = ?", conn, params=(category,)
+                )
+            return pd.read_sql_query("SELECT * FROM product_registry", conn)
+    except Exception as e:
+        print(f"⚠️ 상품 레지스트리 로드 실패: {e}")
+        return pd.DataFrame()
+
+
+def get_product_code_map(category: str) -> dict:
+    """{match_key: internal_code} 매핑 (부품 카테고리는 match_key=상품명, 노트북류는 match_key=pcode)"""
+    reg = load_product_registry(category)
+    if reg.empty:
+        return {}
+    return dict(zip(reg["match_key"], reg["internal_code"]))
+
+
+def load_price_history_by_match_key(category: str, match_key: str, by_pcode: bool = False) -> pd.DataFrame:
+    """상품 하나의 날짜별 가격 추이. by_pcode=True면 pcode 기준(노트북, 같은 pcode의 용량 변형 중 최저가),
+    False면 상품명 그대로 매칭(부품류)."""
+    try:
+        with get_connection() as conn:
+            if by_pcode:
+                return pd.read_sql_query(
+                    "SELECT date, MIN(price) AS price FROM prices WHERE pcode = ? GROUP BY date ORDER BY date",
+                    conn, params=(match_key,)
+                )
+            return pd.read_sql_query(
+                "SELECT date, price FROM prices WHERE category = ? AND product = ? ORDER BY date",
+                conn, params=(category, match_key)
+            )
+    except Exception as e:
+        print(f"⚠️ 상품 가격 이력 로드 실패: {e}")
+        return pd.DataFrame()
 
 
 def save_laptop_specs(pcode: str, spec_dict: dict) -> None:

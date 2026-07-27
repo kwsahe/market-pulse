@@ -12,9 +12,9 @@ import time
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import (
-    init_db, insert_many_prices, load_prices,
+    init_db, load_prices,
     insert_many_laptop_prices, upsert_laptop_product,
-    save_laptop_specs, save_laptop_images,
+    save_laptop_specs, save_laptop_images, get_or_create_product_code,
 )
 from scraper.laptop_detail_scraper import fetch_product_detail
 
@@ -228,6 +228,8 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
                     print(f"{len(seen_pcodes)}. {product}")
                     data_list.append((today, category, product, cost_num, specs, img_url, pcode))
 
+                get_or_create_product_code(category, pcode, product)
+
                 # 상세페이지: 전체 스펙 + 상세정보(홍보) 이미지 수집
                 try:
                     if detail is None:
@@ -307,13 +309,22 @@ for category, query in CATEGORIES.items():
         continue
 
     data_list = []
+    registered = 0
     for i, name_tag in enumerate(names):
         try:
             product = name_tag.get_text(strip=True)
+            href = name_tag.get("href", "")
+            pcode = extract_pcode(href)
             block = find_product_block(name_tag)
             img_url = extract_image(block)
             specs = extract_specs(block)
             variants = extract_variants(block)
+
+            # 상품번호(RAM-1, SSD-1 ...)는 상세페이지(=pcode) 단위로 1개만 발급 —
+            # 용량별 variant는 같은 pcode 상세페이지 안의 가격 옵션일 뿐, 별개 상품이 아님
+            if pcode:
+                get_or_create_product_code(category, pcode, product)
+                registered += 1
 
             if variants:
                 for mem_text, var_price in variants:
@@ -321,7 +332,7 @@ for category, query in CATEGORIES.items():
                     print(f"{i+1}. {full_name}")
                     img_status = "OK" if img_url else "NO"
                     print(f"   가격: {var_price:,}원 | 이미지: {img_status}")
-                    data_list.append((today, category, full_name, var_price, specs, img_url))
+                    data_list.append((today, category, full_name, var_price, specs, img_url, pcode))
             else:
                 price_tag = block.find("a", class_="click_log_product_standard_price_")
                 if not price_tag:
@@ -334,7 +345,7 @@ for category, query in CATEGORIES.items():
                 print(f"{i+1}. {product}")
                 img_status = "OK" if img_url else "NO"
                 print(f"   가격: {cost_num:,}원 | 이미지: {img_status}")
-                data_list.append((today, category, product, cost_num, specs, img_url))
+                data_list.append((today, category, product, cost_num, specs, img_url, pcode))
 
             if specs:
                 print(f"   스펙: {specs[:80]}...")
@@ -344,10 +355,10 @@ for category, query in CATEGORIES.items():
 
     # DB 저장 (중복 무시)
     if data_list:
-        new_count = insert_many_prices(data_list)
+        new_count = insert_many_laptop_prices(data_list)
         total_count += len(data_list)
         total_new += new_count
-        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 상품번호 등록: {registered}개 | 중복 건너뜀: {len(data_list) - new_count}개")
     else:
         print(f"\n[!] [{category}] 수집된 상품이 없어요.")
 

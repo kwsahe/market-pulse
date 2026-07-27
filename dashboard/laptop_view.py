@@ -9,9 +9,18 @@ import streamlit as st
 from database.db_manager import (
     load_laptop_products, load_laptop_specs, load_laptop_images,
     load_laptop_price_history, load_laptop_best_buy_stats,
-    get_tracked_pcodes, set_laptop_tracked,
+    get_tracked_pcodes, set_laptop_tracked, get_product_code_map,
 )
-from dashboard.theme import price_change_badge, best_buy_badge, card_marker, section_header, category_color, new_badge
+from dashboard.theme import (
+    price_change_badge, best_buy_badge, card_marker, section_header,
+    category_color, new_badge, code_badge,
+)
+
+
+def _open_product_detail(code: str) -> None:
+    """상품 코드로 상세보기를 연다 (app.py 최상단의 링크 상세 섹션이 쿼리파라미터를 읽어서 렌더링)"""
+    st.query_params["code"] = code
+    st.rerun()
 
 DEFAULT_FILTER_SPEC_KEYS = ["GPU 칩셋", "제조회사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
 AI_FILTER_SPEC_KEYS = ["CPU 제조사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
@@ -63,6 +72,7 @@ def render(
     products_df = load_laptop_products()
     spec_pivot = _pivot_specs(specs_df)
     tracked = set(get_tracked_pcodes())
+    code_map = get_product_code_map(category)
 
     # 이번 스크래핑 회차(최신 수집일)에 처음 잡힌 상품 = 신제품
     latest_date = laptop_df["date"].max()
@@ -79,13 +89,16 @@ def render(
     tab_all, tab_tracked = st.tabs([f"📋 전체 ({len(laptop_df)})", f"🎯 추적 중 ({len(tracked)})"])
 
     with tab_all:
+        search_term = st.text_input("🔎 상품 검색", key=f"lt_search_{key_prefix}", placeholder="상품명으로 검색...")
+        if search_term:
+            laptop_df = laptop_df[laptop_df["product"].str.contains(search_term, case=False, na=False, regex=False)]
         filtered_df = _render_filters(laptop_df, spec_pivot, filter_spec_keys, key_prefix)
         st.caption(f"{len(filtered_df)}개 상품 표시 중")
         st.divider()
-        _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, new_pcodes)
+        _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, code_map, new_pcodes)
 
     with tab_tracked:
-        _render_tracked(laptop_df, tracked, images_df, best_buy_df, category)
+        _render_tracked(laptop_df, tracked, images_df, best_buy_df, category, code_map)
 
 
 def _render_best_buy(current_price: int, pcode: str, best_buy_df: pd.DataFrame) -> None:
@@ -169,11 +182,12 @@ def _image_dialog(product_name: str, prod_imgs: pd.DataFrame) -> None:
         st.image(img_row["image_url"], caption="상세정보", use_container_width=True)
 
 
-def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, new_pcodes=None) -> None:
+def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, code_map=None, new_pcodes=None) -> None:
     if filtered_df.empty:
         st.info("조건에 맞는 노트북이 없어요. 필터를 조정해보세요.")
         return
     new_pcodes = new_pcodes or set()
+    code_map = code_map or {}
 
     cols = st.columns(2)
     for idx, (_, row) in enumerate(filtered_df.iterrows()):
@@ -192,7 +206,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                         st.caption("이미지 없음")
 
                 with info_col:
-                    name_html = f"**{row['product'][:55]}**"
+                    name_html = code_badge(code_map.get(pcode, "")) + f"**{row['product'][:55]}**"
                     if pcode in new_pcodes:
                         name_html += " " + new_badge()
                     st.markdown(name_html, unsafe_allow_html=True)
@@ -212,7 +226,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                         set_laptop_tracked(pcode, new_tracked)
                         st.rerun()
 
-                gallery_col, spec_col = st.columns(2)
+                gallery_col, spec_col, detail_col = st.columns(3)
                 with gallery_col:
                     prod_imgs = images_df[images_df["pcode"] == pcode]
                     if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"imgbtn_{pcode}", use_container_width=True):
@@ -230,11 +244,16 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                                 hide_index=True,
                                 use_container_width=True,
                             )
+                with detail_col:
+                    code = code_map.get(pcode, "")
+                    if code and st.button("📈 상세보기", key=f"detail_{pcode}", use_container_width=True):
+                        _open_product_detail(code)
 
                 st.caption(f"수집일: {row['date']}")
 
 
-def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame, category: str) -> None:
+def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame, category: str, code_map: dict = None) -> None:
+    code_map = code_map or {}
     if not tracked:
         st.info("추적 중인 모델이 없어요. '전체' 탭에서 🎯 집중 추적 체크박스를 눌러보세요!")
         return
@@ -256,8 +275,11 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
                 prod_imgs = images_df[images_df["pcode"] == pcode]
                 if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"tracked_imgbtn_{pcode}"):
                     _image_dialog(row["product"], prod_imgs)
+                code = code_map.get(pcode, "")
+                if code and st.button("📈 상세보기", key=f"tracked_detail_{pcode}"):
+                    _open_product_detail(code)
             with c2:
-                st.markdown(f"**{row['product']}**")
+                st.markdown(code_badge(code_map.get(pcode, "")) + f"**{row['product']}**", unsafe_allow_html=True)
                 st.markdown(f"💰 현재가 **{row['price']:,}원**")
                 _render_best_buy(row["price"], pcode, best_buy_df)
                 if st.button("추적 해제", key=f"untrack_{pcode}"):

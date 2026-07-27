@@ -140,6 +140,20 @@ def inject_css() -> None:
             margin-left: 6px;
             vertical-align: middle;
         }}
+        .mp-code-badge {{
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: 'Manrope', monospace;
+            background: {SURFACE_RAISED};
+            color: {CYAN};
+            border: 1px solid {BORDER};
+            letter-spacing: .02em;
+            margin-right: 6px;
+            vertical-align: middle;
+        }}
 
         /* ---------- 커스텀 통계 카드 ---------- */
         .mp-stat-grid {{
@@ -385,3 +399,10 @@ def best_buy_badge(text: str, is_best_now: bool) -> str:
 def new_badge() -> str:
     """신제품 표시 뱃지 HTML"""
     return '<span class="mp-new-badge">🆕 NEW</span>'
+
+
+def code_badge(code: str) -> str:
+    """상품번호(RAM-1, GN-3 ...) 표시 뱃지 HTML"""
+    if not code:
+        return ""
+    return f'<span class="mp-code-badge">{code}</span>'

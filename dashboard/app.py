@@ -9,7 +9,10 @@ import sys
 from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from database.db_manager import load_prices, load_news
+from database.db_manager import (
+    load_prices, load_news,
+    get_product_code_map, load_price_history_by_match_key, load_product_registry,
+)
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
 from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
@@ -21,7 +24,7 @@ from ml.price_prediction import (
 import dashboard.laptop_view as laptop_view
 from dashboard.theme import (
     inject_css, price_change_badge, hero_header, stat_cards, section_header, card_marker,
-    CYAN, RED, GREEN, AMBER, CATEGORY_COLORS, category_color, SURFACE, BORDER, MUTED,
+    code_badge, CYAN, RED, GREEN, AMBER, CATEGORY_COLORS, category_color, SURFACE, BORDER, MUTED,
 )
 
 
@@ -84,6 +87,86 @@ def _format_capacity_label(capacity_gb: int) -> str:
     return f"{capacity_gb}GB"
 
 
+def _match_key_for_row(row: pd.Series) -> str:
+    """상품번호 조회용 식별키 — pcode가 있으면 pcode, 없으면(부품 과거 데이터) 상품명"""
+    pcode = row.get("pcode")
+    return pcode if pcode and str(pcode).strip() else row["product"]
+
+
+def _open_product_detail(code: str) -> None:
+    """상품 코드로 상세보기를 연다 — URL 쿼리파라미터에 반영되므로 그대로 복사하면 링크가 된다"""
+    st.query_params["code"] = code
+    st.rerun()
+
+
+def _resolve_code(code: str, prices_df: pd.DataFrame):
+    """상품번호 -> (category, 최신 데이터 행) 조회. 없으면 (None, None)"""
+    reg = load_product_registry()
+    match = reg[reg["internal_code"] == code]
+    if match.empty:
+        return None, None
+    category = match.iloc[0]["category"]
+    match_key = match.iloc[0]["match_key"]
+    latest_date = prices_df["date"].max()
+    cat_latest = prices_df[(prices_df["date"] == latest_date) & (prices_df["category"] == category)]
+    row = cat_latest[(cat_latest["pcode"] == match_key) | (cat_latest["product"] == match_key)]
+    if row.empty:
+        # 오늘 목록엔 없지만(품절 등) 과거에는 있었을 수 있으니 가장 최근 스냅샷을 대신 보여줌
+        hist = prices_df[(prices_df["category"] == category) & ((prices_df["pcode"] == match_key) | (prices_df["product"] == match_key))]
+        if hist.empty:
+            return category, None
+        row = hist.sort_values("date").tail(1)
+    return category, row.iloc[0]
+
+
+def _render_product_detail_section(prices_df: pd.DataFrame) -> None:
+    """URL의 ?code=XXX 로 열린 상품을 페이지 맨 위에 상세정보+가격추이로 보여준다 (=상품별 공유 링크)"""
+    code = st.query_params.get("code")
+    if not code:
+        return
+
+    category, row = _resolve_code(code, prices_df)
+    with st.container(border=True):
+        card_marker()
+        header_col, close_col = st.columns([5, 1])
+        with header_col:
+            st.markdown(f"🔗 **링크로 열린 상품** {code_badge(code)}", unsafe_allow_html=True)
+        with close_col:
+            if st.button("✕ 닫기", key="close_linked_product"):
+                st.query_params.clear()
+                st.rerun()
+
+        if row is None:
+            st.warning(f"상품번호 '{code}'를 찾을 수 없어요.")
+            return
+
+        match_key = _match_key_for_row(row)
+        by_pcode = bool(row.get("pcode")) and str(row.get("pcode")).strip() != ""
+
+        img_col, info_col = st.columns([1, 3])
+        with img_col:
+            if row.get("image_url") and str(row["image_url"]).startswith("http"):
+                st.image(row["image_url"], width=160)
+            else:
+                st.caption("이미지 없음")
+        with info_col:
+            st.markdown(f"**{row['product']}**")
+            st.caption(f"카테고리: {category} · 최근 수집일: {row['date']}")
+            st.markdown(f"💰 **{row['price']:,}원**")
+            if row.get("specs") and str(row["specs"]).strip():
+                with st.expander("📋 상세 스펙"):
+                    st.caption(row["specs"])
+
+        history = load_price_history_by_match_key(category, match_key, by_pcode=by_pcode)
+        st.markdown("**📈 가격 추이**")
+        if len(history) >= 2:
+            st.line_chart(history, x="date", y="price", color=category_color(category))
+        else:
+            st.caption("가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
+
+    st.divider()
+
+
 @st.cache_data(show_spinner="모델 학습 중...")
 def get_trained_model(category):
     """카테고리별 가격 예측 모델 학습 (캐시됨)"""
@@ -119,6 +202,39 @@ if not prices_df.empty:
     current_df = prices_df[prices_df["date"] == latest_date].copy()
 else:
     current_df = pd.DataFrame()
+
+# 링크로 열린 상품(?code=RAM-1 등) 상세정보 — 있으면 페이지 맨 위에 표시
+if not current_df.empty:
+    _render_product_detail_section(prices_df)
+
+# ============================
+# 전체 상품 검색
+# ============================
+if not current_df.empty:
+    section_header("🔎", "상품 검색", "상품명으로 전체 카테고리에서 찾기")
+    global_search = st.text_input(
+        "검색어 입력", key="global_search",
+        placeholder="예: RTX5080, DDR5, 삼성전자...", label_visibility="collapsed",
+    )
+    if global_search:
+        matches = current_df[current_df["product"].str.contains(global_search, case=False, na=False, regex=False)]
+        st.caption(f"'{global_search}' 검색 결과: {len(matches)}개")
+        code_map_cache = {}
+        for idx, (_, mrow) in enumerate(matches.head(30).iterrows()):
+            mcat = mrow["category"]
+            if mcat not in code_map_cache:
+                code_map_cache[mcat] = get_product_code_map(mcat)
+            mcode = code_map_cache[mcat].get(_match_key_for_row(mrow), "")
+            c1, c2, c3 = st.columns([1, 4, 1])
+            with c1:
+                st.markdown(code_badge(mcode) or "—", unsafe_allow_html=True)
+            with c2:
+                st.markdown(f"{mrow['product'][:55]} · **{mrow['price']:,}원**")
+                st.caption(mcat)
+            with c3:
+                if mcode and st.button("상세보기", key=f"gsearch_{idx}_{mcode}"):
+                    _open_product_detail(mcode)
+    st.divider()
 
 # ML 분석 (최신 데이터 기준)
 z_anomalies = detect_zscore(current_df) if not current_df.empty else pd.DataFrame()
@@ -243,6 +359,12 @@ if not prices_df.empty:
             cat_df = current_df[current_df["category"] == category].copy()
             section_header(tab_icons.get(category, "🔧"), category, f"{len(cat_df)}개 상품")
 
+            cat_search = st.text_input("🔎 상품 검색", key=f"search_{category}", placeholder="상품명으로 검색...")
+            if cat_search:
+                cat_df = cat_df[cat_df["product"].str.contains(cat_search, case=False, na=False, regex=False)]
+
+            code_map = get_product_code_map(category)
+
             s1, s2, s3, s4 = st.columns(4)
             with s1:
                 st.metric("평균", f"{cat_df['price'].mean():,.0f}원")
@@ -287,11 +409,15 @@ if not prices_df.empty:
                             else:
                                 st.caption("이미지 없음")
                         with info_col:
+                            code = code_map.get(_match_key_for_row(row), "")
+                            name_html = code_badge(code)
                             if is_anomaly:
-                                st.markdown(f"⚠️ **{row['product'][:50]}**")
-                                st.caption("이상치 감지됨")
+                                name_html += f"⚠️ **{row['product'][:50]}**"
                             else:
-                                st.markdown(f"**{row['product'][:50]}**")
+                                name_html += f"**{row['product'][:50]}**"
+                            st.markdown(name_html, unsafe_allow_html=True)
+                            if is_anomaly:
+                                st.caption("이상치 감지됨")
                             st.markdown(f"💰 **{row['price']:,}원**")
 
                             # 가격 변동 표시
@@ -301,9 +427,14 @@ if not prices_df.empty:
                                     ch = change_row.iloc[0]
                                     st.markdown(price_change_badge(ch["change"], ch["change_pct"]), unsafe_allow_html=True)
 
-                            if row["specs"] and str(row["specs"]).strip():
-                                with st.expander("📋 상세 스펙"):
-                                    st.caption(row["specs"])
+                            spec_col, detail_col = st.columns(2)
+                            with spec_col:
+                                if row["specs"] and str(row["specs"]).strip():
+                                    with st.expander("📋 상세 스펙"):
+                                        st.caption(row["specs"])
+                            with detail_col:
+                                if code and st.button("🔍 상세보기", key=f"detail_{category}_{j}", use_container_width=True):
+                                    _open_product_detail(code)
                             st.caption(f"수집일: {row['date']}")
 
     # ============================
