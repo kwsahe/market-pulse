@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from database.db_manager import (
     load_prices, load_news,
     get_product_code_map, load_price_history_by_match_key, load_product_registry,
-    load_laptop_images, get_tracked_pcodes,
+    load_laptop_images, get_tracked_pcodes, load_tracked_targets,
 )
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
@@ -218,6 +218,30 @@ def _render_product_detail_section(prices_df: pd.DataFrame) -> None:
         history = load_price_history_by_match_key(category, match_key, by_pcode=by_pcode)
         st.markdown("**📈 가격 추이**")
         if len(history) >= 2:
+            history = history.copy()
+            history["date"] = pd.to_datetime(history["date"])
+            hist_min = history["price"].min()
+            hist_max = history["price"].max()
+            latest_hist_date = history["date"].max()
+            last7 = history[history["date"] >= latest_hist_date - pd.Timedelta(days=7)]
+            last30 = history[history["date"] >= latest_hist_date - pd.Timedelta(days=30)]
+
+            stat_cols = st.columns(4)
+            with stat_cols[0]:
+                st.metric("전체 최저가", f"{hist_min:,.0f}원")
+            with stat_cols[1]:
+                st.metric("전체 최고가", f"{hist_max:,.0f}원")
+            with stat_cols[2]:
+                st.metric("최근 7일 평균", f"{last7['price'].mean():,.0f}원" if not last7.empty else "-")
+            with stat_cols[3]:
+                st.metric("최근 30일 평균", f"{last30['price'].mean():,.0f}원" if not last30.empty else "-")
+
+            diff_from_min_pct = (row["price"] - hist_min) / hist_min * 100 if hist_min else 0
+            if diff_from_min_pct > 0.5:
+                st.caption(f"현재가가 역대 최저가보다 {diff_from_min_pct:.1f}% 높아요.")
+            else:
+                st.caption("🏆 지금이 역대 최저가예요!")
+
             st.line_chart(history, x="date", y="price", color=category_color(category))
         else:
             st.caption("가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
@@ -303,6 +327,42 @@ if tracked_pcodes and has_changes and not changed_df.empty and not current_df.em
             tracked_drop_code_cache: dict = {}
             for i, (_, row) in enumerate(tracked_drops.iterrows()):
                 _render_change_card(row, current_df, tracked_drop_code_cache, key_prefix=f"trackeddrop_{i}")
+        st.divider()
+
+# ============================
+# 목표가 도달 상품 알림
+# ============================
+targets_df = load_tracked_targets()
+if not targets_df.empty:
+    targets_df = targets_df[targets_df["target_price"].notna()]
+if not targets_df.empty and not current_df.empty:
+    target_map = dict(zip(targets_df["pcode"], targets_df["target_price"]))
+    tracked_current = current_df[current_df["pcode"].isin(target_map.keys())].copy()
+    tracked_current["_target"] = tracked_current["pcode"].map(target_map)
+    reached = tracked_current[tracked_current["price"] <= tracked_current["_target"]]
+    if not reached.empty:
+        st.success(f"🎯 목표가에 도달한 추적 상품 {len(reached)}개가 있어요!")
+        with st.expander(f"🎯 목표가 도달 상품 상세 ({len(reached)}개)", expanded=True):
+            reached_code_cache: dict = {}
+            for i, (_, row) in enumerate(reached.iterrows()):
+                reached_category = row["category"]
+                if reached_category not in reached_code_cache:
+                    reached_code_cache[reached_category] = get_product_code_map(reached_category)
+                code = reached_code_cache[reached_category].get(_match_key_for_row(row), "")
+                with st.container(border=True):
+                    card_marker()
+                    img_col, info_col = st.columns([1, 3])
+                    with img_col:
+                        if row.get("image_url") and str(row["image_url"]).startswith("http"):
+                            st.image(row["image_url"], width=110)
+                        else:
+                            st.caption("이미지 없음")
+                    with info_col:
+                        name_html = code_badge(code) if code else ""
+                        st.markdown(f"{name_html}**{row['product'][:60]}**", unsafe_allow_html=True)
+                        st.markdown(f"💰 현재가 **{row['price']:,}원** · 목표가 {row['_target']:,.0f}원")
+                        if code and st.button("🔍 상세보기", key=f"target_reached_detail_{i}_{code}", width="stretch"):
+                            _open_product_detail(code)
         st.divider()
 
 # ============================

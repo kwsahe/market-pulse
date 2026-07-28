@@ -126,9 +126,17 @@ def init_db() -> None:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS tracked_laptops (
                 pcode TEXT PRIMARY KEY,
-                tracked_at TEXT NOT NULL
+                tracked_at TEXT NOT NULL,
+                target_price INTEGER,
+                memo TEXT
             )
         """)
+        cursor.execute("PRAGMA table_info(tracked_laptops)")
+        tracked_cols = [row[1] for row in cursor.fetchall()]
+        if "target_price" not in tracked_cols:
+            cursor.execute("ALTER TABLE tracked_laptops ADD COLUMN target_price INTEGER")
+        if "memo" not in tracked_cols:
+            cursor.execute("ALTER TABLE tracked_laptops ADD COLUMN memo TEXT")
 
         # 카테고리 공통 상품번호 레지스트리 (RAM-1, SSD-1, GC-1, CPU-1, GN-1, AN-1 ...)
         # match_key: 노트북류는 danawa pcode, 부품류(RAM/SSD/GC/CPU)는 상품명 텍스트 자체가 SKU 단위라 그대로 사용
@@ -172,6 +180,7 @@ def init_db() -> None:
             "005_tracked_laptops",
             "006_product_registry",
             "007_scrape_runs",
+            "008_tracked_laptops_target_price",
         ):
             cursor.execute(
                 "INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES (?, datetime('now', 'localtime'))",
@@ -483,6 +492,27 @@ def set_laptop_tracked(pcode: str, tracked: bool) -> None:
         else:
             cursor.execute("DELETE FROM tracked_laptops WHERE pcode = ?", (pcode,))
         conn.commit()
+
+
+def set_target_price(pcode: str, target_price: Optional[int], memo: str = "") -> None:
+    """추적 중인 상품의 목표가/메모 설정 (target_price=None이면 목표가 해제)"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE tracked_laptops SET target_price = ?, memo = ? WHERE pcode = ?",
+            (target_price, memo, pcode)
+        )
+        conn.commit()
+
+
+def load_tracked_targets() -> pd.DataFrame:
+    """추적 중인 상품의 목표가/메모 전체 조회"""
+    try:
+        with get_connection() as conn:
+            return pd.read_sql_query("SELECT * FROM tracked_laptops", conn)
+    except Exception as e:
+        print(f"⚠️ 추적 목표가 로드 실패: {e}")
+        return pd.DataFrame(columns=["pcode", "tracked_at", "target_price", "memo"])
 
 
 def insert_many_news(data_list: list[tuple]) -> int:

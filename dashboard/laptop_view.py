@@ -10,6 +10,7 @@ from database.db_manager import (
     load_laptop_products, load_laptop_specs, load_laptop_images,
     load_laptop_price_history, load_laptop_best_buy_stats,
     get_tracked_pcodes, set_laptop_tracked, get_product_code_map,
+    set_target_price, load_tracked_targets,
 )
 from dashboard.theme import (
     price_change_badge, best_buy_badge, card_marker, section_header,
@@ -124,7 +125,8 @@ def render(
         _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, code_map, new_pcodes)
 
     with tab_tracked:
-        _render_tracked(laptop_df, tracked, images_df, best_buy_df, category, code_map)
+        targets_df = load_tracked_targets()
+        _render_tracked(laptop_df, tracked, images_df, best_buy_df, category, code_map, targets_df)
 
 
 def _render_best_buy(current_price: int, pcode: str, best_buy_df: pd.DataFrame) -> None:
@@ -278,8 +280,13 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                 st.caption(f"수집일: {row['date']}")
 
 
-def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame, category: str, code_map: dict = None) -> None:
+def _render_tracked(
+    laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFrame, best_buy_df: pd.DataFrame,
+    category: str, code_map: dict = None, targets_df: pd.DataFrame = None,
+) -> None:
     code_map = code_map or {}
+    if targets_df is None:
+        targets_df = pd.DataFrame(columns=["pcode", "target_price", "memo"])
     if not tracked:
         st.info("추적 중인 모델이 없어요. '전체' 탭에서 🎯 집중 추적 체크박스를 눌러보세요!")
         return
@@ -291,6 +298,10 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
 
     for _, row in tracked_df.iterrows():
         pcode = row["pcode"]
+        target_row = targets_df[targets_df["pcode"] == pcode]
+        existing_target = int(target_row.iloc[0]["target_price"]) if not target_row.empty and pd.notna(target_row.iloc[0]["target_price"]) else 0
+        existing_memo = target_row.iloc[0]["memo"] if not target_row.empty and pd.notna(target_row.iloc[0]["memo"]) else ""
+
         with st.container(border=True):
             card_marker()
             c1, c2 = st.columns([1, 2])
@@ -308,8 +319,23 @@ def _render_tracked(laptop_df: pd.DataFrame, tracked: set, images_df: pd.DataFra
                 st.markdown(code_badge(code_map.get(pcode, "")) + f"**{row['product']}**", unsafe_allow_html=True)
                 st.markdown(f"💰 현재가 **{row['price']:,}원**")
                 _render_best_buy(row["price"], pcode, best_buy_df)
+                if existing_target and row["price"] <= existing_target:
+                    st.success(f"🎯 목표가({existing_target:,}원) 도달! 지금이 구매 타이밍이에요.")
                 if st.button("추적 해제", key=f"untrack_{pcode}"):
                     set_laptop_tracked(pcode, False)
+                    st.rerun()
+
+            with st.expander(f"🎯 목표가 설정{f' ({existing_target:,}원)' if existing_target else ''}"):
+                target_col, memo_col = st.columns([1, 2])
+                with target_col:
+                    new_target = st.number_input(
+                        "목표가(원, 0=해제)", min_value=0, step=10_000,
+                        value=existing_target, key=f"target_price_{pcode}",
+                    )
+                with memo_col:
+                    new_memo = st.text_input("메모", value=existing_memo, key=f"target_memo_{pcode}")
+                if st.button("저장", key=f"target_save_{pcode}"):
+                    set_target_price(pcode, new_target if new_target > 0 else None, new_memo)
                     st.rerun()
 
             history = load_laptop_price_history(pcode)
