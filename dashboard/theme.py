@@ -77,13 +77,28 @@ def inject_css() -> None:
             font-size: 2.3rem;
             margin: 0;
             color: {TEXT};
+        }}
+        .mp-hero-title .mp-hero-title-text {{
             background: linear-gradient(90deg, {TEXT} 0%, {CYAN} 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
         @supports not (-webkit-background-clip: text) {{
-            .mp-hero-title {{ -webkit-text-fill-color: initial; }}
+            .mp-hero-title .mp-hero-title-text {{ -webkit-text-fill-color: initial; }}
+        }}
+        .mp-hero-icon {{
+            display: inline-block;
+            margin-right: 10px;
+            -webkit-text-fill-color: initial;
+        }}
+        .mp-hero-title-link {{
+            text-decoration: none !important;
+            cursor: pointer;
+            transition: opacity .15s ease;
+        }}
+        .mp-hero-title-link:hover {{
+            opacity: 0.85;
         }}
         .mp-hero-sub {{
             color: {MUTED};
@@ -163,6 +178,7 @@ def inject_css() -> None:
             margin: 18px 0 10px 0;
         }}
         @media (max-width: 1200px) {{ .mp-stat-grid {{ grid-template-columns: repeat(3, 1fr); }} }}
+        @media (max-width: 640px) {{ .mp-stat-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
         .mp-stat-card {{
             background: {SURFACE};
             border: 1px solid {BORDER};
@@ -174,6 +190,14 @@ def inject_css() -> None:
             transform: translateY(-3px);
             border-color: {CYAN};
             box-shadow: 0 10px 26px rgba(34,211,238,0.15);
+        }}
+        .mp-stat-card-accent {{
+            background: linear-gradient(180deg, rgba(250,178,25,0.10), {SURFACE} 55%);
+            border-color: rgba(250,178,25,0.35);
+        }}
+        .mp-stat-card-accent:hover {{
+            border-color: {AMBER};
+            box-shadow: 0 10px 26px rgba(250,178,25,0.18);
         }}
         .mp-stat-icon {{
             width: 34px;
@@ -344,14 +368,20 @@ def card_marker() -> None:
     st.markdown('<div class="mp-card-marker"></div>', unsafe_allow_html=True)
 
 
-def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 중", date_label: str = "") -> None:
-    """그라디언트 타이틀 + 오늘 날짜 + LIVE 펄스 배지가 있는 히어로 헤더"""
+def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 중", date_label: str = "", icon: str = "📊") -> None:
+    """그라디언트 타이틀 + 오늘 날짜 + LIVE 펄스 배지가 있는 히어로 헤더
+    icon(이모지)은 별도 span으로 분리해 그라디언트 text-clip을 적용하지 않는다.
+    (h1 전체에 -webkit-text-fill-color:transparent를 걸면 이모지 컬러 글리프가
+    투명 처리되어 빈 사각형(tofu box)으로 보이는 렌더링 버그가 있었음)
+    """
     # 참고: Streamlit의 markdown 렌더러는 CommonMark 규칙상 HTML 블록 중간에
     # 빈 줄(또는 공백만 있는 줄)이 있으면 거기서 끊고 이후를 코드블록으로 취급한다.
     # 여러 div를 이어붙일 때는 반드시 줄바꿈/들여쓰기 없는 한 줄 HTML로 만들어야 한다.
     date_html = f'<div class="mp-date-pill">📅 {date_label}</div>' if date_label else ""
+    icon_html = f'<span class="mp-hero-icon">{icon}</span>' if icon else ""
     html = (
-        f'<div class="mp-hero"><div><h1 class="mp-hero-title">{title}</h1>'
+        f'<div class="mp-hero"><div><h1 class="mp-hero-title">'
+        f'<a href="/" target="_self" class="mp-hero-title-link">{icon_html}<span class="mp-hero-title-text">{title}</span></a></h1>'
         f'<div class="mp-hero-sub">{subtitle}</div></div>'
         f'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'
         f'{date_html}<div class="mp-live-pill"><span class="mp-live-dot"></span>{live_label}</div></div></div>'
@@ -369,16 +399,28 @@ def section_header(icon: str, title: str, subtitle: str = "") -> None:
     st.markdown(html, unsafe_allow_html=True)
 
 
+def _hex_to_rgba(hex_color: str, alpha: float) -> str:
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 def stat_cards(stats: list[dict]) -> None:
     """커스텀 HTML 통계 카드 그리드
-    stats: [{"icon": "📦", "label": "상품", "value": "80개", "color": "#F3F4F6"}, ...]
+    stats: [{"icon": "📦", "label": "상품", "value": "80개", "color": "#F3F4F6", "accent": False}, ...]
+    color가 TEXT/MUTED가 아니면(=시맨틱 강조색) 아이콘 배지 배경에도 같은 색을 옅게 반영한다.
+    accent=True인 카드는 카드 전체에 경고 톤(앰버) 배경/보더를 준다(이상치 등 주의가 필요한 지표용).
     """
-    cards_html = "".join(
-        f'<div class="mp-stat-card"><div class="mp-stat-icon">{s["icon"]}</div>'
-        f'<div class="mp-stat-label">{s["label"]}</div>'
-        f'<div class="mp-stat-value" style="color:{s.get("color", TEXT)}">{s["value"]}</div></div>'
-        for s in stats
-    )
+    cards_html = ""
+    for s in stats:
+        color = s.get("color", TEXT)
+        icon_bg = _hex_to_rgba(color, 0.16) if color not in (TEXT, MUTED) else "rgba(255,255,255,0.06)"
+        card_class = "mp-stat-card mp-stat-card-accent" if s.get("accent") else "mp-stat-card"
+        cards_html += (
+            f'<div class="{card_class}"><div class="mp-stat-icon" style="background:{icon_bg}">{s["icon"]}</div>'
+            f'<div class="mp-stat-label">{s["label"]}</div>'
+            f'<div class="mp-stat-value" style="color:{color}">{s["value"]}</div></div>'
+        )
     st.markdown(f'<div class="mp-stat-grid">{cards_html}</div>', unsafe_allow_html=True)
 
 

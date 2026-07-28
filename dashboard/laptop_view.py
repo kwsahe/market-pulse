@@ -22,6 +22,11 @@ def _open_product_detail(code: str) -> None:
     st.query_params["code"] = code
     st.rerun()
 
+
+def _to_csv_bytes(df: pd.DataFrame) -> bytes:
+    """엑셀에서 한글이 깨지지 않도록 utf-8-sig로 인코딩한 CSV 바이트"""
+    return df.to_csv(index=False).encode("utf-8-sig")
+
 DEFAULT_FILTER_SPEC_KEYS = ["GPU 칩셋", "제조회사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
 AI_FILTER_SPEC_KEYS = ["CPU 제조사", "CPU 세분류", "화면 크기", "램", "용량", "무게"]
 
@@ -82,10 +87,23 @@ def render(
         new_pcodes = set(products_df.loc[first_seen_date == latest_date, "pcode"])
     new_pcodes &= set(laptop_df["pcode"])
 
+    key_prefix = re.sub(r"\W+", "_", category)
+
     if new_pcodes:
         st.success(f"🆕 오늘({latest_date}) 새로 발견된 노트북 {len(new_pcodes)}종이 있어요!")
-
-    key_prefix = re.sub(r"\W+", "_", category)
+        with st.expander(f"🆕 신제품 목록 보기 ({len(new_pcodes)}개)", expanded=False):
+            new_df = laptop_df[laptop_df["pcode"].isin(new_pcodes)]
+            for _, nrow in new_df.iterrows():
+                npcode = nrow["pcode"]
+                ncode = code_map.get(npcode, "")
+                nc1, nc2, nc3 = st.columns([1, 4, 1])
+                with nc1:
+                    st.markdown(code_badge(ncode) or "—", unsafe_allow_html=True)
+                with nc2:
+                    st.markdown(f"{nrow['product'][:55]} · **{nrow['price']:,}원**")
+                with nc3:
+                    if ncode and st.button("상세보기", key=f"new_detail_{key_prefix}_{npcode}"):
+                        _open_product_detail(ncode)
     tab_all, tab_tracked = st.tabs([f"📋 전체 ({len(laptop_df)})", f"🎯 추적 중 ({len(tracked)})"])
 
     with tab_all:
@@ -94,6 +112,14 @@ def render(
             laptop_df = laptop_df[laptop_df["product"].str.contains(search_term, case=False, na=False, regex=False)]
         filtered_df = _render_filters(laptop_df, spec_pivot, filter_spec_keys, key_prefix)
         st.caption(f"{len(filtered_df)}개 상품 표시 중")
+        if not filtered_df.empty:
+            st.download_button(
+                f"⬇️ {category} 목록 CSV ({len(filtered_df)}개)",
+                data=_to_csv_bytes(filtered_df[["product", "category", "price", "date"]]),
+                file_name=f"market_pulse_{category}.csv",
+                mime="text/csv",
+                key=f"csv_dl_{key_prefix}",
+            )
         st.divider()
         _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, code_map, new_pcodes)
 
