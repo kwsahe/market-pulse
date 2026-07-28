@@ -203,9 +203,9 @@ def _image_dialog(product_name: str, prod_imgs: pd.DataFrame) -> None:
     main_imgs = prod_imgs[prod_imgs["image_type"] == "main"]
     detail_imgs = prod_imgs[prod_imgs["image_type"] == "detail"]
     if not main_imgs.empty:
-        st.image(main_imgs.iloc[0]["image_url"], caption="대표 이미지", use_container_width=True)
+        st.image(main_imgs.iloc[0]["image_url"], caption="대표 이미지", width="stretch")
     for _, img_row in detail_imgs.iterrows():
-        st.image(img_row["image_url"], caption="상세정보", use_container_width=True)
+        st.image(img_row["image_url"], caption="상세정보", width="stretch")
 
 
 def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, changed_df, has_changes, code_map=None, new_pcodes=None) -> None:
@@ -255,7 +255,7 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                 gallery_col, spec_col, detail_col = st.columns(3)
                 with gallery_col:
                     prod_imgs = images_df[images_df["pcode"] == pcode]
-                    if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"imgbtn_{pcode}", use_container_width=True):
+                    if st.button(f"🖼️ 이미지 ({len(prod_imgs)})", key=f"imgbtn_{pcode}", width="stretch"):
                         _image_dialog(row["product"], prod_imgs)
                 with spec_col:
                     with st.expander("📋 전체 스펙"):
@@ -268,11 +268,11 @@ def _render_cards(filtered_df, images_df, specs_df, best_buy_df, tracked, change
                                     columns={"spec_key": "항목", "spec_value": "값"}
                                 ),
                                 hide_index=True,
-                                use_container_width=True,
+                                width="stretch",
                             )
                 with detail_col:
                     code = code_map.get(pcode, "")
-                    if code and st.button("📈 상세보기", key=f"detail_{pcode}", use_container_width=True):
+                    if code and st.button("📈 상세보기", key=f"detail_{pcode}", width="stretch"):
                         _open_product_detail(code)
 
                 st.caption(f"수집일: {row['date']}")

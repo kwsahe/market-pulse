@@ -15,16 +15,12 @@ from database.db_manager import (
     init_db, load_prices,
     insert_many_laptop_prices, upsert_laptop_product,
     save_laptop_specs, save_laptop_images, get_or_create_product_code,
+    start_scrape_run, finish_scrape_run,
 )
 from scraper.laptop_detail_scraper import fetch_product_detail
 
 # ============================
-# 1단계: DB 초기화
-# ============================
-init_db()
-
-# ============================
-# 2단계: 검색 카테고리 설정
+# 검색 카테고리 설정
 # ============================
 # 게이밍 노트북은 RTX5080/5090에 초점을 맞춰 별도 수집 (collect_gaming_laptops 참고)
 CATEGORIES = {
@@ -56,9 +52,6 @@ headers = {
 }
 
 today = datetime.now().strftime("%Y-%m-%d")
-total_count = 0
-total_new = 0
-
 
 IMG_URL_PATTERN = re.compile(r"prod_img|catalog-image")
 
@@ -280,10 +273,8 @@ def collect_ai_laptops():
     )
 
 
-# ============================
-# 3단계: 카테고리별 수집
-# ============================
-for category, query in CATEGORIES.items():
+def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
+    """PC 부품(RAM/SSD/그래픽카드/CPU) 한 카테고리 수집"""
     url = f"https://search.danawa.com/dsearch.php?query={query}"
     print(f"\n{'='*60}")
     print(f"[+] [{category}] 수집 중...")
@@ -294,10 +285,10 @@ for category, query in CATEGORIES.items():
         response.raise_for_status()
     except requests.exceptions.Timeout:
         print(f"[!] [{category}] 요청 시간 초과 (15초). 건너뜁니다.")
-        continue
+        return 0, 0
     except requests.exceptions.RequestException as e:
         print(f"[!] [{category}] 네트워크 오류: {e}. 건너뜁니다.")
-        continue
+        return 0, 0
 
     print(f"   응답: {response.status_code}")
 
@@ -306,7 +297,7 @@ for category, query in CATEGORIES.items():
         names = soup.find_all("a", class_="click_log_product_standard_title_")
     except Exception as e:
         print(f"⚠️ [{category}] HTML 파싱 오류: {e}. 건너뜁니다.")
-        continue
+        return 0, 0
 
     data_list = []
     registered = 0
@@ -356,26 +347,52 @@ for category, query in CATEGORIES.items():
     # DB 저장 (중복 무시)
     if data_list:
         new_count = insert_many_laptop_prices(data_list)
-        total_count += len(data_list)
-        total_new += new_count
         print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 상품번호 등록: {registered}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+        return len(data_list), new_count
     else:
         print(f"\n[!] [{category}] 수집된 상품이 없어요.")
+        return 0, 0
 
-# ============================
-# 4단계: 게이밍 노트북(RTX5080/5090) 수집
-# ============================
-laptop_count, laptop_new = collect_gaming_laptops()
-total_count += laptop_count
-total_new += laptop_new
 
-# ============================
-# 5단계: AI 노트북(맥북 M5 / 라이젠 AI Max) 수집
-# ============================
-ai_laptop_count, ai_laptop_new = collect_ai_laptops()
-total_count += ai_laptop_count
-total_new += ai_laptop_new
+def main() -> None:
+    init_db()
+    run_id = start_scrape_run("price")
 
-print(f"\n{'='*60}")
-print(f"[OK] 전체 수집: {total_count}개 | 신규 저장: {total_new}개 | 중복 건너뜀: {total_count - total_new}개")
-print(f"{'='*60}")
+    total_count = 0
+    total_new = 0
+
+    try:
+        # ============================
+        # 1단계: 카테고리별(RAM/SSD/그래픽카드/CPU) 수집
+        # ============================
+        for category, query in CATEGORIES.items():
+            count, new_count = _collect_parts_category(category, query)
+            total_count += count
+            total_new += new_count
+
+        # ============================
+        # 2단계: 게이밍 노트북(RTX5080/5090) 수집
+        # ============================
+        laptop_count, laptop_new = collect_gaming_laptops()
+        total_count += laptop_count
+        total_new += laptop_new
+
+        # ============================
+        # 3단계: AI 노트북(맥북 M5 / 라이젠 AI Max) 수집
+        # ============================
+        ai_laptop_count, ai_laptop_new = collect_ai_laptops()
+        total_count += ai_laptop_count
+        total_new += ai_laptop_new
+    except Exception as e:
+        finish_scrape_run(run_id, total_count, total_new, status="failed", error_message=str(e))
+        raise
+
+    finish_scrape_run(run_id, total_count, total_new, status="success")
+
+    print(f"\n{'='*60}")
+    print(f"[OK] 전체 수집: {total_count}개 | 신규 저장: {total_new}개 | 중복 건너뜀: {total_count - total_new}개")
+    print(f"{'='*60}")
+
+
+if __name__ == "__main__":
+    main()

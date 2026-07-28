@@ -143,8 +143,84 @@ def init_db() -> None:
             )
         """)
 
+        # 스크래퍼 실행 이력 (성공/실패, 수집·신규 저장 건수, 소요 시간 추적용)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scrape_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                finished_at TEXT,
+                fetched_count INTEGER DEFAULT 0,
+                inserted_count INTEGER DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'running',
+                error_message TEXT
+            )
+        """)
+
+        # 스키마 변경 이력 (언제 어떤 마이그레이션이 이 DB에 적용됐는지 추적)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                name TEXT PRIMARY KEY,
+                applied_at TEXT NOT NULL
+            )
+        """)
+        for migration_name in (
+            "001_initial_prices_news",
+            "002_prices_pcode",
+            "003_laptop_tables",
+            "004_laptop_products_first_seen",
+            "005_tracked_laptops",
+            "006_product_registry",
+            "007_scrape_runs",
+        ):
+            cursor.execute(
+                "INSERT OR IGNORE INTO schema_migrations (name, applied_at) VALUES (?, datetime('now', 'localtime'))",
+                (migration_name,)
+            )
+
         conn.commit()
-    print("[OK] DB 초기화 완료! 테이블: prices, news, laptop_products, laptop_specs, laptop_images, tracked_laptops, product_registry")
+    print("[OK] DB 초기화 완료! 테이블: prices, news, laptop_products, laptop_specs, laptop_images, tracked_laptops, product_registry, scrape_runs, schema_migrations")
+
+
+def start_scrape_run(source: str) -> int:
+    """수집 실행 시작 기록. finish_scrape_run에 넘길 run_id를 반환한다."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO scrape_runs (source, started_at, status) VALUES (?, datetime('now', 'localtime'), 'running')",
+            (source,)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def finish_scrape_run(
+    run_id: int, fetched_count: int = 0, inserted_count: int = 0,
+    status: str = "success", error_message: Optional[str] = None,
+) -> None:
+    """수집 실행 종료 기록 (성공/실패, 수집·신규 저장 건수)"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """UPDATE scrape_runs
+               SET finished_at = datetime('now', 'localtime'), fetched_count = ?, inserted_count = ?,
+                   status = ?, error_message = ?
+               WHERE id = ?""",
+            (fetched_count, inserted_count, status, error_message, run_id)
+        )
+        conn.commit()
+
+
+def load_scrape_runs(limit: int = 50) -> pd.DataFrame:
+    """최근 수집 실행 이력 조회 (최신순)"""
+    try:
+        with get_connection() as conn:
+            return pd.read_sql_query(
+                "SELECT * FROM scrape_runs ORDER BY id DESC LIMIT ?", conn, params=(limit,)
+            )
+    except Exception as e:
+        print(f"⚠️ 수집 이력 로드 실패: {e}")
+        return pd.DataFrame()
 
 
 def insert_many_prices(data_list: list[tuple]) -> int:

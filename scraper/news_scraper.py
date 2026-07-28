@@ -9,9 +9,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database.db_manager import init_db, insert_many_news, load_news
-
-init_db()
+from database.db_manager import init_db, insert_many_news, load_news, start_scrape_run, finish_scrape_run
 
 
 def parse_relative_time(time_text):
@@ -39,47 +37,60 @@ headers = {
                   "Chrome/120.0.0.0 Safari/537.36"
 }
 
-try:
-    response = requests.get(URL, headers=headers, timeout=15)
-    response.raise_for_status()
-    print(f"응답 상태: {response.status_code}")
-except requests.exceptions.Timeout:
-    print("[!] 요청 시간 초과 (15초). 뉴스 수집을 건너뜁니다.")
-    exit(1)
-except requests.exceptions.RequestException as e:
-    print(f"[!] 네트워크 오류: {e}. 뉴스 수집을 건너뜁니다.")
-    exit(1)
 
-try:
-    soup = BeautifulSoup(response.text, "html.parser")
-    titles = soup.find_all("strong", class_="sa_text_strong")
-    times = soup.find_all("b", string=lambda t: t and ("분전" in t or "시간전" in t or "일전" in t))
-    press_list = soup.find_all("div", class_="sa_text_press")
-except Exception as e:
-    print(f"[!] HTML 파싱 오류: {e}. 뉴스 수집을 건너뜁니다.")
-    exit(1)
+def main() -> None:
+    init_db()
+    run_id = start_scrape_run("news")
 
-now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-data_list = []
-print(f"\n수집된 뉴스 수: {len(titles)}개\n")
-print("=" * 70)
-
-for i, title in enumerate(titles):
     try:
-        headline = title.get_text(strip=True)
-        time_text = times[i].get_text(strip=True) if i < len(times) else ""
-        press = press_list[i].get_text(strip=True) if i < len(press_list) else "언론사 없음"
-        published = parse_relative_time(time_text)
+        response = requests.get(URL, headers=headers, timeout=15)
+        response.raise_for_status()
+        print(f"응답 상태: {response.status_code}")
+    except requests.exceptions.Timeout:
+        print("[!] 요청 시간 초과 (15초). 뉴스 수집을 건너뜁니다.")
+        finish_scrape_run(run_id, status="failed", error_message="요청 시간 초과")
+        return
+    except requests.exceptions.RequestException as e:
+        print(f"[!] 네트워크 오류: {e}. 뉴스 수집을 건너뜁니다.")
+        finish_scrape_run(run_id, status="failed", error_message=str(e))
+        return
 
-        print(f"{i+1}. [{press}] {headline}")
-        print(f"   {time_text} → {published}")
-        print("-" * 70)
-
-        data_list.append((now_str, press, headline, published))
+    try:
+        soup = BeautifulSoup(response.text, "html.parser")
+        titles = soup.find_all("strong", class_="sa_text_strong")
+        times = soup.find_all("b", string=lambda t: t and ("분전" in t or "시간전" in t or "일전" in t))
+        press_list = soup.find_all("div", class_="sa_text_press")
     except Exception as e:
-        print(f"   [!] 뉴스 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
-        continue
+        print(f"[!] HTML 파싱 오류: {e}. 뉴스 수집을 건너뜁니다.")
+        finish_scrape_run(run_id, status="failed", error_message=str(e))
+        return
 
-new_count = insert_many_news(data_list)
-print(f"\n[OK] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    data_list = []
+    print(f"\n수집된 뉴스 수: {len(titles)}개\n")
+    print("=" * 70)
+
+    for i, title in enumerate(titles):
+        try:
+            headline = title.get_text(strip=True)
+            time_text = times[i].get_text(strip=True) if i < len(times) else ""
+            press = press_list[i].get_text(strip=True) if i < len(press_list) else "언론사 없음"
+            published = parse_relative_time(time_text)
+
+            print(f"{i+1}. [{press}] {headline}")
+            print(f"   {time_text} → {published}")
+            print("-" * 70)
+
+            data_list.append((now_str, press, headline, published))
+        except Exception as e:
+            print(f"   [!] 뉴스 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
+            continue
+
+    new_count = insert_many_news(data_list)
+    print(f"\n[OK] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+    finish_scrape_run(run_id, len(data_list), new_count, status="success")
+
+
+if __name__ == "__main__":
+    main()

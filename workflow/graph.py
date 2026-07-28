@@ -39,17 +39,10 @@ def build_workflow() -> StateGraph:
     # 진입점
     workflow.set_entry_point("init_db")
 
-    # 순차 실행 연결
-    workflow.add_edge("init_db", "collect_prices")
-    workflow.add_edge("collect_prices", "collect_news")
-    workflow.add_edge("collect_news", "analyze_changes")
-    workflow.add_edge("analyze_changes", "detect_anomalies")
-    workflow.add_edge("detect_anomalies", "analyze_trends")
-    workflow.add_edge("analyze_trends", "generate_report")
-    workflow.add_edge("generate_report", "finalize")
+    # 순차 실행 연결 (finalize는 실패 분기가 없는 마지막 단계라 일반 edge 유지)
     workflow.add_edge("finalize", END)
 
-    # 조건부 에러 처리 (각 단계 후 체크포인트 저장)
+    # 조건부 에러 처리 (각 단계 후 상태 확인 — 실패 시 즉시 종료)
     workflow.add_conditional_edges(
         "init_db",
         should_continue,

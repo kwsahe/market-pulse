@@ -70,7 +70,7 @@ def _category_bar_chart(series: pd.Series, y_title: str):
         .configure_legend(labelColor=MUTED, titleColor=MUTED)
         .properties(background="transparent")
     )
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 
 def _render_change_card(row: pd.Series, lookup_df: pd.DataFrame, code_map_cache: dict | None = None, key_prefix: str = "change") -> None:
@@ -110,7 +110,7 @@ def _render_change_card(row: pd.Series, lookup_df: pd.DataFrame, code_map_cache:
             if specs and str(specs).strip():
                 with st.expander("📋 상세 스펙"):
                     st.caption(specs)
-            if code and st.button("🔍 상세보기", key=f"{key_prefix}_detail_{code}", use_container_width=True):
+            if code and st.button("🔍 상세보기", key=f"{key_prefix}_detail_{code}", width="stretch"):
                 _open_product_detail(code)
 
 
@@ -213,7 +213,7 @@ def _render_product_detail_section(prices_df: pd.DataFrame) -> None:
                 img_cols = st.columns(3)
                 for i, (_, img_row) in enumerate(detail_imgs.iterrows()):
                     with img_cols[i % 3]:
-                        st.image(img_row["image_url"], use_container_width=True)
+                        st.image(img_row["image_url"], width="stretch")
 
         history = load_price_history_by_match_key(category, match_key, by_pcode=by_pcode)
         st.markdown("**📈 가격 추이**")
@@ -342,7 +342,7 @@ if not current_df.empty:
             data=_to_csv_bytes(export_df[["product", "category", "price", "date"]]),
             file_name="market_pulse_products.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     if global_search:
         matches = current_df[current_df["product"].str.contains(global_search, case=False, na=False, regex=False)]
@@ -542,7 +542,7 @@ if not prices_df.empty:
                                     with st.expander("📋 상세 스펙"):
                                         st.caption(row["specs"])
                             with detail_col:
-                                if code and st.button("🔍 상세보기", key=f"detail_{category}_{j}", use_container_width=True):
+                                if code and st.button("🔍 상세보기", key=f"detail_{category}_{j}", width="stretch"):
                                     _open_product_detail(code)
                             st.caption(f"수집일: {row['date']}")
 
@@ -635,7 +635,7 @@ if not prices_df.empty:
                         with c2:
                             st.metric("가격", f"{row['price']:,}원")
                             st.caption(f"Z: {row['z_score']:.2f}")
-                        if code and st.button("🔍 상세보기", key=f"zscore_detail_{i}_{code}", use_container_width=True):
+                        if code and st.button("🔍 상세보기", key=f"zscore_detail_{i}_{code}", width="stretch"):
                             _open_product_detail(code)
             else:
                 st.success("✅ 이상치 없음!")
@@ -661,7 +661,7 @@ if not prices_df.empty:
                         with c2:
                             st.metric("가격", f"{row['price']:,}원")
                             st.caption(f"범위: {row['lower_bound']:,.0f}~{row['upper_bound']:,.0f}원")
-                        if code and st.button("🔍 상세보기", key=f"iqr_detail_{i}_{code}", use_container_width=True):
+                        if code and st.button("🔍 상세보기", key=f"iqr_detail_{i}_{code}", width="stretch"):
                             _open_product_detail(code)
             else:
                 st.success("✅ 이상치 없음!")
@@ -757,7 +757,7 @@ if not prices_df.empty:
                         .configure_axis(gridColor=BORDER, domainColor=BORDER, labelColor=MUTED, titleColor=MUTED)
                         .properties(height=max(120, 28 * len(contrib_df)))
                     )
-                    st.altair_chart(chart, use_container_width=True)
+                    st.altair_chart(chart, width="stretch")
 
             # ---- 비슷한 스펙의 제품과 비교 ----
             with similar_col:
@@ -783,7 +783,7 @@ if not prices_df.empty:
                     {"스펙": FEATURE_LABELS.get(f, f), "값": v}
                     for f, v in features.items()
                 ]
-                st.dataframe(pd.DataFrame(feature_rows), hide_index=True, use_container_width=True)
+                st.dataframe(pd.DataFrame(feature_rows), hide_index=True, width="stretch")
 
     # ============================
     # 뉴스 탭

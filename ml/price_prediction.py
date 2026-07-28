@@ -15,7 +15,7 @@ import os
 import sys
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import cross_val_score, cross_val_predict
+from sklearn.model_selection import cross_val_score, cross_val_predict, GroupKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
@@ -274,12 +274,12 @@ def train_model(category):
     cat_df = df[df["category"] == category].copy()
 
     if len(cat_df) < 5:
-        print(f"⚠️ [{category}] 데이터가 {len(cat_df)}개로 부족해요. (최소 5개 필요)")
+        print(f"[!] [{category}] 데이터가 {len(cat_df)}개로 부족해요. (최소 5개 필요)")
         return None
 
     extractor = FEATURE_EXTRACTORS.get(category)
     if not extractor:
-        print(f"⚠️ [{category}] 특성 추출기가 없어요.")
+        print(f"[!] [{category}] 특성 추출기가 없어요.")
         return None
 
     # 특성 추출
@@ -292,25 +292,42 @@ def train_model(category):
     # 0이 아닌 값이 있는 컬럼만 사용 (전부 0인 특성은 의미 없음)
     useful_cols = [col for col in features_df.columns if features_df[col].sum() != 0]
     if not useful_cols:
-        print(f"⚠️ [{category}] 유용한 특성을 추출하지 못했어요.")
+        print(f"[!] [{category}] 유용한 특성을 추출하지 못했어요.")
         return None
 
     X = features_df[useful_cols].values
     y = cat_df["price"].values
+
+    # 같은 상품(pcode, 없으면 상품명)이 여러 수집일에 걸쳐 거의 동일한 스펙/가격으로
+    # 중복 등장하기 때문에, 일반 KFold로 섞으면 같은 상품이 train/test에 동시에 들어가
+    # R2가 과대평가된다(사실상 정답을 외워서 맞히는 셈). GroupKFold로 같은 상품은
+    # 항상 같은 fold에만 속하게 해서 "본 적 없는 상품"에 대한 일반화 성능을 측정한다.
+    groups = cat_df.apply(
+        lambda r: r["pcode"] if pd.notna(r.get("pcode")) and str(r.get("pcode")).strip() else r["product"],
+        axis=1,
+    ).values
+    n_groups = len(set(groups))
+    cv_n = min(5, n_groups)
+    cv = GroupKFold(n_splits=cv_n) if cv_n >= 2 else None
 
     # 모델 1: Linear Regression (Pipeline으로 스케일링 포함)
     lr_pipeline = Pipeline([
         ("scaler", StandardScaler()),
         ("model", LinearRegression())
     ])
-    lr_scores = cross_val_score(lr_pipeline, X, y, cv=min(5, len(X)), scoring="r2")
 
     # 모델 2: Random Forest (트리 기반이라 스케일링 불필요하지만 일관성을 위해 Pipeline 사용)
     rf_pipeline = Pipeline([
         ("scaler", StandardScaler()),
         ("model", RandomForestRegressor(n_estimators=100, random_state=42))
     ])
-    rf_scores = cross_val_score(rf_pipeline, X, y, cv=min(5, len(X)), scoring="r2")
+
+    if cv is not None:
+        lr_scores = cross_val_score(lr_pipeline, X, y, groups=groups, cv=cv, scoring="r2")
+        rf_scores = cross_val_score(rf_pipeline, X, y, groups=groups, cv=cv, scoring="r2")
+    else:
+        # 상품 종류가 2개 미만이면 그룹 분할 자체가 불가능 — 교차검증 없이 학습만 진행
+        lr_scores = rf_scores = np.array([0.0])
 
     # 더 나은 모델 선택
     if rf_scores.mean() > lr_scores.mean():
@@ -323,9 +340,11 @@ def train_model(category):
         best_score = lr_scores.mean()
 
     # out-of-fold 예측으로 잔차 분포 계산 → 예측 신뢰구간(80% 구간)에 사용
-    cv_n = min(5, len(X))
     try:
-        oof_pred = cross_val_predict(best_pipeline, X, y, cv=cv_n)
+        if cv is not None:
+            oof_pred = cross_val_predict(best_pipeline, X, y, groups=groups, cv=cv)
+        else:
+            oof_pred = best_pipeline.fit(X, y).predict(X)
         residuals = y - oof_pred
         residual_p10 = float(np.percentile(residuals, 10))
         residual_p90 = float(np.percentile(residuals, 90))
