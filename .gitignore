@@ -18,6 +18,43 @@ database/*.db
 # CSV 데이터 파일
 database/*.csv
 
+# 자동 생성 리포트/체크포인트 (재현 가능한 산출물, 버전관리 대상 아님)
+reports/
+workflow_checkpoints/
+
+# UI 스크린샷(다크모드 리디자인 이전 구버전) — 최신 스크린샷은 git add -f로 개별 추가
+screenshots/01_overview.png
+screenshots/02_tab_0.png
+screenshots/02_tab_all.png
+screenshots/03_tab_1.png
+screenshots/03_tab_notebook.png
+screenshots/04_tab_2.png
+screenshots/04_tab_ram.png
+screenshots/05_tab_3.png
+screenshots/05_tab_ssd.png
+screenshots/06_tab_4.png
+screenshots/06_tab_gpu.png
+screenshots/07_tab_5.png
+screenshots/07_tab_cpu.png
+screenshots/08_tab_price_change.png
+screenshots/09_tab_anomaly.png
+screenshots/10_tab_prediction.png
+screenshots/11_tab_news.png
+screenshots/fixed_01_overview.png
+screenshots/fixed_02_nvme_ssd.png
+screenshots/fixed_03_all_tab.png
+screenshots/readme_01_overview.png
+screenshots/readme_02_nvme_ssd.png
+screenshots/readme_03_ddr5_ram.png
+screenshots/readme_04_notebook.png
+screenshots/readme_05_gpu.png
+screenshots/readme_06_cpu.png
+screenshots/readme_07_price_change.png
+screenshots/readme_08_anomaly.png
+screenshots/readme_09_prediction.png
+screenshots/readme_10_news.png
+screenshots/screenshot_products.png
+
 # IDE
 .vscode/
 .idea/

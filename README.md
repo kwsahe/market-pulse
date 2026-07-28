@@ -1,6 +1,29 @@
 # 📊 Market Pulse
 
-게이밍 노트북 & PC 부품 가격 자동 수집 · ML 분석 · **LangGraph 기반 자동 리포트** · IT 뉴스 대시보드
+게이밍 노트북(RTX5080/5090) & PC 부품 가격 자동 수집 · ML 분석 · **LangGraph 기반 자동 리포트** · IT 뉴스 대시보드
+
+---
+
+## 🖼️ 미리보기
+
+> 다크 모드로 리디자인된 대시보드 스크린샷은 추가 예정입니다 (`screenshots/dashboard_overview.png`로 저장하면 이 자리에 표시할 수 있습니다). 그동안은 아래 "30초 만에 직접 보기"로 바로 확인해보세요.
+
+다크 모드 대시보드에서 볼 수 있는 것들:
+- 상품 수·평균가·가격 인상/인하·이상치 건수를 한눈에 보여주는 KPI 카드
+- 카테고리별(게이밍 노트북 · AI 노트북 · DDR5 RAM · NVMe SSD · 그래픽카드 · CPU) 가격 추이 차트
+- 상품번호(`RAM-1`, `GN-3` ...) 기반 검색 + `?code=GN-3` 형태의 상품별 공유 링크(상세정보+가격추이 단독 페이지)
+- 집중 추적 상품의 목표가 도달 알림, 전체/카테고리별 CSV 내보내기
+- 스펙별 가격 기여도·비슷한 제품 비교가 포함된 ML 가격 예측
+
+### ⚡ 30초 만에 직접 보기
+
+```bash
+pip install -r requirements.txt
+run_scrapers.bat                                       # 최초 1회 데이터 수집 (몇 분 소요)
+streamlit run dashboard/app.py --server.port 8010      # 또는 run_data_dashboard.bat
+```
+
+→ http://localhost:8010 에서 바로 확인할 수 있습니다.
 
 ---
 
@@ -8,14 +31,15 @@
 
 | 기능 | 설명 |
 |------|------|
-| **자동 데이터 수집** | 다나와 5 개 카테고리 + 네이버 뉴스 매일 자동 수집 |
+| **자동 데이터 수집** | 다나와 6 개 카테고리(게이밍 노트북/AI 노트북 포함) + 네이버 뉴스 매일 자동 수집 |
 | **LangGraph 워크플로우** | 체크포인트, 재시도, 상태 추적 가능한 자동화 파이프라인 |
-| **실시간 대시보드** | 워크플로우 실행/모니터링 및 리포트 조회 (Streamlit) |
+| **실시간 대시보드** | 다크 모드 UI, 상품별 공유 링크, CSV 내보내기, 목표가 알림 (Streamlit) |
 | **이상치 탐지** | Z-score · IQR 통계 기반으로 비정상 가격 감지 |
-| **가격 변동 리포트** | 전날 대비 인상/인하 상품 자동 분석 |
-| **가격 예측 (ML)** | 스펙 기반 Linear Regression / Random Forest |
+| **가격 변동 리포트** | 전날 대비 인상/인하 상품 자동 분석 (pcode 우선 매칭으로 상품명 변경에도 강건) |
+| **가격 예측 (ML)** | 스펙 기반 Linear Regression / Random Forest, GroupKFold로 데이터 누수 방지 |
 | **트렌드 분석** | 카테고리별 평균가 추이 및 상승/하락 방향 |
 | **자동 리포트 생성** | Markdown + HTML 형식으로 매일 자동 저장 |
+| **수집 실행 이력** | 스크래퍼 성공/실패, 수집·신규 건수를 `scrape_runs` 테이블에 자동 기록 |
 
 ---
 
@@ -128,12 +152,25 @@ python ml/trend_analysis.py
 
 | 카테고리 | 수집 항목 |
 |---------|----------|
-| 게이밍 노트북 | 가격, SSD 용량, 스펙, 이미지 |
+| 게이밍 노트북 (RTX5080/5090) | 가격, 전체 스펙, 대표/상세정보 이미지, 신제품 감지 |
+| AI 노트북 (통합메모리) | 애플 실리콘 / 라이젠 AI Max+LPDDR5x 온보드만 필터링해 수집 |
 | DDR5 RAM | 가격, 용량, 클럭, 타이밍 |
 | NVMe SSD | 가격, 용량, 읽기/쓰기 속도 |
 | 그래픽카드 | 가격, GPU 모델, VRAM |
 | CPU | 가격, 코어 수, 클럭 |
 | IT 뉴스 | 제목, 언론사, 발행시간 |
+
+---
+
+## 🧪 테스트
+
+핵심 로직(가격 변동 pcode 매칭, ML 교차검증의 GroupKFold 그룹 분리, DB 스키마/상품번호 레지스트리)에
+대한 pytest 스위트가 있습니다. 실제 `database/data.db`는 건드리지 않고 임시 DB/합성 데이터로 동작합니다.
+
+```bash
+pip install -r requirements-dev.txt
+pytest -v
+```
 
 ---
 
@@ -157,16 +194,22 @@ market-pulse/
 │   └── news_scraper.py
 ├── database/                 # DB 관리
 │   ├── db_manager.py
-│   └── data.db
+│   └── data.db               # 로컬 생성 (git 추적 안 함)
 ├── ml/                       # 머신러닝 분석
 │   ├── anomaly_detection.py
 │   ├── price_change.py
 │   ├── price_prediction.py
 │   └── trend_analysis.py
+├── dashboard/                 # 실시간 데이터 조회 대시보드
+│   ├── app.py
+│   ├── laptop_view.py
+│   └── theme.py
+├── tests/                    # pytest 스위트 (임시 DB/합성 데이터만 사용)
 ├── run_workflow.bat          # 워크플로우 실행
 ├── run_dashboard.bat         # 대시보드 실행
 ├── run_scrapers.bat          # 기존 스크래퍼 실행
-└── requirements.txt
+├── requirements.txt
+└── requirements-dev.txt      # + pytest
 ```
 
 ---
