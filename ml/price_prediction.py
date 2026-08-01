@@ -398,6 +398,43 @@ def predict_price_range(model_info, features_dict):
     return predicted, low, high
 
 
+def compute_fair_price_score(actual_price, predicted_price, hist_min=None, hist_max=None, is_anomaly_high=False):
+    """0~100점 적정가 점수 (회귀 모델이 아니라 순수 규칙 기반 조합). 50점이 "중립" 기준.
+
+    - 예측가(ML) 대비 저렴할수록 가점, 비쌀수록 감점 (1%당 1점)
+    - 과거 최저가~최고가 구간에서 중앙값 대비 최저가 쪽이면 가점, 최고가 쪽이면 감점(최대 ±30점)
+    - 고가 이상치로 탐지되면 15점 감점
+
+    반환: (score: int 0~100, label: str)
+    """
+    score = 50.0
+
+    if predicted_price and predicted_price > 0:
+        diff_pct = (actual_price - predicted_price) / predicted_price * 100
+        score -= diff_pct
+
+    if hist_min is not None and hist_max is not None and hist_max > hist_min:
+        position = (actual_price - hist_min) / (hist_max - hist_min)
+        position = min(max(position, 0.0), 1.0)
+        score += (0.5 - position) * 60  # 최저가=+30, 중앙=0, 최고가=-30
+
+    if is_anomaly_high:
+        score -= 15
+
+    score = int(round(min(max(score, 0.0), 100.0)))
+
+    if score >= 80:
+        label = "훌륭한 가격"
+    elif score >= 60:
+        label = "괜찮은 가격"
+    elif score >= 40:
+        label = "보통"
+    else:
+        label = "비싼 편"
+
+    return score, label
+
+
 def compute_feature_contributions(model_info, features_dict):
     """스펙별 가격 기여도.
 

@@ -1,263 +1,21 @@
 # dashboard/app.py
 # 게이밍 노트북 & PC 부품 가격/스펙 + 이상치 + 가격변동 + 뉴스 대시보드
+# 실제 렌더링 로직은 dashboard/tabs/*.py에 있고, 이 파일은 데이터 로딩 + 조립만 담당한다.
 
 import streamlit as st
 import pandas as pd
-import altair as alt
 import os
 import sys
 from datetime import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from database.db_manager import (
-    load_prices, load_news,
-    get_product_code_map, load_price_history_by_match_key, load_product_registry,
-    load_laptop_images, get_tracked_pcodes, load_tracked_targets,
-)
-from ml.anomaly_detection import detect_zscore, detect_iqr
-from ml.price_change import detect_price_changes
-from ml.trend_analysis import get_price_trend, get_category_trend, summarize_trends
-from ml.price_prediction import (
-    train_model, predict_price, predict_price_range, FEATURE_EXTRACTORS, FEATURE_LABELS,
-    compute_feature_contributions, find_similar_products,
-    extract_ram_features, extract_ssd_features,
-)
 import dashboard.laptop_view as laptop_view
-from dashboard.theme import (
-    inject_css, price_change_badge, hero_header, stat_cards, section_header, card_marker,
-    code_badge, CYAN, RED, GREEN, AMBER, CATEGORY_COLORS, category_color, SURFACE, BORDER, MUTED,
+from dashboard.theme import inject_css, hero_header, stat_cards, section_header, CYAN, RED, GREEN, AMBER
+from dashboard.tabs import product_detail, alerts, spotlights, search
+from dashboard.tabs import overview, category, changes, anomalies, prediction, compare, scrapes, news
+from dashboard.tabs.common import (
+    load_prices_cached, load_news_cached, detect_zscore_cached, detect_iqr_cached, detect_price_changes_cached,
 )
-
-
-# NVMe SSD/DDR5 RAM은 용량이 섞인 채로 평균을 내면 용량 구성비 변화가 가격 변화처럼 보이므로
-# 기준 용량(SSD=1TB, RAM=16GB) 상품만 골라 평균을 낸다.
-TREND_CAPACITY_BASIS = {
-    "NVMe SSD": (extract_ssd_features, 1024, "1TB"),
-    "DDR5 RAM": (extract_ram_features, 16, "16GB"),
-}
-
-
-@st.cache_data(show_spinner=False)
-def _compute_trend_source_df(prices_df: pd.DataFrame) -> pd.DataFrame:
-    """용량 기준 필터링된 추이용 DataFrame — 정규식 스펙 추출이 무거우니 캐싱한다"""
-    trend_source_df = prices_df.copy()
-    for cat, (extractor, target_gb, _label) in TREND_CAPACITY_BASIS.items():
-        cat_mask = trend_source_df["category"] == cat
-        if cat_mask.any():
-            cap_series = trend_source_df.loc[cat_mask].apply(lambda r: extractor(r).get("capacity_gb", 0), axis=1)
-            drop_idx = cap_series[cap_series != target_gb].index
-            trend_source_df = trend_source_df.drop(index=drop_idx)
-    return trend_source_df
-
-
-def _category_bar_chart(series: pd.Series, y_title: str):
-    """카테고리별 고정 색상 + 범례가 있는 막대 차트 (dataviz 스킬: 카테고리 색상은 고정 순서, 범례 필수)"""
-    df = series.reset_index()
-    df.columns = ["category", "value"]
-    domain = list(CATEGORY_COLORS.keys())
-    range_ = list(CATEGORY_COLORS.values())
-    chart = (
-        alt.Chart(df)
-        .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
-        .encode(
-            x=alt.X("category:N", title=None, sort=None),
-            y=alt.Y("value:Q", title=y_title),
-            color=alt.Color("category:N", title="카테고리", scale=alt.Scale(domain=domain, range=range_)),
-            tooltip=["category", "value"],
-        )
-        .configure_view(strokeWidth=0)
-        .configure_axis(gridColor=BORDER, domainColor=BORDER, labelColor=MUTED, titleColor=MUTED)
-        .configure_legend(labelColor=MUTED, titleColor=MUTED)
-        .properties(background="transparent")
-    )
-    st.altair_chart(chart, width="stretch")
-
-
-def _render_change_card(row: pd.Series, lookup_df: pd.DataFrame, code_map_cache: dict | None = None, key_prefix: str = "change") -> None:
-    """가격 인상/인하 카드 — 이미지+스펙까지 같이 보여줘서 어떤 상품인지 바로 알 수 있게"""
-    detail = lookup_df[lookup_df["product"] == row["product"]]
-    image_url = detail.iloc[0]["image_url"] if not detail.empty else ""
-    specs = detail.iloc[0]["specs"] if not detail.empty else ""
-
-    code = ""
-    if not detail.empty:
-        category = row["category"]
-        if code_map_cache is not None:
-            if category not in code_map_cache:
-                code_map_cache[category] = get_product_code_map(category)
-            cmap = code_map_cache[category]
-        else:
-            cmap = get_product_code_map(category)
-        code = cmap.get(_match_key_for_row(detail.iloc[0]), "")
-
-    with st.container(border=True):
-        card_marker()
-        img_col, info_col = st.columns([1, 3])
-        with img_col:
-            if image_url and str(image_url).startswith("http"):
-                st.image(image_url, width=110)
-            else:
-                st.caption("이미지 없음")
-        with info_col:
-            name_html = code_badge(code) if code else ""
-            st.markdown(f"{name_html}**{row['product'][:60]}**", unsafe_allow_html=True)
-            st.caption(f"카테고리: {row['category']}")
-            p1, p2 = st.columns([2, 1])
-            with p1:
-                st.markdown(f"💰 {row['prev_price']:,}원 → **{row['current_price']:,}원**")
-            with p2:
-                st.markdown(price_change_badge(row["change"], row["change_pct"]), unsafe_allow_html=True)
-            if specs and str(specs).strip():
-                with st.expander("📋 상세 스펙"):
-                    st.caption(specs)
-            if code and st.button("🔍 상세보기", key=f"{key_prefix}_detail_{code}", width="stretch"):
-                _open_product_detail(code)
-
-
-def _format_capacity_label(capacity_gb: int) -> str:
-    """128, 256, 512, 1024(=1TB) 같은 용량 값을 다나와 스타일 라벨로 변환"""
-    if not capacity_gb or capacity_gb <= 0:
-        return "정보없음"
-    if capacity_gb >= 1024 and capacity_gb % 1024 == 0:
-        return f"{capacity_gb // 1024}TB"
-    return f"{capacity_gb}GB"
-
-
-def _to_csv_bytes(df: pd.DataFrame) -> bytes:
-    """엑셀에서 한글이 깨지지 않도록 utf-8-sig로 인코딩한 CSV 바이트"""
-    return df.to_csv(index=False).encode("utf-8-sig")
-
-
-def _match_key_for_row(row: pd.Series) -> str:
-    """상품번호 조회용 식별키 — pcode가 있으면 pcode, 없으면(부품 과거 데이터) 상품명"""
-    pcode = row.get("pcode")
-    return pcode if pcode and str(pcode).strip() else row["product"]
-
-
-def _open_product_detail(code: str) -> None:
-    """상품 코드로 상세보기를 연다 — URL 쿼리파라미터에 반영되므로 그대로 복사하면 링크가 된다"""
-    st.query_params["code"] = code
-    st.rerun()
-
-
-def _resolve_code(code: str, prices_df: pd.DataFrame):
-    """상품번호 -> (category, 최신 데이터 행) 조회. 없으면 (None, None)"""
-    reg = load_product_registry()
-    match = reg[reg["internal_code"] == code]
-    if match.empty:
-        return None, None
-    category = match.iloc[0]["category"]
-    match_key = match.iloc[0]["match_key"]
-    latest_date = prices_df["date"].max()
-    cat_latest = prices_df[(prices_df["date"] == latest_date) & (prices_df["category"] == category)]
-    row = cat_latest[(cat_latest["pcode"] == match_key) | (cat_latest["product"] == match_key)]
-    if row.empty:
-        # 오늘 목록엔 없지만(품절 등) 과거에는 있었을 수 있으니 가장 최근 스냅샷을 대신 보여줌
-        hist = prices_df[(prices_df["category"] == category) & ((prices_df["pcode"] == match_key) | (prices_df["product"] == match_key))]
-        if hist.empty:
-            return category, None
-        row = hist.sort_values("date").tail(1)
-    return category, row.iloc[0]
-
-
-def _render_product_detail_section(prices_df: pd.DataFrame) -> None:
-    """URL의 ?code=XXX 로 열린 상품을 페이지 맨 위에 상세정보+가격추이로 보여준다 (=상품별 공유 링크)"""
-    code = st.query_params.get("code")
-    if not code:
-        return
-
-    category, row = _resolve_code(code, prices_df)
-    with st.container(border=True):
-        card_marker()
-        header_col, close_col = st.columns([5, 1])
-        with header_col:
-            st.markdown(f"🔗 **링크로 열린 상품** {code_badge(code)}", unsafe_allow_html=True)
-        with close_col:
-            if st.button("✕ 닫기", key="close_linked_product"):
-                st.query_params.clear()
-                st.rerun()
-
-        if row is None:
-            st.warning(f"상품번호 '{code}'를 찾을 수 없어요.")
-            return
-
-        match_key = _match_key_for_row(row)
-        by_pcode = bool(row.get("pcode")) and str(row.get("pcode")).strip() != ""
-        pcode = row.get("pcode")
-
-        prod_imgs = pd.DataFrame()
-        if pcode and str(pcode).strip():
-            all_images_df = load_laptop_images()
-            prod_imgs = all_images_df[all_images_df["pcode"] == pcode]
-
-        img_col, info_col = st.columns([1, 3])
-        with img_col:
-            main_imgs = prod_imgs[prod_imgs["image_type"] == "main"] if not prod_imgs.empty else prod_imgs
-            if not main_imgs.empty:
-                st.image(main_imgs.iloc[0]["image_url"], width=160)
-            elif row.get("image_url") and str(row["image_url"]).startswith("http"):
-                st.image(row["image_url"], width=160)
-            else:
-                st.caption("이미지 없음")
-        with info_col:
-            st.markdown(f"**{row['product']}**")
-            st.caption(f"카테고리: {category} · 최근 수집일: {row['date']}")
-            st.markdown(f"💰 **{row['price']:,}원**")
-            if row.get("specs") and str(row["specs"]).strip():
-                with st.expander("📋 상세 스펙"):
-                    st.caption(row["specs"])
-
-        detail_imgs = prod_imgs[prod_imgs["image_type"] == "detail"] if not prod_imgs.empty else prod_imgs
-        if not detail_imgs.empty:
-            with st.expander(f"🖼️ 상세정보 이미지 ({len(detail_imgs)})", expanded=False):
-                img_cols = st.columns(3)
-                for i, (_, img_row) in enumerate(detail_imgs.iterrows()):
-                    with img_cols[i % 3]:
-                        st.image(img_row["image_url"], width="stretch")
-
-        history = load_price_history_by_match_key(category, match_key, by_pcode=by_pcode)
-        st.markdown("**📈 가격 추이**")
-        if len(history) >= 2:
-            history = history.copy()
-            history["date"] = pd.to_datetime(history["date"])
-            hist_min = history["price"].min()
-            hist_max = history["price"].max()
-            latest_hist_date = history["date"].max()
-            last7 = history[history["date"] >= latest_hist_date - pd.Timedelta(days=7)]
-            last30 = history[history["date"] >= latest_hist_date - pd.Timedelta(days=30)]
-
-            stat_cols = st.columns(4)
-            with stat_cols[0]:
-                st.metric("전체 최저가", f"{hist_min:,.0f}원")
-            with stat_cols[1]:
-                st.metric("전체 최고가", f"{hist_max:,.0f}원")
-            with stat_cols[2]:
-                st.metric("최근 7일 평균", f"{last7['price'].mean():,.0f}원" if not last7.empty else "-")
-            with stat_cols[3]:
-                st.metric("최근 30일 평균", f"{last30['price'].mean():,.0f}원" if not last30.empty else "-")
-
-            diff_from_min_pct = (row["price"] - hist_min) / hist_min * 100 if hist_min else 0
-            if diff_from_min_pct > 0.5:
-                st.caption(f"현재가가 역대 최저가보다 {diff_from_min_pct:.1f}% 높아요.")
-            else:
-                st.caption("🏆 지금이 역대 최저가예요!")
-
-            st.line_chart(history, x="date", y="price", color=category_color(category))
-        else:
-            st.caption("가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
-
-    st.divider()
-
-
-@st.cache_data(show_spinner="모델 학습 중...", ttl=3600)
-def get_trained_model(category):
-    """카테고리별 가격 예측 모델 학습 (캐시됨)"""
-    try:
-        return train_model(category)
-    except Exception as e:
-        st.error(f"모델 학습 실패 ({category}): {e}")
-        return None
-
 
 # ============================
 # 페이지 설정
@@ -276,8 +34,8 @@ hero_header(
     icon="📊",
 )
 
-prices_df = load_prices()
-news_df = load_news()
+prices_df = load_prices_cached()
+news_df = load_news_cached()
 
 # 현재가 표시용 — 최신 수집일의 데이터만 사용
 if not prices_df.empty:
@@ -289,12 +47,12 @@ else:
 # 링크로 열린 상품(?code=RAM-1 등) 상세정보 — 있으면 그 상품 페이지만 단독으로 보여주고 나머지는 생략
 linked_code = st.query_params.get("code")
 if linked_code and not current_df.empty:
-    _render_product_detail_section(prices_df)
+    product_detail.render(prices_df)
     st.stop()
 
 # ML 분석 (최신 데이터 기준)
-z_anomalies = detect_zscore(current_df) if not current_df.empty else pd.DataFrame()
-iqr_anomalies = detect_iqr(current_df) if not current_df.empty else pd.DataFrame()
+z_anomalies = detect_zscore_cached(current_df) if not current_df.empty else pd.DataFrame()
+iqr_anomalies = detect_iqr_cached(current_df) if not current_df.empty else pd.DataFrame()
 
 anomaly_products = set()
 if not z_anomalies.empty:
@@ -303,7 +61,7 @@ if not iqr_anomalies.empty:
     anomaly_products.update(iqr_anomalies["product"].tolist())
 
 # 가격 변동 감지
-price_change_result = detect_price_changes() if not prices_df.empty else pd.DataFrame()
+price_change_result = detect_price_changes_cached() if not prices_df.empty else pd.DataFrame()
 has_changes = isinstance(price_change_result, tuple)
 if has_changes:
     changed_df, latest_date, prev_date = price_change_result
@@ -311,59 +69,15 @@ if has_changes:
     down_count = len(changed_df[changed_df["change"] < 0]) if not changed_df.empty else 0
 else:
     changed_df = pd.DataFrame()
+    prev_date = None
     up_count = 0
     down_count = 0
 
 # ============================
-# 추적 상품 가격 하락 알림
+# 상단 알림 배너
 # ============================
-tracked_pcodes = get_tracked_pcodes()
-if tracked_pcodes and has_changes and not changed_df.empty and not current_df.empty:
-    tracked_names = current_df[current_df["pcode"].isin(tracked_pcodes)]["product"].unique().tolist()
-    tracked_drops = changed_df[changed_df["product"].isin(tracked_names) & (changed_df["change"] < 0)]
-    if not tracked_drops.empty:
-        st.success(f"🔔 집중 추적 중인 상품 {len(tracked_drops)}개의 가격이 내렸어요!")
-        with st.expander(f"📉 추적 상품 가격 하락 상세 ({len(tracked_drops)}개)", expanded=True):
-            tracked_drop_code_cache: dict = {}
-            for i, (_, row) in enumerate(tracked_drops.iterrows()):
-                _render_change_card(row, current_df, tracked_drop_code_cache, key_prefix=f"trackeddrop_{i}")
-        st.divider()
-
-# ============================
-# 목표가 도달 상품 알림
-# ============================
-targets_df = load_tracked_targets()
-if not targets_df.empty:
-    targets_df = targets_df[targets_df["target_price"].notna()]
-if not targets_df.empty and not current_df.empty:
-    target_map = dict(zip(targets_df["pcode"], targets_df["target_price"]))
-    tracked_current = current_df[current_df["pcode"].isin(target_map.keys())].copy()
-    tracked_current["_target"] = tracked_current["pcode"].map(target_map)
-    reached = tracked_current[tracked_current["price"] <= tracked_current["_target"]]
-    if not reached.empty:
-        st.success(f"🎯 목표가에 도달한 추적 상품 {len(reached)}개가 있어요!")
-        with st.expander(f"🎯 목표가 도달 상품 상세 ({len(reached)}개)", expanded=True):
-            reached_code_cache: dict = {}
-            for i, (_, row) in enumerate(reached.iterrows()):
-                reached_category = row["category"]
-                if reached_category not in reached_code_cache:
-                    reached_code_cache[reached_category] = get_product_code_map(reached_category)
-                code = reached_code_cache[reached_category].get(_match_key_for_row(row), "")
-                with st.container(border=True):
-                    card_marker()
-                    img_col, info_col = st.columns([1, 3])
-                    with img_col:
-                        if row.get("image_url") and str(row["image_url"]).startswith("http"):
-                            st.image(row["image_url"], width=110)
-                        else:
-                            st.caption("이미지 없음")
-                    with info_col:
-                        name_html = code_badge(code) if code else ""
-                        st.markdown(f"{name_html}**{row['product'][:60]}**", unsafe_allow_html=True)
-                        st.markdown(f"💰 현재가 **{row['price']:,}원** · 목표가 {row['_target']:,.0f}원")
-                        if code and st.button("🔍 상세보기", key=f"target_reached_detail_{i}_{code}", width="stretch"):
-                            _open_product_detail(code)
-        st.divider()
+alerts.render_tracked_drop_alert(current_df, changed_df, has_changes)
+alerts.render_target_reached_alert(current_df)
 
 # ============================
 # 상단 요약
@@ -381,48 +95,15 @@ stat_cards([
 st.divider()
 
 # ============================
+# 오늘의 하이라이트: 변동폭 TOP + 주목할 만한 상품 (자동 순환 카드)
+# ============================
+spotlights.render_top_movers(current_df, changed_df, has_changes)
+spotlights.render_notable_products(current_df, z_anomalies)
+
+# ============================
 # 전체 상품 검색
 # ============================
-if not current_df.empty:
-    section_header("🔎", "상품 검색", "상품명으로 전체 카테고리에서 찾기")
-    search_col, dl_col = st.columns([2, 1])
-    with search_col:
-        global_search = st.text_input(
-            "검색어 입력", key="global_search",
-            placeholder="예: RTX5080, DDR5, 삼성전자...", label_visibility="collapsed",
-        )
-    with dl_col:
-        export_df = current_df
-        export_label = "⬇️ 전체 상품 CSV"
-        if global_search:
-            export_df = current_df[current_df["product"].str.contains(global_search, case=False, na=False, regex=False)]
-            export_label = "⬇️ 검색 결과 CSV"
-        st.download_button(
-            export_label,
-            data=_to_csv_bytes(export_df[["product", "category", "price", "date"]]),
-            file_name="market_pulse_products.csv",
-            mime="text/csv",
-            width="stretch",
-        )
-    if global_search:
-        matches = current_df[current_df["product"].str.contains(global_search, case=False, na=False, regex=False)]
-        st.caption(f"'{global_search}' 검색 결과: {len(matches)}개")
-        code_map_cache = {}
-        for idx, (_, mrow) in enumerate(matches.head(30).iterrows()):
-            mcat = mrow["category"]
-            if mcat not in code_map_cache:
-                code_map_cache[mcat] = get_product_code_map(mcat)
-            mcode = code_map_cache[mcat].get(_match_key_for_row(mrow), "")
-            c1, c2, c3 = st.columns([1, 4, 1])
-            with c1:
-                st.markdown(code_badge(mcode) or "—", unsafe_allow_html=True)
-            with c2:
-                st.markdown(f"{mrow['product'][:55]} · **{mrow['price']:,}원**")
-                st.caption(mcat)
-            with c3:
-                if mcode and st.button("상세보기", key=f"gsearch_{idx}_{mcode}"):
-                    _open_product_detail(mcode)
-    st.divider()
+search.render(current_df)
 
 # ============================
 # 탭 구성
@@ -436,7 +117,7 @@ if not prices_df.empty:
     tab_labels = (
         ["📋 전체"]
         + [f"{tab_icons.get(c, '🔧')} {c}" for c in categories]
-        + ["📊 가격 변동", "⚠️ 이상치", "🔮 가격 예측", "📰 뉴스"]
+        + ["📊 가격 변동", "⚠️ 이상치", "🔮 가격 예측", "🔀 상품 비교", "🛰️ 수집 이력", "📰 뉴스"]
     )
     tabs = st.tabs(tab_labels)
 
@@ -445,421 +126,45 @@ if not prices_df.empty:
     tab_change   = tabs[n + 1]
     tab_anomaly  = tabs[n + 2]
     tab_predict  = tabs[n + 3]
-    tab_news     = tabs[n + 4]
+    tab_compare  = tabs[n + 4]
+    tab_scrapes  = tabs[n + 5]
+    tab_news     = tabs[n + 6]
 
-    # ============================
-    # 전체 탭
-    # ============================
     with tabs[0]:
-        section_header("📊", "카테고리별 평균 가격")
-        avg_by_cat = prices_df.groupby("category")["price"].mean().sort_values(ascending=False)
-        _category_bar_chart(avg_by_cat, "평균가(원)")
+        overview.render(prices_df, categories)
 
-        section_header("📦", "카테고리별 상품 수")
-        count_by_cat = prices_df.groupby("category")["product"].count()
-        _category_bar_chart(count_by_cat, "상품 수")
-
-        # 추이 분석 (trend_analysis 모듈 사용)
-        trend_source_df = _compute_trend_source_df(prices_df)
-        trend_df = get_price_trend(trend_source_df)
-        if not trend_df.empty:
-            section_header(
-                "📈", "카테고리별 평균 가격 추이",
-                "NVMe SSD는 1TB, DDR5 RAM은 16GB 기준 상품만으로 평균을 계산해요",
-            )
-
-            # 전체 기간 방향 요약
-            summaries = summarize_trends(trend_source_df)
-            if summaries:
-                sum_cols = st.columns(len(summaries))
-                for col, s in zip(sum_cols, summaries):
-                    icon = "📈" if s["direction"] == "up" else ("📉" if s["direction"] == "down" else "➡️")
-                    label = s["category"]
-                    if label in TREND_CAPACITY_BASIS:
-                        label = f"{label} ({TREND_CAPACITY_BASIS[label][2]} 기준)"
-                    with col:
-                        st.metric(
-                            label,
-                            f"{s['last_price']:,.0f}원",
-                            delta=f"{s['change_pct']:+.1f}%",
-                            delta_color="inverse" if s["direction"] == "down" else "normal"
-                        )
-                st.caption(f"기간: {summaries[0]['period']}")
-                st.divider()
-
-            for cat in categories:
-                cat_trend = get_category_trend(trend_source_df, cat)
-                if not cat_trend.empty:
-                    cat_label = cat
-                    if cat in TREND_CAPACITY_BASIS:
-                        cat_label = f"{cat} ({TREND_CAPACITY_BASIS[cat][2]} 기준)"
-                    st.caption(f"**{cat_label}**")
-                    st.line_chart(cat_trend, x="date", y="avg_price", color=category_color(cat))
-        else:
-            st.info("📈 가격 추이는 2일 이상 데이터가 쌓이면 표시돼요.")
-
-    # ============================
-    # 카테고리별 탭
-    # ============================
-    for i, category in enumerate(categories):
+    # 카테고리별 탭 (게이밍/AI 노트북은 laptop_view가 별도 렌더링)
+    for i, cat in enumerate(categories):
         with tabs[i + 1]:
-            if category == "게이밍 노트북":
-                section_header(tab_icons.get(category, "🔧"), category, "RTX5080 / RTX5090")
+            if cat == "게이밍 노트북":
+                section_header(tab_icons.get(cat, "🔧"), cat, "RTX5080 / RTX5090")
                 laptop_view.render(current_df, changed_df, has_changes, category="게이밍 노트북")
-                continue
-
-            if category == "AI 노트북":
-                section_header(tab_icons.get(category, "🔧"), category, "맥북 M5 / 라이젠 AI Max — 로컬 RAM으로 AI 구동 가능한 노트북")
+            elif cat == "AI 노트북":
+                section_header(tab_icons.get(cat, "🔧"), cat, "맥북 M5 / 라이젠 AI Max — 로컬 RAM으로 AI 구동 가능한 노트북")
                 laptop_view.render(
                     current_df, changed_df, has_changes,
                     category="AI 노트북", filter_spec_keys=laptop_view.AI_FILTER_SPEC_KEYS,
                     empty_message="AI 노트북(맥북 M5/라이젠 AI Max) 데이터가 아직 없어요. run_scrapers.bat 을 실행해주세요!",
                 )
-                continue
-
-            cat_df = current_df[current_df["category"] == category].copy()
-            section_header(tab_icons.get(category, "🔧"), category, f"{len(cat_df)}개 상품")
-
-            cat_search = st.text_input("🔎 상품 검색", key=f"search_{category}", placeholder="상품명으로 검색...")
-            if cat_search:
-                cat_df = cat_df[cat_df["product"].str.contains(cat_search, case=False, na=False, regex=False)]
-
-            code_map = get_product_code_map(category)
-
-            s1, s2, s3, s4 = st.columns(4)
-            with s1:
-                st.metric("평균", f"{cat_df['price'].mean():,.0f}원")
-            with s2:
-                st.metric("최저", f"{cat_df['price'].min():,.0f}원")
-            with s3:
-                st.metric("최고", f"{cat_df['price'].max():,.0f}원")
-            with s4:
-                st.metric("중간값", f"{cat_df['price'].median():,.0f}원")
-
-            capacity_extractor = {"NVMe SSD": extract_ssd_features, "DDR5 RAM": extract_ram_features}.get(category)
-            if capacity_extractor:
-                cat_df["_capacity_gb"] = cat_df.apply(lambda r: capacity_extractor(r).get("capacity_gb", 0), axis=1)
-                cat_df["_capacity_label"] = cat_df["_capacity_gb"].apply(_format_capacity_label)
-                capacity_order = sorted(cat_df["_capacity_gb"].unique())
-                capacity_options = [_format_capacity_label(c) for c in capacity_order] + ["전체"]
-                selected_capacity = st.selectbox(
-                    "용량 선택", capacity_options, index=len(capacity_options) - 1, key=f"cap_filter_{category}"
-                )
-                if selected_capacity != "전체":
-                    cat_df = cat_df[cat_df["_capacity_label"] == selected_capacity]
-
-            sort_order = st.selectbox("정렬", ["가격 낮은 순", "가격 높은 순"], key=f"sort_{category}")
-            cat_df = cat_df.sort_values("price", ascending=(sort_order == "가격 낮은 순"))
-
-            if capacity_extractor:
-                st.caption(f"{len(cat_df)}개 상품 표시 중")
-
-            if not cat_df.empty:
-                st.download_button(
-                    f"⬇️ {category} 목록 CSV ({len(cat_df)}개)",
-                    data=_to_csv_bytes(cat_df[["product", "category", "price", "date"]]),
-                    file_name=f"market_pulse_{category}.csv",
-                    mime="text/csv",
-                    key=f"csv_dl_{category}",
-                )
             else:
-                st.info("조건에 맞는 상품이 없어요. 필터를 조정해보세요.")
+                category.render(cat, current_df, changed_df, has_changes, anomaly_products, tab_icons.get(cat, "🔧"))
 
-            cols = st.columns(2)
-            for j, (_, row) in enumerate(cat_df.iterrows()):
-                with cols[j % 2]:
-                    is_anomaly = row["product"] in anomaly_products
-                    with st.container(border=True):
-                        card_marker()
-                        img_col, info_col = st.columns([1, 2])
-                        with img_col:
-                            if row["image_url"] and str(row["image_url"]).startswith("http"):
-                                st.image(row["image_url"], width=120)
-                            else:
-                                st.caption("이미지 없음")
-                        with info_col:
-                            code = code_map.get(_match_key_for_row(row), "")
-                            name_html = code_badge(code)
-                            if is_anomaly:
-                                name_html += f"⚠️ **{row['product'][:50]}**"
-                            else:
-                                name_html += f"**{row['product'][:50]}**"
-                            st.markdown(name_html, unsafe_allow_html=True)
-                            if is_anomaly:
-                                st.caption("이상치 감지됨")
-                            st.markdown(f"💰 **{row['price']:,}원**")
-
-                            # 가격 변동 표시
-                            if has_changes and not changed_df.empty:
-                                change_row = changed_df[changed_df["product"] == row["product"]]
-                                if not change_row.empty:
-                                    ch = change_row.iloc[0]
-                                    st.markdown(price_change_badge(ch["change"], ch["change_pct"]), unsafe_allow_html=True)
-
-                            spec_col, detail_col = st.columns(2)
-                            with spec_col:
-                                if row["specs"] and str(row["specs"]).strip():
-                                    with st.expander("📋 상세 스펙"):
-                                        st.caption(row["specs"])
-                            with detail_col:
-                                if code and st.button("🔍 상세보기", key=f"detail_{category}_{j}", width="stretch"):
-                                    _open_product_detail(code)
-                            st.caption(f"수집일: {row['date']}")
-
-    # ============================
-    # 가격 변동 탭
-    # ============================
     with tab_change:
-        section_header("📊", "가격 변동 리포트")
+        changes.render(changed_df, has_changes, current_df, prev_date, latest_date)
 
-        if has_changes and not changed_df.empty:
-            st.caption(f"비교 기간: {prev_date} → {latest_date}")
-
-            up_df = changed_df[changed_df["change"] > 0]
-            down_df = changed_df[changed_df["change"] < 0]
-
-            sum_col1, sum_col2, sum_col3 = st.columns(3)
-            with sum_col1:
-                st.metric("📈 인상 상품", f"{len(up_df)}개")
-            with sum_col2:
-                st.metric("📉 인하 상품", f"{len(down_df)}개")
-            with sum_col3:
-                st.metric("총 변동", f"{len(changed_df)}개")
-
-            st.divider()
-
-            change_tab1, change_tab2 = st.tabs(["📈 가격 인상", "📉 가격 인하"])
-            change_code_map_cache: dict = {}
-
-            with change_tab1:
-                if not up_df.empty:
-                    for i, (_, row) in enumerate(up_df.iterrows()):
-                        _render_change_card(row, current_df, change_code_map_cache, key_prefix=f"up_{i}")
-                else:
-                    st.success("가격 인상 상품 없음!")
-
-            with change_tab2:
-                if not down_df.empty:
-                    for i, (_, row) in enumerate(down_df.iterrows()):
-                        _render_change_card(row, current_df, change_code_map_cache, key_prefix=f"down_{i}")
-                else:
-                    st.success("가격 인하 상품 없음!")
-        else:
-            st.info("📊 가격 변동은 2일 이상 데이터가 쌓이면 표시돼요. 내일 다시 스크래퍼를 실행해보세요!")
-
-    # ============================
-    # 이상치 탭
-    # ============================
     with tab_anomaly:
-        section_header("⚠️", "이상치 탐지 결과")
+        anomalies.render(categories, current_df, z_anomalies, iqr_anomalies, tab_icons)
 
-        method_tab1, method_tab2, method_tab3 = st.tabs(
-            ["📊 카테고리별 통계", "🔵 Z-score", "🟠 IQR"]
-        )
-
-        with method_tab1:
-            for cat in categories:
-                cat_df = current_df[current_df["category"] == cat]
-                st.markdown(f"### {tab_icons.get(cat, '🔧')} {cat}")
-                s1, s2, s3, s4, s5 = st.columns(5)
-                with s1:
-                    st.metric("상품 수", f"{len(cat_df)}개")
-                with s2:
-                    st.metric("평균", f"{cat_df['price'].mean():,.0f}원")
-                with s3:
-                    st.metric("최저", f"{cat_df['price'].min():,.0f}원")
-                with s4:
-                    st.metric("최고", f"{cat_df['price'].max():,.0f}원")
-                with s5:
-                    st.metric("표준편차", f"{cat_df['price'].std():,.0f}원")
-                st.divider()
-
-        with method_tab2:
-            st.markdown("**Z-score**: 평균에서 표준편차 2.5배 이상 벗어나면 이상치")
-            if not z_anomalies.empty:
-                st.warning(f"⚠️ {len(z_anomalies)}개 이상치 발견!")
-                z_code_map_cache: dict = {}
-                for i, (_, row) in enumerate(z_anomalies.iterrows()):
-                    direction = "📈 고가" if row["z_score"] > 0 else "📉 저가"
-                    category = row["category"]
-                    if category not in z_code_map_cache:
-                        z_code_map_cache[category] = get_product_code_map(category)
-                    code = z_code_map_cache[category].get(_match_key_for_row(row), "")
-                    with st.container(border=True):
-                        card_marker()
-                        c1, c2 = st.columns([3, 1])
-                        with c1:
-                            name_html = code_badge(code) if code else ""
-                            st.markdown(f"{name_html}{direction} **{row['product'][:55]}**", unsafe_allow_html=True)
-                            st.caption(f"{row['category']}")
-                        with c2:
-                            st.metric("가격", f"{row['price']:,}원")
-                            st.caption(f"Z: {row['z_score']:.2f}")
-                        if code and st.button("🔍 상세보기", key=f"zscore_detail_{i}_{code}", width="stretch"):
-                            _open_product_detail(code)
-            else:
-                st.success("✅ 이상치 없음!")
-
-        with method_tab3:
-            st.markdown("**IQR**: 중간 50% 범위의 1.5배를 벗어나면 이상치")
-            if not iqr_anomalies.empty:
-                st.warning(f"⚠️ {len(iqr_anomalies)}개 이상치 발견!")
-                iqr_code_map_cache: dict = {}
-                for i, (_, row) in enumerate(iqr_anomalies.iterrows()):
-                    direction = "📈 고가" if row["price"] > row["upper_bound"] else "📉 저가"
-                    category = row["category"]
-                    if category not in iqr_code_map_cache:
-                        iqr_code_map_cache[category] = get_product_code_map(category)
-                    code = iqr_code_map_cache[category].get(_match_key_for_row(row), "")
-                    with st.container(border=True):
-                        card_marker()
-                        c1, c2 = st.columns([3, 1])
-                        with c1:
-                            name_html = code_badge(code) if code else ""
-                            st.markdown(f"{name_html}{direction} **{row['product'][:55]}**", unsafe_allow_html=True)
-                            st.caption(f"{row['category']}")
-                        with c2:
-                            st.metric("가격", f"{row['price']:,}원")
-                            st.caption(f"범위: {row['lower_bound']:,.0f}~{row['upper_bound']:,.0f}원")
-                        if code and st.button("🔍 상세보기", key=f"iqr_detail_{i}_{code}", width="stretch"):
-                            _open_product_detail(code)
-            else:
-                st.success("✅ 이상치 없음!")
-
-    # ============================
-    # 가격 예측 탭
-    # ============================
     with tab_predict:
-        section_header("🔮", "가격 예측", "제품을 선택하면 스펙 기반 적정 가격을 예측하고 실제 판매가와 비교해드려요.")
+        prediction.render(current_df, anomaly_products)
 
-        pred_category = st.selectbox("카테고리 선택", list(FEATURE_EXTRACTORS.keys()), key="pred_cat")
+    with tab_compare:
+        compare.render(current_df, anomaly_products)
 
-        model_info = get_trained_model(pred_category)
-        pred_cat_df = current_df[current_df["category"] == pred_category].copy()
+    with tab_scrapes:
+        scrapes.render()
 
-        if model_info is None:
-            st.warning("데이터가 부족해 예측 모델을 만들 수 없어요. (카테고리당 최소 5개 필요)")
-        elif pred_cat_df.empty:
-            st.info("이 카테고리에 조회할 상품이 없어요.")
-        else:
-            r2 = model_info["best_r2"]
-
-            info_c1, info_c2, info_c3 = st.columns(3)
-            with info_c1:
-                st.metric("모델", model_info["model_name"])
-            with info_c2:
-                st.metric("R² 점수", f"{r2:.3f}")
-            with info_c3:
-                st.metric("학습 데이터", f"{model_info['data_count']}개")
-
-            st.divider()
-
-            product_options = pred_cat_df["product"].tolist()
-            selected_product = st.selectbox("제품 선택", product_options, key="pred_product")
-            row = pred_cat_df[pred_cat_df["product"] == selected_product].iloc[0]
-
-            extractor = FEATURE_EXTRACTORS[pred_category]
-            features = extractor(row)
-            predicted, pred_low, pred_high = predict_price_range(model_info, features)
-            actual = row["price"]
-            diff = actual - predicted
-            diff_pct = (diff / predicted * 100) if predicted else 0
-
-            img_col, result_col = st.columns([1, 3])
-            with img_col:
-                if row.get("image_url") and str(row["image_url"]).startswith("http"):
-                    st.image(row["image_url"], width=140)
-                else:
-                    st.caption("이미지 없음")
-            with result_col:
-                st.markdown(f"**{selected_product}**")
-                m1, m2, m3 = st.columns(3)
-                with m1:
-                    st.metric("실제 가격", f"{actual:,}원")
-                with m2:
-                    st.metric("예측 가격", f"{predicted:,.0f}원")
-                    st.caption(f"예상 범위(80%): {pred_low:,.0f} ~ {pred_high:,.0f}원")
-                with m3:
-                    st.metric("차이", f"{diff:+,.0f}원", delta=f"{diff_pct:+.1f}%", delta_color="inverse")
-
-                if diff_pct > 10:
-                    st.warning(f"⚠️ 실제 가격이 예측보다 {diff_pct:.1f}% 높아요 — 고평가 가능성")
-                elif diff_pct < -10:
-                    st.success(f"💡 실제 가격이 예측보다 {abs(diff_pct):.1f}% 낮아요 — 저평가/좋은 가격일 수 있어요")
-                else:
-                    st.info("예측 가격과 실제 가격이 비슷해요 — 적정 가격대")
-
-                if r2 <= 0.5:
-                    st.caption("⚠️ 모델 신뢰도가 낮아요 — 데이터가 더 쌓이면 정확도가 올라가요.")
-
-            st.divider()
-
-            # ---- 스펙별 가격 기여도 ----
-            contrib_col, similar_col = st.columns(2)
-            with contrib_col:
-                section_header("📊", "스펙별 가격 기여도", "모든 스펙이 평균일 때 대비, 이 스펙 값이 가격을 얼마나 움직였는지")
-                contributions, baseline_pred = compute_feature_contributions(model_info, features)
-                contrib_df = pd.DataFrame(contributions)
-                contrib_df = contrib_df[contrib_df["contribution"].abs() > 1]  # 사실상 0인 기여는 숨김
-                if contrib_df.empty:
-                    st.caption("뚜렷한 기여 스펙을 찾지 못했어요.")
-                else:
-                    chart = (
-                        alt.Chart(contrib_df)
-                        .mark_bar()
-                        .encode(
-                            x=alt.X("contribution:Q", title="가격 기여도(원)"),
-                            y=alt.Y("label:N", title=None, sort="-x"),
-                            color=alt.condition("datum.contribution > 0", alt.value(RED), alt.value(GREEN)),
-                            tooltip=[alt.Tooltip("label:N", title="스펙"), alt.Tooltip("value:N", title="값"), alt.Tooltip("contribution:Q", title="기여도(원)", format=",.0f")],
-                        )
-                        .configure_view(strokeWidth=0)
-                        .configure_axis(gridColor=BORDER, domainColor=BORDER, labelColor=MUTED, titleColor=MUTED)
-                        .properties(height=max(120, 28 * len(contrib_df)))
-                    )
-                    st.altair_chart(chart, width="stretch")
-
-            # ---- 비슷한 스펙의 제품과 비교 ----
-            with similar_col:
-                section_header("🔍", "비슷한 스펙 제품 비교", "스펙이 가장 비슷한 다른 제품들의 실제 판매가")
-                similar_df = find_similar_products(
-                    pred_cat_df, features, extractor, model_info,
-                    exclude_product=selected_product, top_n=5,
-                )
-                if similar_df.empty:
-                    st.caption("비교할 제품이 없어요.")
-                else:
-                    for _, srow in similar_df.iterrows():
-                        sdiff = srow["price"] - actual
-                        badge = f"🔺 +{sdiff:,.0f}원" if sdiff > 0 else (f"🔻 {sdiff:,.0f}원" if sdiff < 0 else "동일")
-                        st.markdown(f"**{srow['product'][:45]}**")
-                        st.caption(f"{srow['price']:,.0f}원 · {selected_product[:20]} 대비 {badge}")
-
-            st.divider()
-
-            # ---- 스펙 특성 표 ----
-            with st.expander("📋 추출된 스펙 특성 보기"):
-                feature_rows = [
-                    {"스펙": FEATURE_LABELS.get(f, f), "값": v}
-                    for f, v in features.items()
-                ]
-                st.dataframe(pd.DataFrame(feature_rows), hide_index=True, width="stretch")
-
-    # ============================
-    # 뉴스 탭
-    # ============================
     with tab_news:
-        section_header("📰", "IT/과학 뉴스")
-        if not news_df.empty:
-            all_press = sorted(news_df["press"].unique())
-            selected_press = st.multiselect("언론사 필터", options=all_press, default=all_press)
-            filtered_news = news_df[news_df["press"].isin(selected_press)]
-            for _, row in filtered_news.iterrows():
-                with st.container():
-                    st.markdown(f"**{row['title']}**")
-                    st.caption(f"📡 {row['press']}  ·  🕐 {row['published_at']}")
-                    st.divider()
-        else:
-            st.info("아직 뉴스 데이터가 없어요.")
+        news.render(news_df)
 else:
     st.info("아직 데이터가 없어요. 스크래퍼를 실행해주세요!")

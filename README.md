@@ -6,7 +6,7 @@
 
 ## 🖼️ 미리보기
 
-> 다크 모드로 리디자인된 대시보드 스크린샷은 추가 예정입니다 (`screenshots/dashboard_overview.png`로 저장하면 이 자리에 표시할 수 있습니다). 그동안은 아래 "30초 만에 직접 보기"로 바로 확인해보세요.
+![Market Pulse 대시보드 전체 화면](screenshots/dashboard_overview.png)
 
 다크 모드 대시보드에서 볼 수 있는 것들:
 - 상품 수·평균가·가격 인상/인하·이상치 건수를 한눈에 보여주는 KPI 카드

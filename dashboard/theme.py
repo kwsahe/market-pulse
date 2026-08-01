@@ -2,6 +2,7 @@
 # 다크 모드 "실제 웹사이트" 느낌의 공통 스타일/컴포넌트 헬퍼
 # (커스텀 폰트, 배경 그라디언트 글로우, 커스텀 통계 카드, 배지, 탭/버튼/스크롤바 폴리시)
 
+import html as _html
 import streamlit as st
 
 # UI 크롬(탭/헤더/보더 등 장식용) — 데이터 인코딩에는 쓰지 않음
@@ -345,6 +346,89 @@ def inject_css() -> None:
         ::-webkit-scrollbar-thumb {{ background: {BORDER}; border-radius: 8px; }}
         ::-webkit-scrollbar-thumb:hover {{ background: {CYAN}; }}
 
+        /* ---------- 회전 카드(캐러셀) — 순수 CSS로 자동 순환, Streamlit 재실행 불필요 ---------- */
+        .mp-carousel {{
+            position: relative;
+            border-radius: 16px;
+        }}
+        .mp-carousel-slide {{
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+        }}
+        .mp-spotlight-card {{
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: {SURFACE};
+            border: 1px solid {BORDER};
+            border-radius: 16px;
+            padding: 16px 20px;
+            height: 100%;
+            box-sizing: border-box;
+        }}
+        .mp-spotlight-img {{
+            width: 96px;
+            height: 96px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: {SURFACE_RAISED};
+            flex-shrink: 0;
+        }}
+        .mp-spotlight-img-empty {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: {MUTED};
+            font-size: 0.7rem;
+            text-align: center;
+        }}
+        .mp-spotlight-info {{
+            min-width: 0;
+        }}
+        .mp-spotlight-name {{
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60vw;
+            display: inline-block;
+            vertical-align: middle;
+        }}
+        .mp-spotlight-cat {{
+            color: {MUTED};
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }}
+        .mp-spotlight-price {{
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }}
+        .mp-spotlight-actions {{
+            margin-top: 10px;
+        }}
+        .mp-spotlight-btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.12);
+            color: {CYAN};
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-decoration: none !important;
+            white-space: nowrap;
+            transition: all .15s ease;
+        }}
+        .mp-spotlight-btn:hover {{
+            background: rgba(34, 211, 238, 0.22);
+            border-color: {CYAN};
+        }}
+
         /* ---------- 배지 ---------- */
         .mp-badge {{
             display: inline-block;
@@ -448,3 +532,78 @@ def code_badge(code: str) -> str:
     if not code:
         return ""
     return f'<span class="mp-code-badge">{code}</span>'
+
+
+def spotlight_card(code: str, product: str, category: str, image_url: str, price_line: str, badge_html: str = "") -> str:
+    """회전 카드(rotating_cards) 한 장의 내부 HTML — 이미지+상품번호+이름+카테고리+가격/배지+바로가기 버튼
+    code가 있으면 '?code=XXX' 상세 페이지로 가는 링크 버튼을 붙인다(같은 탭에서 이동, 대시보드 전역
+    라우팅 규칙과 동일 — app.py의 _open_product_detail/_render_product_detail_section 참고)."""
+    product_esc = _html.escape(str(product))[:60]
+    category_esc = _html.escape(str(category))
+    if image_url and str(image_url).startswith("http"):
+        img_html = f'<img class="mp-spotlight-img" src="{_html.escape(str(image_url), quote=True)}">'
+    else:
+        img_html = '<div class="mp-spotlight-img mp-spotlight-img-empty">이미지 없음</div>'
+    goto_html = ""
+    if code:
+        code_q = _html.escape(str(code), quote=True)
+        goto_html = f'<a class="mp-spotlight-btn" href="?code={code_q}" target="_self">🔗 상품 바로가기</a>'
+    return (
+        '<div class="mp-spotlight-card">'
+        f'{img_html}'
+        '<div class="mp-spotlight-info">'
+        f'{code_badge(code)}<span class="mp-spotlight-name">{product_esc}</span>'
+        f'<div class="mp-spotlight-cat">{category_esc}</div>'
+        f'<div class="mp-spotlight-price">{price_line} {badge_html}</div>'
+        f'<div class="mp-spotlight-actions">{goto_html}</div>'
+        '</div></div>'
+    )
+
+
+def rotating_cards(cards_html: list[str], seconds_per_card: float = 4.0, height_px: int = 172) -> None:
+    """카드 여러 장을 순서대로 자동 크로스페이드 순환시키는 CSS 전용 캐러셀.
+    Streamlit 재실행 없이 브라우저에서만 애니메이션이 돌아간다(각 슬라이드가 고유한
+    @keyframes로 전체 주기 중 자기 차례에만 보이도록 opacity를 움직인다)."""
+    n = len(cards_html)
+    if n == 0:
+        return
+    if n == 1:
+        st.markdown(f'<div class="mp-carousel" style="height:{height_px}px">{cards_html[0]}</div>', unsafe_allow_html=True)
+        return
+
+    period = n * seconds_per_card
+    fade_pct = min(6.0, (0.5 / period) * 100)  # 0.5초 페이드, 세그먼트 폭의 절반을 넘지 않게 상한
+
+    style_parts = []
+    slide_parts = []
+    for i, card_html in enumerate(cards_html):
+        start = i / n * 100
+        end = (i + 1) / n * 100
+        stops = []
+        if i > 0:
+            stops.append((0.0, 0))
+        stops.append((start, 0))
+        stops.append((min(start + fade_pct, end), 1))
+        stops.append((max(end - fade_pct, start), 1))
+        stops.append((end, 0))
+        if i < n - 1:
+            stops.append((100.0, 0))
+        stops.sort(key=lambda s: s[0])
+        # opacity와 함께 pointer-events도 같이 움직여서, 화면에 실제로 보이는 카드의 버튼만
+        # 클릭되게 한다(안 그러면 모든 슬라이드가 같은 자리에 겹쳐 있어 보이지 않는 카드의
+        # 링크가 클릭을 가로챌 수 있음)
+        kf_body = "".join(
+            f"{pct:.3f}%{{opacity:{op};pointer-events:{'auto' if op == 1 else 'none'}}}"
+            for pct, op in stops
+        )
+        anim_name = f"mp-carousel-fade-{i}"
+        style_parts.append(f"@keyframes {anim_name}{{{kf_body}}}")
+        slide_parts.append(
+            f'<div class="mp-carousel-slide" style="animation:{anim_name} {period:.2f}s infinite;">{card_html}</div>'
+        )
+
+    html = (
+        f'<style>{"".join(style_parts)}</style>'
+        f'<div class="mp-carousel" style="height:{height_px}px">{"".join(slide_parts)}</div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)

@@ -7,10 +7,11 @@ import pandas as pd
 import streamlit as st
 
 from database.db_manager import (
-    load_laptop_products, load_laptop_specs, load_laptop_images,
-    load_laptop_price_history, load_laptop_best_buy_stats,
-    get_tracked_pcodes, set_laptop_tracked, get_product_code_map,
-    set_target_price, load_tracked_targets,
+    get_tracked_pcodes, set_laptop_tracked, set_target_price, load_tracked_targets,
+)
+from dashboard.tabs.common import (
+    load_laptop_products_cached, load_laptop_specs_cached, load_laptop_images_cached,
+    load_laptop_price_history_cached, load_laptop_best_buy_stats_cached, get_product_code_map_cached,
 )
 from dashboard.theme import (
     price_change_badge, best_buy_badge, card_marker, section_header,
@@ -70,15 +71,15 @@ def render(
     # laptop_specs/laptop_images는 pcode 기준 전역 테이블이라 카테고리로 미리 좁혀야
     # 필터 옵션에 다른 카테고리(예: 게이밍 노트북의 인텔/라이젠9) 값이 섞여 나오지 않는다.
     category_pcodes = set(laptop_df["pcode"])
-    specs_df = load_laptop_specs()
+    specs_df = load_laptop_specs_cached()
     specs_df = specs_df[specs_df["pcode"].isin(category_pcodes)]
-    images_df = load_laptop_images()
+    images_df = load_laptop_images_cached()
     images_df = images_df[images_df["pcode"].isin(category_pcodes)]
-    best_buy_df = load_laptop_best_buy_stats(category)
-    products_df = load_laptop_products()
+    best_buy_df = load_laptop_best_buy_stats_cached(category)
+    products_df = load_laptop_products_cached()
     spec_pivot = _pivot_specs(specs_df)
     tracked = set(get_tracked_pcodes())
-    code_map = get_product_code_map(category)
+    code_map = get_product_code_map_cached(category)
 
     # 이번 스크래핑 회차(최신 수집일)에 처음 잡힌 상품 = 신제품
     latest_date = laptop_df["date"].max()
@@ -338,7 +339,7 @@ def _render_tracked(
                     set_target_price(pcode, new_target if new_target > 0 else None, new_memo)
                     st.rerun()
 
-            history = load_laptop_price_history(pcode)
+            history = load_laptop_price_history_cached(pcode)
             if len(history) >= 2:
                 st.line_chart(history, x="date", y="price", color=category_color(category))
             else:

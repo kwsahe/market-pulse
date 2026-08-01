@@ -8,7 +8,7 @@ import pandas as pd
 from unittest.mock import patch
 from sklearn.model_selection import cross_val_score as real_cross_val_score
 
-from ml.price_prediction import train_model
+from ml.price_prediction import train_model, compute_fair_price_score
 
 
 def _make_ram_df() -> pd.DataFrame:
@@ -86,3 +86,48 @@ def test_train_model_returns_expected_shape(monkeypatch):
     assert info["data_count"] == len(df)
     assert info["category"] == "DDR5 RAM"
     assert info["model_name"] in ("Linear Regression", "Random Forest")
+
+
+def test_fair_price_score_at_predicted_price_and_history_midpoint():
+    # 예측가와 정확히 같고, 과거 최저~최고가의 정중앙이면 두 보정 항목이 모두 0이라
+    # 기준점 그대로 50점("보통")이어야 한다
+    score, label = compute_fair_price_score(
+        actual_price=100_000, predicted_price=100_000, hist_min=50_000, hist_max=150_000,
+    )
+    assert score == 50
+    assert label == "보통"
+
+
+def test_fair_price_score_cheap_and_near_historic_low_scores_high():
+    score, label = compute_fair_price_score(
+        actual_price=52_000, predicted_price=100_000, hist_min=50_000, hist_max=150_000,
+    )
+    assert score >= 75
+    assert label in ("괜찮은 가격", "훌륭한 가격")
+
+
+def test_fair_price_score_expensive_and_near_historic_high_scores_low():
+    score, label = compute_fair_price_score(
+        actual_price=148_000, predicted_price=100_000, hist_min=50_000, hist_max=150_000,
+    )
+    assert score <= 25
+    assert label == "비싼 편"
+
+
+def test_fair_price_score_anomaly_penalty_lowers_score():
+    base_score, _ = compute_fair_price_score(100_000, 100_000, 50_000, 150_000, is_anomaly_high=False)
+    anomaly_score, _ = compute_fair_price_score(100_000, 100_000, 50_000, 150_000, is_anomaly_high=True)
+    assert anomaly_score == base_score - 15
+
+
+def test_fair_price_score_is_clamped_to_0_100():
+    low_score, _ = compute_fair_price_score(actual_price=1, predicted_price=1_000_000, hist_min=0, hist_max=10)
+    high_score, _ = compute_fair_price_score(actual_price=1_000_000, predicted_price=1, hist_min=0, hist_max=10)
+    assert low_score == 100
+    assert high_score == 0
+
+
+def test_fair_price_score_handles_missing_history():
+    # hist_min/hist_max가 없어도(과거 데이터 부족) 에러 없이 예측가 비교만으로 점수를 낸다
+    score, label = compute_fair_price_score(actual_price=90_000, predicted_price=100_000, hist_min=None, hist_max=None)
+    assert 0 <= score <= 100
