@@ -1,4 +1,8 @@
+<img src="screenshots/logo_mark.png" width="88" height="88" alt="Market Pulse 로고">
+
 # 📊 Market Pulse
+
+[![Tests](https://github.com/kwsahe/market-pulse/actions/workflows/tests.yml/badge.svg)](https://github.com/kwsahe/market-pulse/actions/workflows/tests.yml)
 
 게이밍 노트북(RTX5080/5090) & PC 부품 가격 자동 수집 · ML 분석 · **LangGraph 기반 자동 리포트** · IT 뉴스 대시보드
 
@@ -174,16 +178,30 @@ pytest -v
 
 ---
 
+## 🏗️ 아키텍처 다이어그램
+
+![Market Pulse 구성도 및 데이터 흐름](screenshots/architecture_flow.png)
+
+수집(Danawa/Naver) → 저장(SQLite, 9개 테이블) → 분석(이상치·가격변동·예측·적정가 점수) → 표현(Streamlit) 흐름과,
+LangGraph 자동화·수집 이력·테스트/CI·캐싱까지 한 장으로 정리했습니다. 코드가 바뀌면
+`python screenshots/generate_architecture_png.py`로 다시 생성할 수 있습니다.
+
+더 상세한 Mermaid 다이어그램(ER 다이어그램, 시퀀스 다이어그램 등)은 [screenshots/ARCHITECTURE.md](screenshots/ARCHITECTURE.md)에 있습니다.
+
+---
+
 ## 🏗️ 프로젝트 구조
 
 ```
 market-pulse/
+├── .github/workflows/         # GitHub Actions (push마다 pytest 자동 실행)
+│   └── tests.yml
 ├── workflow/                 # LangGraph 워크플로우
 │   ├── state.py             # 상태 정의 (TypedDict)
 │   ├── nodes.py             # 각 단계 실행 함수
 │   ├── graph.py             # 워크플로우 그래프 구성
 │   ├── checkpoint.py        # 체크포인트 저장/복구
-│   ├── report_generator.py  # 리포트 생성 (MD/HTML)
+│   ├── report_generator.py  # 리포트 생성 (MD/HTML, 대시보드와 동일한 다크 테마)
 │   └── main.py              # 실행 진입점
 ├── workflow_dashboard/       # Streamlit 대시보드
 │   └── app.py
@@ -191,17 +209,19 @@ market-pulse/
 ├── reports/                  # 자동 생성: 생성된 리포트
 ├── scraper/                  # 데이터 수집 스크래퍼
 │   ├── price_scraper.py
-│   └── news_scraper.py
+│   ├── news_scraper.py
+│   └── laptop_detail_scraper.py  # 노트북 상세 스펙/이미지
 ├── database/                 # DB 관리
 │   ├── db_manager.py
 │   └── data.db               # 로컬 생성 (git 추적 안 함)
 ├── ml/                       # 머신러닝 분석
 │   ├── anomaly_detection.py
-│   ├── price_change.py
-│   ├── price_prediction.py
+│   ├── price_change.py       # pcode 우선 매칭
+│   ├── price_prediction.py   # GroupKFold, 적정가 점수
 │   └── trend_analysis.py
 ├── dashboard/                 # 실시간 데이터 조회 대시보드
-│   ├── app.py
+│   ├── app.py                # 데이터 로딩 + 조립만 담당 (170줄)
+│   ├── tabs/                  # 탭별 렌더링 모듈 12개
 │   ├── laptop_view.py
 │   └── theme.py
 ├── tests/                    # pytest 스위트 (임시 DB/합성 데이터만 사용)

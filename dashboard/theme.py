@@ -2,12 +2,30 @@
 # 다크 모드 "실제 웹사이트" 느낌의 공통 스타일/컴포넌트 헬퍼
 # (커스텀 폰트, 배경 그라디언트 글로우, 커스텀 통계 카드, 배지, 탭/버튼/스크롤바 폴리시)
 
+import base64 as _base64
 import html as _html
+import os as _os
 import streamlit as st
 
 # UI 크롬(탭/헤더/보더 등 장식용) — 데이터 인코딩에는 쓰지 않음
 CYAN = "#22D3EE"
 VIOLET = "#8B5CF6"
+
+# 로고(screenshots/generate_logo.py로 생성) — data URI로 인라인 삽입해서 Streamlit
+# 정적 파일 서빙 설정 없이도 항상 뜨게 한다. 프로세스당 1회만 읽는다.
+_LOGO_PATH = _os.path.join(_os.path.dirname(__file__), "..", "screenshots", "logo_mark.png")
+
+
+def _load_logo_data_uri() -> str:
+    try:
+        with open(_LOGO_PATH, "rb") as f:
+            b64 = _base64.b64encode(f.read()).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except FileNotFoundError:
+        return ""
+
+
+LOGO_DATA_URI = _load_logo_data_uri()
 
 # 상태 색상(dataviz 스킬의 validate_palette.js로 배경 #0D0F14 기준 검증 완료).
 # 기존 파스텔톤(#34D399/#F87171/#FBBF24)은 명도 밴드·CVD 분리 기준을 통과하지 못해 교체함.
@@ -92,6 +110,15 @@ def inject_css() -> None:
             display: inline-block;
             margin-right: 10px;
             -webkit-text-fill-color: initial;
+        }}
+        .mp-hero-logo {{
+            display: inline-block;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            margin-right: 14px;
+            vertical-align: middle;
+            box-shadow: 0 4px 14px rgba(34,211,238,0.25);
         }}
         .mp-hero-title-link {{
             text-decoration: none !important;
@@ -454,6 +481,7 @@ def card_marker() -> None:
 
 def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 중", date_label: str = "", icon: str = "📊") -> None:
     """그라디언트 타이틀 + 오늘 날짜 + LIVE 펄스 배지가 있는 히어로 헤더
+    로고 이미지(screenshots/logo_mark.png)가 있으면 그걸 쓰고, 없으면 이모지로 대체한다.
     icon(이모지)은 별도 span으로 분리해 그라디언트 text-clip을 적용하지 않는다.
     (h1 전체에 -webkit-text-fill-color:transparent를 걸면 이모지 컬러 글리프가
     투명 처리되어 빈 사각형(tofu box)으로 보이는 렌더링 버그가 있었음)
@@ -462,7 +490,10 @@ def hero_header(title: str, subtitle: str, live_label: str = "실시간 수집 �
     # 빈 줄(또는 공백만 있는 줄)이 있으면 거기서 끊고 이후를 코드블록으로 취급한다.
     # 여러 div를 이어붙일 때는 반드시 줄바꿈/들여쓰기 없는 한 줄 HTML로 만들어야 한다.
     date_html = f'<div class="mp-date-pill">📅 {date_label}</div>' if date_label else ""
-    icon_html = f'<span class="mp-hero-icon">{icon}</span>' if icon else ""
+    if LOGO_DATA_URI:
+        icon_html = f'<img class="mp-hero-logo" src="{LOGO_DATA_URI}" alt="Market Pulse 로고">'
+    else:
+        icon_html = f'<span class="mp-hero-icon">{icon}</span>' if icon else ""
     html = (
         f'<div class="mp-hero"><div><h1 class="mp-hero-title">'
         f'<a href="/" target="_self" class="mp-hero-title-link">{icon_html}<span class="mp-hero-title-text">{title}</span></a></h1>'

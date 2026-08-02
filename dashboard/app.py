@@ -20,7 +20,12 @@ from dashboard.tabs.common import (
 # ============================
 # 페이지 설정
 # ============================
-st.set_page_config(page_title="Market Pulse", page_icon="📊", layout="wide")
+_LOGO_PATH = os.path.join(os.path.dirname(__file__), "..", "screenshots", "logo_mark.png")
+st.set_page_config(
+    page_title="Market Pulse",
+    page_icon=_LOGO_PATH if os.path.exists(_LOGO_PATH) else "📊",
+    layout="wide",
+)
 inject_css()
 
 WEEKDAY_KR = ["월", "화", "수", "목", "금", "토", "일"]

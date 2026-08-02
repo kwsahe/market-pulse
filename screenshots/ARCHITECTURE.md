@@ -2,77 +2,94 @@
 
 ## 1. 프로젝트 개요
 
-Market Pulse는 게이밍 노트북과 PC 부품 가격을 주기적으로 수집하고, SQLite에 저장한 뒤 Streamlit 대시보드에서 가격 현황, 가격 변동, 이상치, 가격 예측, IT 뉴스를 보여주는 프로젝트입니다.
+Market Pulse는 게이밍 노트북(RTX5080/5090)·AI 노트북과 PC 부품 가격을 주기적으로 수집하고, SQLite에 저장한 뒤 Streamlit 대시보드에서 가격 현황, 가격 변동, 이상치, 가격 예측, 적정가 점수, 상품 비교, 수집 이력, IT 뉴스를 보여주는 프로젝트입니다. LangGraph로 수집→분석→리포트 생성을 자동화하는 워크플로우와, pytest + GitHub Actions로 핵심 로직을 검증하는 CI도 갖추고 있습니다.
 
 주요 데이터 소스는 다음과 같습니다.
 
-- Danawa 검색 페이지: 제품명, 가격, 스펙, 이미지 URL 수집
+- Danawa 검색/상세 페이지: 제품명, 가격, 스펙, 이미지 URL + 노트북 상세 스펙·이미지 수집
 - Naver IT/과학 뉴스: 언론사, 제목, 발행 시간 수집
 
-현재 `database/data.db` 기준 데이터 규모는 다음과 같습니다.
+현재 `database/data.db` 기준 데이터 규모는 다음과 같습니다(수집이 계속 진행 중이라 값은 계속 늘어납니다).
 
-- `prices`: 4,336건
-- `news`: 341건
-- 가격 카테고리: 게이밍 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU
+- `prices`: 9,600여 건
+- `news`: 800여 건
+- 가격 카테고리: 게이밍 노트북, AI 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU
+- 테이블 수: 9개 (`prices`, `news`, `laptop_products`, `laptop_specs`, `laptop_images`, `tracked_laptops`, `product_registry`, `scrape_runs`, `schema_migrations`)
 
 ## 2. 전체 구성도
 
 ```mermaid
 flowchart LR
     subgraph External["외부 데이터 소스"]
-        Danawa["Danawa<br/>제품 검색 결과"]
+        Danawa["Danawa<br/>제품 검색/상세 페이지"]
         Naver["Naver News<br/>IT/과학 섹션"]
     end
 
     subgraph Scraper["수집 계층"]
-        PriceScraper["scraper/price_scraper.py<br/>가격/스펙/이미지 수집"]
+        PriceScraper["scraper/price_scraper.py<br/>부품 4종 + 노트북 목록"]
+        DetailScraper["scraper/laptop_detail_scraper.py<br/>노트북 상세 스펙/이미지"]
         NewsScraper["scraper/news_scraper.py<br/>뉴스 수집"]
         Batch["run_scrapers.bat<br/>수집 자동 실행"]
     end
 
     subgraph DB["저장 계층"]
-        DBManager["database/db_manager.py<br/>DB 초기화/insert 함수"]
-        SQLite["database/data.db<br/>SQLite"]
-        Prices["prices table"]
-        News["news table"]
+        DBManager["database/db_manager.py<br/>init/insert/migration"]
+        SQLite["database/data.db<br/>SQLite, 9개 테이블"]
     end
 
     subgraph ML["분석/ML 계층"]
         Anomaly["ml/anomaly_detection.py<br/>Z-score, IQR 이상치 탐지"]
-        Change["ml/price_change.py<br/>전일 대비 가격 변동"]
+        Change["ml/price_change.py<br/>pcode 우선 매칭 가격 변동"]
         Trend["ml/trend_analysis.py<br/>카테고리별 평균 가격 추이"]
-        Prediction["ml/price_prediction.py<br/>Linear Regression / Random Forest"]
+        Prediction["ml/price_prediction.py<br/>LR/RandomForest + GroupKFold"]
+        Score["ml/price_prediction.py<br/>적정가 점수(규칙 기반)"]
+    end
+
+    subgraph Auto["자동화"]
+        Workflow["workflow/*.py<br/>LangGraph 수집→분석→리포트"]
     end
 
     subgraph UI["표현 계층"]
-        Dashboard["dashboard/app.py<br/>Streamlit Dashboard"]
+        Dashboard["dashboard/app.py + tabs/*.py<br/>Streamlit Dashboard (12개 탭)"]
         User["사용자"]
     end
 
+    subgraph Quality["품질"]
+        Tests["tests/*.py<br/>pytest 25개"]
+        CI["GitHub Actions<br/>push마다 자동 실행"]
+    end
+
     Danawa --> PriceScraper
+    Danawa --> DetailScraper
     Naver --> NewsScraper
     Batch --> PriceScraper
     Batch --> NewsScraper
-    Batch --> Change
 
     PriceScraper --> DBManager
+    DetailScraper --> DBManager
     NewsScraper --> DBManager
     DBManager --> SQLite
-    SQLite --> Prices
-    SQLite --> News
+    Batch -.scrape_runs 기록.-> SQLite
 
-    Prices --> Anomaly
-    Prices --> Change
-    Prices --> Trend
-    Prices --> Prediction
-    Prices --> Dashboard
-    News --> Dashboard
+    SQLite --> Anomaly
+    SQLite --> Change
+    SQLite --> Trend
+    SQLite --> Prediction
+    Prediction --> Score
+    SQLite --> Dashboard
 
     Anomaly --> Dashboard
     Change --> Dashboard
     Trend --> Dashboard
     Prediction --> Dashboard
+    Score --> Dashboard
     Dashboard --> User
+
+    Workflow --> PriceScraper
+    Workflow --> NewsScraper
+    Workflow --> Change
+
+    Tests --> CI
 ```
 
 ## 3. 데이터 수집 흐름도
@@ -122,7 +139,7 @@ flowchart TD
     Model["get_trained_model(category)<br/>st.cache_data로 학습 결과 캐싱"]
     Predict["predict_price(model_info, input_features)"]
 
-    Tabs["Streamlit Tabs<br/>전체/카테고리/가격변동/이상치/가격예측/뉴스"]
+    Tabs["dashboard/tabs/*.py (12개 모듈)<br/>전체/카테고리별/가격변동/이상치/가격예측/상품비교/수집이력/뉴스"]
 
     Run --> LoadPrices --> Latest
     Run --> LoadNews
@@ -139,7 +156,7 @@ flowchart TD
     LoadNews --> Tabs
 ```
 
-대시보드는 DB를 직접 읽고, ML/분석 모듈을 import하여 화면 렌더링 시점에 결과를 계산합니다. 가격 예측 모델 학습은 `@st.cache_data`로 카테고리별 캐싱됩니다.
+`dashboard/app.py`는 데이터 로딩·전처리와 탭 조립만 담당하는 170줄짜리 진입점이고, 실제 탭 렌더링은 `dashboard/tabs/*.py`(overview/category/changes/anomalies/prediction/compare/scrapes/news 등)로 모듈 분리되어 있습니다. DB 조회(`load_prices`, `get_product_code_map` 등)와 이상치/가격변동 계산은 `dashboard/tabs/common.py`에서 `@st.cache_data`로 캐싱되는데, Streamlit은 위젯 상호작용마다 스크립트 전체(비활성 탭 포함)를 다시 실행하기 때문에 이 캐싱이 없으면 클릭 한 번마다 모든 탭의 연산이 다시 돌아 체감 지연이 커집니다. 가격 예측 모델 학습도 카테고리별로 `@st.cache_data(ttl=3600)`로 캐싱됩니다.
 
 ## 5. DB 구조
 
@@ -151,6 +168,7 @@ erDiagram
         TEXT category
         TEXT product
         INTEGER price
+        TEXT pcode
         TEXT specs
         TEXT image_url
     }
@@ -162,9 +180,65 @@ erDiagram
         TEXT title
         TEXT published_at
     }
+
+    product_registry {
+        TEXT internal_code PK
+        TEXT category
+        TEXT match_key
+        TEXT display_name
+        TEXT first_seen
+    }
+
+    laptop_products {
+        TEXT pcode PK
+        TEXT name
+        TEXT gpu_model
+        TEXT detail_url
+        TEXT first_seen
+    }
+
+    laptop_specs {
+        TEXT pcode PK
+        TEXT spec_key PK
+        TEXT spec_value
+    }
+
+    laptop_images {
+        INTEGER id PK
+        TEXT pcode
+        TEXT image_url
+        TEXT image_type
+    }
+
+    tracked_laptops {
+        TEXT pcode PK
+        TEXT tracked_at
+        INTEGER target_price
+        TEXT memo
+    }
+
+    scrape_runs {
+        INTEGER id PK
+        TEXT source
+        TEXT started_at
+        TEXT finished_at
+        TEXT status
+        INTEGER fetched_count
+        INTEGER inserted_count
+    }
+
+    schema_migrations {
+        TEXT name PK
+        TEXT applied_at
+    }
+
+    product_registry ||--o{ prices : "match_key로 상품번호 조회"
+    laptop_products ||--o{ laptop_specs : "pcode"
+    laptop_products ||--o{ laptop_images : "pcode"
+    laptop_products ||--o| tracked_laptops : "pcode"
 ```
 
-두 테이블 사이에 외래키 관계는 없습니다. 대시보드에서 각각 조회해 가격 데이터와 뉴스 데이터를 별도 탭으로 표현합니다.
+`prices`/`news`는 외래키 없이 SQLite `UNIQUE INDEX`로 중복만 방지합니다. 노트북류(`laptop_products`/`laptop_specs`/`laptop_images`/`tracked_laptops`)는 `pcode`(다나와 상품코드)를 공통 키로 조인합니다. `product_registry`는 부품/노트북을 가리지 않고 카테고리별 순번 상품번호(`RAM-1`, `GN-3` ...)를 부여하고, `match_key`(부품은 상품명, 노트북은 pcode)로 `prices`와 느슨하게 연결됩니다. `scrape_runs`/`schema_migrations`는 대시보드 데이터와 직접 관계는 없고, 각각 수집 실행 이력과 스키마 변경 이력을 기록합니다.
 
 ## 6. ML 및 분석 활용 내용
 
@@ -246,9 +320,20 @@ erDiagram
 
 평가 방식:
 
-- 최대 5-fold 교차 검증
+- `GroupKFold`(최대 5-fold) 교차 검증 — 같은 상품(pcode, 없으면 상품명)이 여러 수집일에 걸쳐 반복 등장하는 특성상 일반 `KFold`로 섞으면 같은 상품이 train/test에 동시에 들어가 R2가 과대평가된다. GroupKFold로 상품 단위 분리를 강제해서 이 데이터 누수를 막는다(실측: DDR5 RAM R2 0.911 → 0.598로 교정)
 - 평가 지표: R2 score
 - 데이터 수가 5개 미만인 카테고리는 모델 학습 생략
+
+### 6.5 적정가 점수 (0~100점)
+
+파일: `ml/price_prediction.py` (`compute_fair_price_score`)
+
+회귀 모델이 아니라 규칙 기반 조합 점수입니다.
+
+- 예측가 대비 저렴할수록 가점, 비쌀수록 감점 (1%당 1점)
+- 과거 최저가~최고가 구간에서 중앙값 대비 최저가 쪽이면 가점, 최고가 쪽이면 감점 (최대 ±30점)
+- 고가 이상치로 탐지되면 15점 감점
+- 기준점은 50점("보통")이고, 80점 이상이면 "훌륭한 가격", 40점 미만이면 "비싼 편"
 
 전처리:
 
@@ -319,16 +404,18 @@ sequenceDiagram
 
 핵심 특징:
 
-- 수집, 저장, 분석, 시각화가 단순한 Python 모듈 구조로 분리됨
+- 수집(부품+노트북 상세)·저장·분석·시각화·자동화(LangGraph)가 모듈 구조로 분리됨
+- `product_registry`가 부품/노트북을 가리지 않고 카테고리별 순번 상품번호를 부여해 상품을 단일하게 식별함(`?code=GN-3` 형태의 공유 링크로도 연결)
 - SQLite 기반이라 로컬 실행과 데모가 쉬움
-- 가격 예측은 카테고리별 특징 추출 후 모델을 자동 비교 선택함
-- 이상치와 가격 변동은 대시보드에서 즉시 확인 가능함
+- 가격 예측은 카테고리별 특징 추출 후 모델을 자동 비교 선택하고, GroupKFold로 데이터 누수를 방지함
+- 이상치·가격변동·적정가 점수는 대시보드에서 즉시 확인 가능하고, 상품 비교 탭에서 여러 상품을 나란히 볼 수 있음
+- pytest 25개 + GitHub Actions로 핵심 로직(pcode 매칭, GroupKFold 그룹 분리, DB 스키마)을 자동 검증함
 
 현재 한계:
 
 - 가격 예측 모델은 제품명/스펙 텍스트의 정규식 추출 품질에 크게 의존함
 - 브랜드, 판매처, 재고, 프로모션 등 가격에 영향을 주는 외부 요인은 feature에 거의 포함되지 않음
-- 모델 저장 파일은 없고, 대시보드 실행 중 카테고리별로 학습/캐싱하는 구조임
-- 뉴스 데이터는 가격 예측 모델 feature로 아직 연결되어 있지 않음
-- 테이블 간 외래키나 정규화된 제품 마스터 테이블은 없음
+- 모델 저장 파일은 없고, 대시보드 실행 중 카테고리별로 학습/캐싱하는 구조임 (`ttl=3600`)
+- 뉴스 데이터는 가격 예측 모델 feature로 아직 연결되어 있지 않음 (키워드-가격변동 상관 분석은 향후 계획)
+- `product_registry`의 `match_key`는 부품은 상품명 텍스트, 노트북은 pcode로 종류가 달라 완전히 정규화된 단일 식별자는 아님
 
