@@ -1,0 +1,29 @@
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 16px;
+}
+
+.tab,
+.tabActive {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tabActive {
+  color: var(--mp-bg);
+  background: linear-gradient(90deg, var(--mp-cyan), var(--mp-violet));
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}

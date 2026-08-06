@@ -1,0 +1,78 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.banner {
+  border: 1px solid var(--mp-green);
+  background: rgba(12, 163, 12, 0.08);
+  border-radius: var(--mp-radius);
+  padding: 14px 16px;
+}
+
+.banner summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--mp-green);
+}
+
+.grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.targetCard {
+  display: flex;
+  gap: 12px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.targetImage {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  background: var(--mp-surface-raised);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.noImage {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mp-muted);
+  font-size: 0.7rem;
+  background: var(--mp-surface-raised);
+  border-radius: 8px;
+}
+
+.targetName {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.targetPrice {
+  font-size: 0.8rem;
+  color: var(--mp-muted);
+  margin-top: 4px;
+}
+
+.link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--mp-cyan);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

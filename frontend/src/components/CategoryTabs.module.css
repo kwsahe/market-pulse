@@ -1,0 +1,30 @@
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.tab,
+.tabActive {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--mp-text);
+  border-color: var(--mp-cyan);
+}
+
+.tabActive {
+  color: var(--mp-bg);
+  background: linear-gradient(90deg, var(--mp-cyan), var(--mp-violet));
+  border-color: transparent;
+  font-weight: 600;
+}

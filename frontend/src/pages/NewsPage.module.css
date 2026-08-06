@@ -1,0 +1,40 @@
+.pressFilter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.pressChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.title {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.meta {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--mp-muted);
+}

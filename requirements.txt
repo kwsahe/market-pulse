@@ -7,3 +7,6 @@ scikit-learn
 scipy
 langgraph
 altair
+fastapi
+uvicorn[standard]
+cachetools

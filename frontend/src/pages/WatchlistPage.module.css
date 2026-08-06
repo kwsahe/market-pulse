@@ -1,0 +1,121 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  gap: 14px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 14px;
+}
+
+.imageWrap {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  background: var(--mp-surface-raised);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.noImage {
+  color: var(--mp-muted);
+  font-size: 0.72rem;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.name {
+  color: var(--mp-text);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.name:hover {
+  color: var(--mp-cyan);
+}
+
+.price {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  color: var(--mp-cyan);
+  font-size: 0.9rem;
+}
+
+.reached {
+  font-size: 0.78rem;
+  color: var(--mp-green);
+  font-weight: 600;
+}
+
+.targetRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.targetInput {
+  width: 90px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
+  font-size: 0.78rem;
+}
+
+.memoInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
+  font-size: 0.78rem;
+}
+
+.saveBtn,
+.untrackBtn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.saveBtn {
+  border-color: var(--mp-cyan);
+  color: var(--mp-cyan);
+}
+
+.untrackBtn {
+  align-self: flex-start;
+  color: var(--mp-red);
+  border-color: var(--mp-red);
+  margin-top: 4px;
+}

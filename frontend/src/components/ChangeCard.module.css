@@ -1,0 +1,83 @@
+.card {
+  display: flex;
+  gap: 14px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 14px;
+}
+
+.imageWrap {
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+  background: var(--mp-surface-raised);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.noImage {
+  color: var(--mp-muted);
+  font-size: 0.72rem;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.priceRow {
+  font-size: 0.85rem;
+  color: var(--mp-text);
+}
+
+.changeUp {
+  font-size: 0.82rem;
+  color: var(--mp-red);
+  font-weight: 600;
+}
+
+.changeDown {
+  font-size: 0.82rem;
+  color: var(--mp-green);
+  font-weight: 600;
+}
+
+.specs {
+  font-size: 0.78rem;
+  color: var(--mp-muted);
+}
+
+.specs summary {
+  cursor: pointer;
+}
+
+.detailLink {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  color: var(--mp-cyan);
+  text-decoration: none;
+}
+
+.detailLink:hover {
+  text-decoration: underline;
+}

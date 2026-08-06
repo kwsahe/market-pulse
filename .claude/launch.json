@@ -6,6 +6,18 @@
       "runtimeExecutable": "streamlit",
       "runtimeArgs": ["run", "dashboard/app.py", "--server.port", "8010", "--server.headless", "true"],
       "port": 8010
+    },
+    {
+      "name": "market-pulse-api",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["api.main:app", "--reload", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "market-pulse-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
+      "port": 5173
     }
   ]
 }

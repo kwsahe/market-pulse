@@ -1,0 +1,25 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-left: 12px;
+  border-left: 4px solid transparent;
+  border-image: linear-gradient(180deg, var(--mp-cyan), var(--mp-violet)) 1;
+}
+
+.icon {
+  font-size: 1.2rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  color: var(--mp-muted);
+  font-size: 0.82rem;
+}

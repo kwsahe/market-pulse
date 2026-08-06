@@ -1,0 +1,135 @@
+.selectRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  color: var(--mp-text);
+  font-size: 0.9rem;
+  min-width: 180px;
+}
+
+.infoRow,
+.resultRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.infoCard,
+.resultCard {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 14px;
+}
+
+.infoLabel {
+  font-size: 0.76rem;
+  color: var(--mp-muted);
+}
+
+.infoValue {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 4px;
+}
+
+.resultValue {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 4px 0;
+}
+
+.scoreValue {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--mp-cyan);
+  margin-top: 4px;
+}
+
+.splitRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 760px) {
+  .infoRow,
+  .resultRow,
+  .splitRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contribList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contribRow {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.contribLabel {
+  color: var(--mp-muted);
+}
+
+.barTrack {
+  height: 8px;
+  background: var(--mp-surface-raised);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barPos {
+  height: 100%;
+  background: var(--mp-red);
+}
+
+.barNeg {
+  height: 100%;
+  background: var(--mp-green);
+}
+
+.contribValue {
+  text-align: right;
+}
+
+.similarList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.similarItem {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.similarName {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.78rem;
+  color: var(--mp-muted);
+  margin-top: 2px;
+}

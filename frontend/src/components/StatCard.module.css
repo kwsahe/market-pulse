@@ -1,0 +1,51 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.12);
+}
+
+.accent {
+  border-color: var(--mp-amber);
+}
+
+.icon {
+  font-size: 1.1rem;
+}
+
+.label {
+  color: var(--mp-muted);
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
+.value {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin-top: 4px;
+}

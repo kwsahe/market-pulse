@@ -1,0 +1,75 @@
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.statCard {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 14px 16px;
+}
+
+.statCategory {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.statLine {
+  font-size: 0.82rem;
+  color: var(--mp-muted);
+  line-height: 1.6;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--mp-text);
+  flex-wrap: wrap;
+}
+
+a.row:hover {
+  border-color: var(--mp-cyan);
+}
+
+.dirHigh {
+  color: var(--mp-red);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.dirLow {
+  color: var(--mp-green);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.name {
+  flex: 1;
+  min-width: 160px;
+  font-size: 0.88rem;
+}
+
+.price {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+}
+
+.detail {
+  color: var(--mp-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}

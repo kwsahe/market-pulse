@@ -1,0 +1,61 @@
+/* frontend/src/theme.css
+   dashboard/theme.py의 색상 토큰을 CSS 변수로 그대로 이식한다.
+   두 파일이 따로 놀지 않도록, 색을 바꿀 땐 반드시 여기와 theme.py 둘 다 갱신할 것. */
+
+:root {
+  --mp-bg: #0d0f14;
+  --mp-surface: #171a21;
+  --mp-surface-raised: #1e222c;
+  --mp-border: #2d3340;
+  --mp-text: #f3f4f6;
+  --mp-muted: #8b93a7;
+
+  --mp-cyan: #22d3ee;
+  --mp-violet: #8b5cf6;
+  --mp-green: #0ca30c;
+  --mp-red: #d03b3b;
+  --mp-amber: #fab219;
+
+  --mp-cat-laptop: #3987e5;
+  --mp-cat-ram: #d95926;
+  --mp-cat-ssd: #199e70;
+  --mp-cat-gpu: #c98500;
+  --mp-cat-cpu: #d55181;
+  --mp-cat-ai-laptop: #9085e9;
+  --mp-cat-fallback: #8b93a7;
+
+  --mp-radius: 14px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--mp-bg);
+  background-image:
+    radial-gradient(circle at 8% 6%, rgba(34, 211, 238, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 95% 97%, rgba(139, 92, 246, 0.12) 0%, transparent 45%);
+  background-attachment: fixed;
+  color: var(--mp-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Manrope", "Inter", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--mp-cyan);
+}

@@ -1,0 +1,67 @@
+.latestGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.latestCard {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 14px 16px;
+}
+
+.latestSource {
+  font-size: 0.8rem;
+  color: var(--mp-muted);
+}
+
+.statusOk {
+  font-weight: 700;
+  color: var(--mp-green);
+  margin-top: 4px;
+}
+
+.statusFailed {
+  font-weight: 700;
+  color: var(--mp-red);
+  margin-top: 4px;
+}
+
+.latestMeta {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--mp-muted);
+}
+
+.errorMsg {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--mp-red);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.table th,
+.table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.table th {
+  color: var(--mp-muted);
+  font-weight: 600;
+  background: var(--mp-surface);
+}

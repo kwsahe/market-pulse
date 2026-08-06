@@ -1,0 +1,141 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.back {
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--mp-cyan);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  .header {
+    grid-template-columns: 1fr;
+  }
+}
+
+.imageWrap {
+  aspect-ratio: 1;
+  background: var(--mp-surface-raised);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.noImage {
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.price {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--mp-cyan);
+}
+
+.meta {
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.trackBtn,
+.trackBtnActive {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
+}
+
+.trackBtnActive {
+  border-color: var(--mp-cyan);
+  color: var(--mp-cyan);
+}
+
+.specs {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--mp-text);
+}
+
+.specs summary {
+  cursor: pointer;
+  color: var(--mp-muted);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+
+.detailImages {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.detailImages img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--mp-border);
+}
+
+.historyStats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 8px;
+}
+
+.statLabel {
+  display: block;
+  color: var(--mp-muted);
+  font-size: 0.78rem;
+}
+
+.statValue {
+  display: block;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+}

@@ -1,0 +1,98 @@
+.card {
+  display: flex;
+  gap: 16px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 16px;
+  min-height: 140px;
+}
+
+.imageWrap {
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+  background: var(--mp-surface-raised);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.noImage {
+  color: var(--mp-muted);
+  font-size: 0.75rem;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.priceLine {
+  font-size: 0.86rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.15);
+  color: var(--mp-cyan);
+}
+
+.badgeUp {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(208, 59, 59, 0.15);
+  color: var(--mp-red);
+}
+
+.badgeDown {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(12, 163, 12, 0.15);
+  color: var(--mp-green);
+}
+
+.badgeAmber {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(250, 178, 25, 0.15);
+  color: var(--mp-amber);
+}
+
+.link {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  color: var(--mp-cyan);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
