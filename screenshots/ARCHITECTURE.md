@@ -2,7 +2,7 @@
 
 ## 1. 프로젝트 개요
 
-Market Pulse는 게이밍 노트북(RTX5080/5090)·AI 노트북과 PC 부품 가격을 주기적으로 수집하고, SQLite에 저장한 뒤 Streamlit 대시보드에서 가격 현황, 가격 변동, 이상치, 가격 예측, 적정가 점수, 상품 비교, 수집 이력, IT 뉴스를 보여주는 프로젝트입니다. LangGraph로 수집→분석→리포트 생성을 자동화하는 워크플로우와, pytest + GitHub Actions로 핵심 로직을 검증하는 CI도 갖추고 있습니다.
+Market Pulse는 게이밍 노트북(RTX5080/5090)·AI 노트북과 PC 부품 가격을 주기적으로 수집하고, SQLite에 저장한 뒤 대시보드에서 가격 현황, 가격 변동, 이상치, 가격 예측, 적정가 점수, 상품 비교, 수집 이력, IT 뉴스를 보여주는 프로젝트입니다. 대시보드는 두 가지로 제공됩니다: 기존 Streamlit(`dashboard/`)과, 같은 `database/db_manager.py`·`ml/*.py` 로직을 FastAPI REST API(`api/`)로 감싸고 그 위에 React(Vite+TypeScript) SPA(`frontend/`)를 새로 붙인 버전 — 서로 대체 관계가 아니라 나란히 운영됩니다. LangGraph로 수집→분석→리포트 생성을 자동화하는 워크플로우와, pytest + vitest + GitHub Actions로 백엔드/프론트엔드 핵심 로직을 검증하는 CI도 갖추고 있습니다.
 
 주요 데이터 소스는 다음과 같습니다.
 
@@ -49,14 +49,17 @@ flowchart LR
         Workflow["workflow/*.py<br/>LangGraph 수집→분석→리포트"]
     end
 
-    subgraph UI["표현 계층"]
-        Dashboard["dashboard/app.py + tabs/*.py<br/>Streamlit Dashboard (12개 탭)"]
+    subgraph UI["표현 계층 (병행 운영)"]
+        Dashboard["dashboard/app.py + tabs/*.py<br/>Streamlit Dashboard (12개 탭) · 8010"]
+        API["api/main.py + routers/*.py<br/>FastAPI REST API (13개 라우터) · 8000"]
+        React["frontend/src/*<br/>React SPA (Vite+TS, 9개 페이지) · 5173"]
         User["사용자"]
     end
 
     subgraph Quality["품질"]
-        Tests["tests/*.py<br/>pytest 25개"]
-        CI["GitHub Actions<br/>push마다 자동 실행"]
+        Tests["tests/*.py<br/>pytest 63개 (api/ 라우터 포함)"]
+        FrontendTests["frontend/src/**/*.test.ts<br/>vitest 12개"]
+        CI["GitHub Actions<br/>push마다 두 스위트 자동 실행"]
     end
 
     Danawa --> PriceScraper
@@ -77,6 +80,7 @@ flowchart LR
     SQLite --> Prediction
     Prediction --> Score
     SQLite --> Dashboard
+    SQLite --> API
 
     Anomaly --> Dashboard
     Change --> Dashboard
@@ -85,11 +89,19 @@ flowchart LR
     Score --> Dashboard
     Dashboard --> User
 
+    Anomaly --> API
+    Change --> API
+    Prediction --> API
+    Score --> API
+    API --> React
+    React --> User
+
     Workflow --> PriceScraper
     Workflow --> NewsScraper
     Workflow --> Change
 
     Tests --> CI
+    FrontendTests --> CI
 ```
 
 ## 3. 데이터 수집 흐름도
@@ -157,6 +169,28 @@ flowchart TD
 ```
 
 `dashboard/app.py`는 데이터 로딩·전처리와 탭 조립만 담당하는 170줄짜리 진입점이고, 실제 탭 렌더링은 `dashboard/tabs/*.py`(overview/category/changes/anomalies/prediction/compare/scrapes/news 등)로 모듈 분리되어 있습니다. DB 조회(`load_prices`, `get_product_code_map` 등)와 이상치/가격변동 계산은 `dashboard/tabs/common.py`에서 `@st.cache_data`로 캐싱되는데, Streamlit은 위젯 상호작용마다 스크립트 전체(비활성 탭 포함)를 다시 실행하기 때문에 이 캐싱이 없으면 클릭 한 번마다 모든 탭의 연산이 다시 돌아 체감 지연이 커집니다. 가격 예측 모델 학습도 카테고리별로 `@st.cache_data(ttl=3600)`로 캐싱됩니다.
+
+## 4-B. React 프론트엔드 실행 흐름도
+
+```mermaid
+flowchart TD
+    RunAPI["uvicorn api.main:app --port 8000<br/>(run_api.bat)"]
+    RunFE["npm run dev<br/>(frontend/, Vite 5173)"]
+
+    Route["FastAPI 라우터 13개<br/>categories/prices/products/anomalies/prediction/compare/watchlist/scrapes/news/changes/alerts/spotlights/laptops"]
+    Cache["api/deps.py<br/>cachetools TTLCache(ttl=30/3600)"]
+    Reuse["database/db_manager.py + ml/*.py<br/>(dashboard와 동일 함수 재사용, 새 로직 없음)"]
+
+    Fetch["frontend/src/api/client.ts<br/>fetch() 기반 REST 호출"]
+    Pages["frontend/src/pages/*.tsx (9개)<br/>+ LaptopSection(노트북 전용 필터)"]
+    Mutation["POST/PUT /api/watchlist<br/>(추적 토글, 목표가 저장 — 유일한 쓰기 경로)"]
+
+    RunAPI --> Route --> Cache --> Reuse
+    RunFE --> Pages --> Fetch --> Route
+    Pages -.추적/목표가 변경.-> Mutation --> Reuse
+```
+
+React는 `react-router-dom`으로 9개 페이지를 라우팅하고, 데이터 페칭은 별도 라이브러리 없이 `fetch` + `useEffect` 훅(`useFetch.ts`) 하나로 처리합니다(엔드포인트 수·mutation이 적어 React Query 등은 과함). 스타일은 Tailwind 없이 `dashboard/theme.py`의 색상 토큰을 그대로 옮긴 CSS 변수(`theme.css`) + CSS Modules로 구성했습니다. FastAPI 쪽 캐싱(`api/deps.py`)은 Streamlit의 `@st.cache_data(ttl=30)`/`ttl=3600` 전략을 그대로 재현한 것이라 두 대시보드의 체감 성능 특성이 비슷합니다.
 
 ## 5. DB 구조
 
@@ -409,13 +443,16 @@ sequenceDiagram
 - SQLite 기반이라 로컬 실행과 데모가 쉬움
 - 가격 예측은 카테고리별 특징 추출 후 모델을 자동 비교 선택하고, GroupKFold로 데이터 누수를 방지함
 - 이상치·가격변동·적정가 점수는 대시보드에서 즉시 확인 가능하고, 상품 비교 탭에서 여러 상품을 나란히 볼 수 있음
-- pytest 25개 + GitHub Actions로 핵심 로직(pcode 매칭, GroupKFold 그룹 분리, DB 스키마)을 자동 검증함
+- pytest 63개(FastAPI 라우터 포함) + vitest 12개 + GitHub Actions로 백엔드/프론트엔드 핵심 로직(pcode 매칭, GroupKFold 그룹 분리, DB 스키마, 노트북 스펙 필터 매칭, CSV 이스케이핑)을 자동 검증함
+- 같은 데이터/ML 로직을 Streamlit과 FastAPI+React 두 프론트엔드에서 재사용해서, 로직 중복 없이 서로 다른 UI로 접근할 수 있음
 
 현재 한계:
 
 - 가격 예측 모델은 제품명/스펙 텍스트의 정규식 추출 품질에 크게 의존함
 - 브랜드, 판매처, 재고, 프로모션 등 가격에 영향을 주는 외부 요인은 feature에 거의 포함되지 않음
-- 모델 저장 파일은 없고, 대시보드 실행 중 카테고리별로 학습/캐싱하는 구조임 (`ttl=3600`)
+- 모델 저장 파일은 없고, 대시보드/API 실행 중 카테고리별로 학습/캐싱하는 구조임 (`ttl=3600`)
 - 뉴스 데이터는 가격 예측 모델 feature로 아직 연결되어 있지 않음 (키워드-가격변동 상관 분석은 향후 계획)
 - `product_registry`의 `match_key`는 부품은 상품명 텍스트, 노트북은 pcode로 종류가 달라 완전히 정규화된 단일 식별자는 아님
+- FastAPI의 CORS 허용 목록과 React의 API 서버 주소(`http://localhost:8000`)가 로컬 개발 기준으로 하드코딩되어 있어, 배포하려면 환경변수화가 필요함
+- Streamlit과 FastAPI+React 두 프론트엔드를 계속 병행 운영할지, 하나로 통합할지는 아직 결정하지 않음
 

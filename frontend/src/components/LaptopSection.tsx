@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLaptops } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { downloadCsv } from "../utils/csv";
+import { filterLaptops } from "../utils/laptopFilter";
 import { LaptopCard } from "./LaptopCard";
 import styles from "./LaptopSection.module.css";
 
@@ -34,18 +35,12 @@ export function LaptopSection({ category }: { category: string }) {
 
   const filtered = useMemo(() => {
     if (!data || !priceRange) return [];
-    return data.items.filter((item) => {
-      if (search && !item.product.toLowerCase().includes(search.toLowerCase())) return false;
-      if (item.price < priceRange[0] || item.price > priceRange[1]) return false;
-      for (const key of data.filter_spec_keys) {
-        const selected = selections[key];
-        const allOptions = data.filter_options[key] ?? [];
-        if (!selected || selected.size >= allOptions.length) continue; // 전체 선택 = 필터 없음
-        const value = item.filter_values[key];
-        if (value == null) continue; // 정보 없는 상품은 필터로 숨기지 않음(원본과 동일)
-        if (!selected.has(value)) return false;
-      }
-      return true;
+    return filterLaptops(data.items, {
+      search,
+      selections,
+      filterOptions: data.filter_options,
+      filterSpecKeys: data.filter_spec_keys,
+      priceRange,
     });
   }, [data, search, selections, priceRange]);
 

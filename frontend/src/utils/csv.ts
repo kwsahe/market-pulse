@@ -2,7 +2,7 @@
 // dashboard/tabs/common.py의 to_csv_bytes()와 동일한 목적 — 엑셀에서 한글이 깨지지 않도록
 // UTF-8 BOM을 붙여서 클라이언트에서 바로 CSV 파일을 내려받게 한다(서버 왕복 불필요).
 
-function escapeCsvCell(value: unknown): string {
+export function escapeCsvCell(value: unknown): string {
   const str = value == null ? "" : String(value);
   if (/[",\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
@@ -10,15 +10,18 @@ function escapeCsvCell(value: unknown): string {
   return str;
 }
 
+export function buildCsvString<T>(rows: T[], columns: { label: string; get: (row: T) => unknown }[]): string {
+  const header = columns.map((c) => escapeCsvCell(c.label)).join(",");
+  const body = rows.map((row) => columns.map((c) => escapeCsvCell(c.get(row))).join(",")).join("\n");
+  return `${header}\n${body}`;
+}
+
 export function downloadCsv<T>(
   rows: T[],
   columns: { label: string; get: (row: T) => unknown }[],
   filename: string,
 ): void {
-  const header = columns.map((c) => escapeCsvCell(c.label)).join(",");
-  const body = rows.map((row) => columns.map((c) => escapeCsvCell(c.get(row))).join(",")).join("\n");
-  const csv = `${header}\n${body}`;
-
+  const csv = buildCsvString(rows, columns);
   const blob = new Blob(["﻿", csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

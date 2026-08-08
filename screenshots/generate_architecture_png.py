@@ -148,13 +148,13 @@ def arrow(draw, start, end, color=SLATE, width=4):
 
 def main():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    img = Image.new("RGB", (1800, 1560), BG)
+    img = Image.new("RGB", (2000, 1560), BG)
     draw = ImageDraw.Draw(img)
 
     draw.text((70, 44), "Market Pulse 구성도 및 데이터 흐름", font=F_TITLE, fill=INK)
     draw.text(
         (74, 104),
-        "Danawa/Naver 수집 -> SQLite 저장 -> ML 분석 -> Streamlit 대시보드, LangGraph 자동화 + pytest/CI",
+        "Danawa/Naver 수집 -> SQLite 저장 -> ML 분석 -> Streamlit / FastAPI+React(병행), LangGraph 자동화 + pytest/CI",
         font=F_SUBTITLE,
         fill=MUTED,
     )
@@ -164,7 +164,7 @@ def main():
     section(draw, (410, 165, 720, 700), "수집 계층", GREEN)
     section(draw, (790, 165, 1095, 700), "저장 계층", AMBER)
     section(draw, (1165, 165, 1500, 700), "분석 / ML", PURPLE)
-    section(draw, (1545, 165, 1730, 700), "표현", CYAN)
+    section(draw, (1545, 165, 1930, 700), "표현 (병행 운영)", CYAN)
 
     def stack(x, y0, w, gap, items):
         """(라벨, 색상, 높이) 목록을 세로로 겹치지 않게 쌓아서 bbox 리스트를 반환"""
@@ -205,7 +205,11 @@ def main():
         (["적정가 점수", "예측가+최저가 근접도"], PURPLE, 70),
     ])
 
-    b_ui = box(draw, (1560, 380), ["Streamlit", "app.py + tabs 12개"], CYAN, 160, 150)
+    b_streamlit, b_api, b_react = stack(1580, 205, 300, 20, [
+        (["Streamlit", "app.py + tabs 12개 · 8010"], CYAN, 115),
+        (["FastAPI API", "라우터 13개, DB/ML 로직 재사용 · 8000"], CYAN, 100),
+        (["React SPA", "Vite+TS, 9개 페이지 · 5173"], CYAN, 100),
+    ])
 
     arrow(draw, (b_danawa[2], mid_y(b_danawa)), (b_price[0], mid_y(b_price)), BLUE)
     arrow(draw, (b_naver[2], mid_y(b_naver)), (b_news[0], mid_y(b_news)), BLUE)
@@ -216,29 +220,31 @@ def main():
     arrow(draw, (940, b_dbm[3]), (940, b_sql[1]), AMBER)
     arrow(draw, (940, b_sql[3]), (940, b_tables[1]), AMBER)
     arrow(draw, (b_tables[2], mid_y(b_tables)), (b_anom[0], (b_anom[1] + b_score[3]) / 2), PURPLE, 3)
-    arrow(draw, (b_anom[2], mid_y(b_anom)), (b_ui[0], b_ui[1] + 30), CYAN, 3)
-    arrow(draw, (b_pred[2], mid_y(b_pred)), (b_ui[0], mid_y(b_ui)), CYAN, 3)
-    arrow(draw, (b_score[2], mid_y(b_score)), (b_ui[0], b_ui[3] - 30), CYAN, 3)
+    arrow(draw, (b_anom[2], mid_y(b_anom)), (b_streamlit[0], b_streamlit[1] + 25), CYAN, 3)
+    arrow(draw, (b_pred[2], mid_y(b_pred)), (b_streamlit[0], mid_y(b_streamlit)), CYAN, 3)
+    arrow(draw, (b_score[2], mid_y(b_score)), (b_streamlit[0], b_streamlit[3] - 25), CYAN, 3)
+    arrow(draw, ((b_api[0] + b_api[2]) / 2, b_api[3]), ((b_react[0] + b_react[2]) / 2, b_react[1]), CYAN, 3)
 
     # ---------- 2행: ML 활용 상세 ----------
+    row_x = [70, 562, 1054, 1546]
     draw.text((70, 730), "ML 활용 상세", font=F_TITLE, fill=INK)
     small_box(
-        draw, (70, 800), "1. 이상치 탐지",
+        draw, (row_x[0], 800), "1. 이상치 탐지",
         ["카테고리별 최신 가격 분포에서 비정상 가격 감지", "Z-score threshold 2.5, IQR 1.5배 기준"],
         RED,
     )
     small_box(
-        draw, (510, 800), "2. 가격 예측",
+        draw, (row_x[1], 800), "2. 가격 예측",
         ["제품명/스펙에서 feature 추출, LR vs RandomForest R2 비교", "GroupKFold로 동일 상품 train/test 누수 방지"],
         PURPLE,
     )
     small_box(
-        draw, (950, 800), "3. 적정가 점수 (0~100)",
+        draw, (row_x[2], 800), "3. 적정가 점수 (0~100)",
         ["예측가 대비 저렴함 + 과거 최저가 근접도", "고가 이상치면 감점 (규칙 기반 조합)"],
         AMBER,
     )
     small_box(
-        draw, (1390, 800), "4. 변동/추이 분석",
+        draw, (row_x[3], 800), "4. 변동/추이 분석",
         ["pcode 우선 매칭으로 상품명 변경에도 강건", "SSD 1TB/RAM 16GB 기준으로 용량 왜곡 제거"],
         GREEN,
     )
@@ -246,28 +252,28 @@ def main():
     # ---------- 3행: 자동화 & 품질 ----------
     draw.text((70, 960), "자동화 & 품질", font=F_TITLE, fill=INK)
     small_box(
-        draw, (70, 1030), "LangGraph 워크플로우",
+        draw, (row_x[0], 1030), "LangGraph 워크플로우",
         ["수집→분석→리포트 생성 자동화 파이프라인", "단계별 체크포인트 저장, 실패 시 재시작 가능"],
         BLUE,
     )
     small_box(
-        draw, (510, 1030), "수집 실행 이력",
+        draw, (row_x[1], 1030), "수집 실행 이력",
         ["scrape_runs 테이블에 성공/실패·소요시간 기록", "대시보드 '수집 이력' 탭에서 바로 확인"],
         GREEN,
     )
     small_box(
-        draw, (950, 1030), "테스트 & CI",
-        ["pytest 25개 (합성 데이터, 실 DB 미사용)", "GitHub Actions로 push마다 자동 실행"],
+        draw, (row_x[2], 1030), "테스트 & CI",
+        ["pytest 63개(API 포함) + vitest 12개", "GitHub Actions로 push마다 두 스위트 자동 실행"],
         SLATE,
     )
     small_box(
-        draw, (1390, 1030), "성능 캐싱",
-        ["st.cache_data로 DB조회/ML계산 결과 재사용", "탭 재진입 0.62s -> 0.10s (실측)"],
+        draw, (row_x[3], 1030), "성능 캐싱",
+        ["Streamlit st.cache_data + FastAPI cachetools(TTL)", "같은 30초/3600초 캐싱 전략을 양쪽에 재사용"],
         CYAN,
     )
 
     # ---------- 4행: DB 구조 요약 (3x3) ----------
-    section(draw, (70, 1190, 1730, 1500), "DB 구조 요약 (9개 테이블)", SLATE)
+    section(draw, (70, 1190, 1930, 1500), "DB 구조 요약 (9개 테이블)", SLATE)
     db_tables = [
         ("prices", "date, category, product, price, pcode, specs, image_url"),
         ("news", "collected_at, press, title, published_at"),
@@ -279,7 +285,7 @@ def main():
         ("scrape_runs", "source, status, fetched/inserted_count"),
         ("schema_migrations", "적용된 마이그레이션 이력"),
     ]
-    col_w = (1730 - 70) / 3
+    col_w = (1930 - 70) / 3
     row_h = 90
     for i, (name, desc) in enumerate(db_tables):
         col, row = i % 3, i // 3

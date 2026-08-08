@@ -1,11 +1,20 @@
 # tests/test_api_spotlights.py
 # GET /api/spotlights 스모크 테스트 (변동폭 TOP + 이상치/신제품 하이라이트).
 
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
 
 import database.db_manager as db_manager
 from api.deps import reset_cache
+
+# "신제품" 판정은 laptop_products.first_seen(upsert_laptop_product가 SQL datetime('now')로
+# 기록 — 테스트에서 흉내낼 수 없는 실제 시스템 시각)이 오늘자 가격 스냅샷 날짜와 같은지로
+# 비교한다. 그래서 이 fixture의 "최신일" 가격 행은 실제 오늘 날짜와 일치해야 한다 —
+# 하드코딩된 날짜를 쓰면 시스템 시계가 흘러갈 때마다 테스트가 깨진다.
+TODAY = date.today().isoformat()
+YESTERDAY = (date.today() - timedelta(days=1)).isoformat()
 
 
 @pytest.fixture
@@ -16,8 +25,8 @@ def api_client(tmp_path, monkeypatch):
 
     # 가격 변동(top_movers)용 — 2일치 데이터
     db_manager.insert_many_prices([
-        ("2026-08-05", "DDR5 RAM", "삼성전자 DDR5 16GB", 80000, "16GB", "http://img/a.jpg"),
-        ("2026-08-06", "DDR5 RAM", "삼성전자 DDR5 16GB", 120000, "16GB", "http://img/a.jpg"),
+        (YESTERDAY, "DDR5 RAM", "삼성전자 DDR5 16GB", 80000, "16GB", "http://img/a.jpg"),
+        (TODAY, "DDR5 RAM", "삼성전자 DDR5 16GB", 120000, "16GB", "http://img/a.jpg"),
     ])
     db_manager.get_or_create_product_code("DDR5 RAM", "삼성전자 DDR5 16GB", "삼성전자 DDR5 16GB")
 
@@ -25,10 +34,10 @@ def api_client(tmp_path, monkeypatch):
     # 표본이 작으면 |Z|>2.5를 절대 못 넘는다(표본표준편차 기준 한 점의 최대 |Z|는 sqrt(n-1)).
     normal_prices = [78000, 78500, 79000, 79500, 80000, 80500, 81000, 81500, 82000]
     rows = [
-        ("2026-08-06", "CPU", f"CPU 상품{i}", price, "specs", f"http://img/cpu{i}.jpg")
+        (TODAY, "CPU", f"CPU 상품{i}", price, "specs", f"http://img/cpu{i}.jpg")
         for i, price in enumerate(normal_prices)
     ]
-    rows.append(("2026-08-06", "CPU", "CPU 이상고가", 50_000_000, "specs", "http://img/cpu_hi.jpg"))
+    rows.append((TODAY, "CPU", "CPU 이상고가", 50_000_000, "specs", "http://img/cpu_hi.jpg"))
     db_manager.insert_many_prices(rows)
     for row in rows:
         db_manager.get_or_create_product_code("CPU", row[2], row[2])
@@ -36,7 +45,7 @@ def api_client(tmp_path, monkeypatch):
     # 신제품(notable)용 — 오늘 처음 잡힌 노트북
     db_manager.upsert_laptop_product("PCODE-NEW", "신형 노트북", "RTX5090", "http://detail", "raw specs")
     db_manager.insert_many_laptop_prices([
-        ("2026-08-06", "게이밍 노트북", "신형 노트북", 4000000, "RTX5090", "http://img/new.jpg", "PCODE-NEW"),
+        (TODAY, "게이밍 노트북", "신형 노트북", 4000000, "RTX5090", "http://img/new.jpg", "PCODE-NEW"),
     ])
     db_manager.get_or_create_product_code("게이밍 노트북", "PCODE-NEW", "신형 노트북")
 
