@@ -16,7 +16,7 @@
 
 다크 모드 대시보드에서 볼 수 있는 것들:
 - 상품 수·평균가·가격 인상/인하·이상치 건수를 한눈에 보여주는 KPI 카드
-- 카테고리별(게이밍 노트북 · AI 노트북 · DDR5 RAM · NVMe SSD · 그래픽카드 · CPU) 가격 추이 차트
+- 카테고리별(게이밍 노트북 · AI 노트북 · DDR5 RAM · NVMe SSD · 그래픽카드 · CPU · 게이밍 모니터) 가격 추이 차트
 - 상품번호(`RAM-1`, `GN-3` ...) 기반 검색 + `?code=GN-3` 형태의 상품별 공유 링크(상세정보+가격추이 단독 페이지)
 - 집중 추적 상품의 목표가 도달 알림, 전체/카테고리별 CSV 내보내기
 - 스펙별 가격 기여도·비슷한 제품 비교가 포함된 ML 가격 예측
@@ -37,7 +37,7 @@ streamlit run dashboard/app.py --server.port 8010      # 또는 run_data_dashboa
 
 | 기능 | 설명 |
 |------|------|
-| **자동 데이터 수집** | 다나와 6 개 카테고리(게이밍 노트북/AI 노트북 포함) + 네이버 뉴스 매일 자동 수집 |
+| **자동 데이터 수집** | 다나와 7 개 카테고리(게이밍 노트북/AI 노트북/게이밍 모니터 포함) + 네이버 뉴스 매일 자동 수집 |
 | **LangGraph 워크플로우** | 체크포인트, 재시도, 상태 추적 가능한 자동화 파이프라인 |
 | **실시간 대시보드** | 다크 모드 UI, 상품별 공유 링크, CSV 내보내기, 목표가 알림 (Streamlit) |
 | **REST API + React 프론트엔드** | FastAPI 라우터 13개(캐싱 포함) + React SPA — Streamlit과 동일한 기능을 다른 UI로 제공 |
@@ -129,6 +129,7 @@ streamlit run workflow_dashboard/app.py --server.port 8020
 같은 데이터/ML 로직을 FastAPI REST API로 감싸고, 그 위에 React(Vite+TypeScript) SPA를 새로 붙였습니다.
 Streamlit 대시보드와 기능적으로 동등하며(개요/상품비교/가격예측/이상치/워치리스트/수집이력/뉴스/가격변동 +
 노트북 전용 스펙 필터), 디자인을 자유롭게 다시 짤 수 있는 별도 프론트엔드가 필요할 때 씁니다.
+여기에만 있는 화면으로 **3D 데스크**(`/desk`)가 있습니다 — 아래 [3D 데스크](#3d-데스크-desk) 참고.
 
 ```bash
 # 1) API 서버 (포트 8000)
@@ -143,6 +144,41 @@ npm run dev
 - **포트**: API http://localhost:8000 (Swagger 문서는 `/docs`), 프론트 http://localhost:5173
 - **용도**: FastAPI/React 스택 자체를 보여줘야 할 때, 또는 대시보드를 커스텀 디자인으로 확장하고 싶을 때
 - **전제 조건**: `run_scrapers.bat` 로 데이터를 먼저 수집해야 함 (Streamlit과 같은 `database/data.db`를 읽음)
+
+##### 3D 데스크 (`/desk`)
+
+가격 카테고리 7종을 실제 부품 위치로 옮겨 놓은 3D 게임룸입니다. 책상 위에는 노트북 2대와
+게이밍 모니터가, 책상 옆 바닥에는 사이드 패널이 열린 데스크톱 케이스가 놓여 있습니다.
+부품을 클릭하면 카메라가 그 부품 앞으로 이동하면서 오른쪽 패널에 해당 카테고리 시세가 열립니다.
+
+| 3D 위치 | 카테고리 |
+| --- | --- |
+| 케이스 안 CPU 쿨러 | CPU |
+| PCIe 슬롯의 그래픽카드 | 그래픽카드 |
+| CPU 오른쪽 메모리 슬롯 | DDR5 RAM |
+| 그래픽카드 아래 M.2 슬롯 | NVMe SSD |
+| 책상 왼쪽 노트북 | 게이밍 노트북 |
+| 책상 가운데 노트북 | AI 노트북 |
+| 책상 오른쪽 모니터 | 게이밍 모니터 |
+
+- 선택 상태는 `/desk?part=cpu` 처럼 URL에 남아 공유·새로고침에 그대로 유지됩니다.
+- 패널 데이터는 `GET /api/categories/{category}/pulse` 한 번으로 채웁니다
+  (스냅샷 통계 + 날짜별 평균가 추이 + 최저가/변동 TOP 3).
+- 3D 씬(three.js)은 `/desk`에 들어갈 때만 별도 청크로 lazy 로드되므로 다른 화면의 초기 로딩에는 영향이 없습니다.
+- WebGL을 못 쓰는 환경에서도 상단 부품 칩으로 같은 데이터를 볼 수 있습니다.
+- 아직 수집 전인 카테고리(칩에 `·수집 전` 표시)는 요청을 보내지 않고 안내 문구만 띄웁니다.
+
+방 구성(`frontend/src/three/room.tsx`)은 전부 장식이라 클릭 대상이 아닙니다 — 벽/천장/걸레받이, 흡음 폼 패널,
+네온 펄스 사인, 육각 RGB 패널, 벽 선반, 블라인드 창, 게이밍 체어, 러그, 코너 RGB 라이트바, 화분,
+데스크매트·키보드·마우스·스피커·헤드셋 스탠드·마이크 붐암, 책상 밑 케이블, 먼지 입자.
+
+3D를 손볼 때 지켜야 하는 규칙 3가지:
+
+1. 벽·천장은 `planeGeometry` + 안쪽 법선. `boxGeometry`로 만들면 궤도 회전할 때 바깥면이 씬을 통째로 가립니다.
+2. 장식에는 포인터 핸들러를 붙이지 않고, 큰 판때기에는 `raycast={() => null}`을 걸어 부품 클릭 판정을 방해하지 않게 합니다.
+3. 광원을 늘리지 않습니다. 발광은 `emissive`로 내고, 새 그림자 광원은 추가하지 않습니다
+   (광원 수가 헤드리스 렌더링 비용에 직결됩니다). 전역광을 낮출 때는 반드시 부품 클로즈업 7종을 다시 렌더해
+   케이스 내부가 검게 뭉치지 않는지 확인해야 합니다 — 무드보다 부품 가독성이 우선입니다.
 
 ---
 
@@ -184,6 +220,7 @@ python ml/trend_analysis.py
 | NVMe SSD | 가격, 용량, 읽기/쓰기 속도 |
 | 그래픽카드 | 가격, GPU 모델, VRAM |
 | CPU | 가격, 코어 수, 클럭 |
+| 게이밍 모니터 (120Hz+) | 가격, 해상도, 주사율, 패널 종류, 응답속도 |
 | IT 뉴스 | 제목, 언론사, 발행시간 |
 
 ---
@@ -191,7 +228,7 @@ python ml/trend_analysis.py
 ## 🧪 테스트
 
 **백엔드**: 핵심 로직(가격 변동 pcode 매칭, ML 교차검증의 GroupKFold 그룹 분리, DB 스키마/상품번호 레지스트리,
-FastAPI 라우터 13개)에 대한 pytest 스위트 63개가 있습니다. 실제 `database/data.db`는 건드리지 않고
+FastAPI 라우터 13개)에 대한 pytest 스위트 86개가 있습니다. 실제 `database/data.db`는 건드리지 않고
 임시 DB/합성 데이터로 동작합니다.
 
 ```bash
@@ -199,7 +236,7 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
-**프론트엔드**: 순수 로직(노트북 스펙 필터 매칭, CSV 이스케이핑)에 대한 vitest 유닛 테스트가 있습니다.
+**프론트엔드**: 순수 로직(노트북 스펙 필터 매칭, CSV 이스케이핑, 3D 부품↔카테고리 매핑)에 대한 vitest 유닛 테스트가 있습니다.
 
 ```bash
 cd frontend
@@ -237,8 +274,9 @@ market-pulse/
 │   └── routers/                # 엔드포인트 13개(prices/products/prediction/compare/watchlist 등)
 ├── frontend/                   # React(Vite+TypeScript) SPA — api/를 소비
 │   └── src/
-│       ├── pages/               # 개요/상세/비교/예측/이상치/워치리스트/수집이력/뉴스/가격변동
+│       ├── pages/               # 개요/3D 데스크/상세/비교/예측/이상치/워치리스트/수집이력/뉴스/가격변동
 │       ├── components/          # LaptopSection(노트북 전용 필터), Carousel, ChangeCard 등
+│       ├── three/               # 3D 데스크 씬 — 부품↔카테고리 매핑, 지오메트리, 카메라 이동
 │       └── utils/                # CSV 내보내기, 노트북 필터 매칭 (vitest 테스트 대상)
 ├── workflow/                 # LangGraph 워크플로우
 │   ├── state.py             # 상태 정의 (TypedDict)
@@ -290,6 +328,7 @@ market-pulse/
 | **대시보드** | Streamlit |
 | **API** | FastAPI, cachetools(TTL 캐싱) |
 | **프론트엔드** | React 19, TypeScript, Vite, react-router-dom, Recharts |
+| **3D** | three.js, @react-three/fiber, @react-three/drei (3D 데스크 화면 전용, lazy 로드) |
 | **자동화** | Windows 작업 스케줄러 + bat |
 
 ---

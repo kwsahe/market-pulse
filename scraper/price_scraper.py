@@ -28,6 +28,24 @@ CATEGORIES = {
     "NVMe SSD": "NVMe+SSD",
     "그래픽카드": "지포스+그래픽카드",
     "CPU": "CPU+프로세서",
+    "게이밍 모니터": "게이밍모니터",
+}
+
+# 다나와 검색어에 "게이밍"이 들어가도 필터 효과가 거의 없어서(플레인 "모니터" 검색과 결과가 사실상 동일)
+# 60~100Hz 사무용 모니터가 20%가량 섞여 들어온다. 스펙의 주사율로 한 번 더 거른다.
+MIN_GAMING_REFRESH_HZ = 120
+REFRESH_HZ_PATTERN = re.compile(r"(\d{2,4})\s*Hz")
+
+
+def _is_gaming_monitor(product: str, specs: str) -> bool:
+    """주사율 120Hz 이상만 게이밍 모니터로 인정. 주사율 표기가 없으면 제외한다."""
+    match = REFRESH_HZ_PATTERN.search(specs)
+    return bool(match) and int(match.group(1)) >= MIN_GAMING_REFRESH_HZ
+
+
+# 카테고리별 추가 선별 규칙 — (상품명, 스펙) -> 수집할지 여부. 없으면 전부 수집한다.
+CATEGORY_FILTERS = {
+    "게이밍 모니터": _is_gaming_monitor,
 }
 
 LAPTOP_CATEGORY = "게이밍 노트북"
@@ -91,7 +109,12 @@ def find_product_block(tag):
 
 
 def extract_variants(parent):
-    """용량별 변형 추출"""
+    """용량별 변형 추출
+
+    변형 라벨(memory_sect)이 비어 있는 상품은 변형으로 치지 않는다 — 모니터처럼
+    옵션이 하나뿐인 상품군은 memory_sect 엘리먼트는 있는데 안이 공백이라,
+    라벨을 그대로 붙이면 상품명이 "LG전자 24U411B ()" 꼴로 저장된다.
+    여기서 걸러내면 호출부의 `if variants:`가 False가 되어 일반 가격 경로로 폴백한다."""
     variants = []
     price_list = parent.find("div", class_="prod_pricelist")
     if not price_list:
@@ -105,6 +128,8 @@ def extract_variants(parent):
         if not mem_text_span:
             continue
         mem_text = mem_text_span.get_text(strip=True)
+        if not mem_text:
+            continue
         price_tag = item.find("a", class_="click_log_product_standard_price_")
         if not price_tag:
             continue
@@ -299,8 +324,10 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
         print(f"⚠️ [{category}] HTML 파싱 오류: {e}. 건너뜁니다.")
         return 0, 0
 
+    keep = CATEGORY_FILTERS.get(category)
     data_list = []
     registered = 0
+    skipped = 0
     for i, name_tag in enumerate(names):
         try:
             product = name_tag.get_text(strip=True)
@@ -310,6 +337,12 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
             img_url = extract_image(block)
             specs = extract_specs(block)
             variants = extract_variants(block)
+
+            # 카테고리 선별 규칙은 상품번호 발급보다 먼저 — 걸러낸 상품에 번호가 나가면 안 된다
+            if keep and not keep(product, specs):
+                skipped += 1
+                print(f"{i+1}. [SKIP] 카테고리 조건 미달: {product[:50]}")
+                continue
 
             # 상품번호(RAM-1, SSD-1 ...)는 상세페이지(=pcode) 단위로 1개만 발급 —
             # 용량별 variant는 같은 pcode 상세페이지 안의 가격 옵션일 뿐, 별개 상품이 아님
@@ -345,12 +378,13 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
             continue
 
     # DB 저장 (중복 무시)
+    skip_note = f" | 조건 미달 제외: {skipped}개" if skipped else ""
     if data_list:
         new_count = insert_many_laptop_prices(data_list)
-        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 상품번호 등록: {registered}개 | 중복 건너뜀: {len(data_list) - new_count}개")
+        print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 상품번호 등록: {registered}개 | 중복 건너뜀: {len(data_list) - new_count}개{skip_note}")
         return len(data_list), new_count
     else:
-        print(f"\n[!] [{category}] 수집된 상품이 없어요.")
+        print(f"\n[!] [{category}] 수집된 상품이 없어요.{skip_note}")
         return 0, 0
 
 

@@ -35,6 +35,38 @@ export interface CategoriesResponse {
   anomaly_count: number;
 }
 
+export interface CategoryTrendPoint {
+  date: string;
+  avg_price: number;
+  count: number;
+}
+
+export interface CategoryPulseItem {
+  code: string;
+  product: string;
+  price: number;
+  image_url?: string | null;
+  change?: number | null;
+  change_pct?: number | null;
+}
+
+export interface CategoryPulseResponse {
+  category: string;
+  latest_date: string;
+  count: number;
+  avg_price: number;
+  min_price: number;
+  max_price: number;
+  median_price: number;
+  up_count: number;
+  down_count: number;
+  anomaly_count: number;
+  trend: CategoryTrendPoint[];
+  trend_pct?: number | null;
+  cheapest: CategoryPulseItem[];
+  movers: CategoryPulseItem[];
+}
+
 export interface PricePoint {
   date: string;
   price: number;

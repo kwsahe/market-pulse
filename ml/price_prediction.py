@@ -209,6 +209,62 @@ def extract_cpu_features(row):
     return features
 
 
+def extract_monitor_features(row):
+    """게이밍 모니터 스펙에서 특성 추출
+
+    스펙 텍스트 예시:
+    "모니터 / 68.47cm(27인치) / QHD(2560 x 1440) / 120Hz / IPS / 와이드(16:9) /
+     5ms(GTG) / 350nits / 1,000:1 / 피벗(회전) / 엘리베이션(높낮이) / 틸트(상하)"
+
+    정규식은 다나와 '게이밍모니터' 검색 결과 40건을 실측해서 맞췄다.
+    곡률(1500R)은 15%에만 있어 없으면 0(평면)으로 둔다.
+    """
+    specs = str(row.get("specs", ""))
+    features = {}
+
+    # 화면 크기 (인치)
+    inch = re.search(r"(\d+(?:\.\d+)?)\s*인치", specs)
+    features["panel_inch"] = float(inch.group(1)) if inch else 0
+
+    # 해상도 — 총 픽셀 수로 환산해야 FHD/QHD/4K가 하나의 연속 변수가 된다
+    res = re.search(r"\((\d{3,4})\s*x\s*(\d{3,4})\)", specs)
+    features["pixels_mp"] = round(int(res.group(1)) * int(res.group(2)) / 1_000_000, 2) if res else 0
+
+    # 주사율 (Hz) — 가격을 가장 크게 가르는 축
+    hz = re.search(r"(\d{2,4})\s*Hz", specs)
+    features["refresh_hz"] = int(hz.group(1)) if hz else 0
+
+    # 응답속도 (ms) — 측정방식 괄호(GTG/MPRT/OD/MBR)는 없을 수도 있다
+    ms = re.search(r"(\d+(?:\.\d+)?)\s*ms", specs)
+    features["response_ms"] = float(ms.group(1)) if ms else 0
+
+    # 밝기 (nits)
+    nits = re.search(r"(\d+)\s*nits", specs)
+    features["brightness_nits"] = int(nits.group(1)) if nits else 0
+
+    # 명암비 — ':1' 앵커가 없으면 화면비(16:9)를 잘못 집는다
+    contrast = re.search(r"([\d,]+):1", specs)
+    features["contrast_ratio"] = int(contrast.group(1).replace(",", "")) if contrast else 0
+
+    # 곡률 (R) — 평면은 0
+    curve = re.search(r"(\d{3,4})\s*R", specs)
+    features["curvature_r"] = int(curve.group(1)) if curve else 0
+
+    # 패널 등급 — 긴 이름부터 매칭해야 'Fast IPS'가 'IPS'로 먼저 잡히지 않는다
+    features["is_oled"] = 1 if re.search(r"QD-OLED|OLED", specs) else 0
+    features["is_fast_ips"] = 1 if re.search(r"Nano-IPS Black|IPS Black|Fast IPS", specs) else 0
+
+    # 울트라와이드 여부
+    features["is_ultrawide"] = 1 if "울트라와이드" in specs else 0
+
+    # 스탠드 조절 기능 개수 (틸트/엘리베이션/스위블/피벗)
+    features["stand_features"] = sum(
+        1 for kw in ("틸트", "엘리베이션", "스위블", "피벗") if kw in specs
+    )
+
+    return features
+
+
 # ============================
 # 카테고리별 특성 추출 매핑
 # ============================
@@ -218,6 +274,7 @@ FEATURE_EXTRACTORS = {
     "NVMe SSD": extract_ssd_features,
     "그래픽카드": extract_gpu_features,
     "CPU": extract_cpu_features,
+    "게이밍 모니터": extract_monitor_features,
 }
 
 
@@ -254,6 +311,17 @@ FEATURE_LABELS = {
     "is_bulk": "벌크 제품",
     "generation": "세대",
     "is_series2": "시리즈2(최신)",
+    "panel_inch": "화면 크기(인치)",
+    "pixels_mp": "해상도(백만 픽셀)",
+    "refresh_hz": "주사율(Hz)",
+    "response_ms": "응답속도(ms)",
+    "brightness_nits": "밝기(nits)",
+    "contrast_ratio": "명암비",
+    "curvature_r": "곡률(R)",
+    "is_oled": "OLED 패널",
+    "is_fast_ips": "고속 IPS 패널",
+    "is_ultrawide": "울트라와이드",
+    "stand_features": "스탠드 조절 기능 수",
 }
 
 

@@ -40,6 +40,42 @@ class CategoriesResponse(BaseModel):
     anomaly_count: int
 
 
+# ============================
+# 카테고리 단건 요약 (3D 데스크 부품 패널)
+# ============================
+
+class CategoryTrendPoint(BaseModel):
+    date: str
+    avg_price: float
+    count: int
+
+
+class CategoryPulseItem(BaseModel):
+    code: str  # 상품 레지스트리에 없으면 빈 문자열
+    product: str
+    price: int
+    image_url: Optional[str] = None
+    change: Optional[int] = None
+    change_pct: Optional[float] = None
+
+
+class CategoryPulseResponse(BaseModel):
+    category: str
+    latest_date: str
+    count: int
+    avg_price: float
+    min_price: int
+    max_price: int
+    median_price: float
+    up_count: int
+    down_count: int
+    anomaly_count: int
+    trend: list[CategoryTrendPoint] = []
+    trend_pct: Optional[float] = None  # trend 첫 지점 대비 마지막 지점 변화율(%)
+    cheapest: list[CategoryPulseItem] = []
+    movers: list[CategoryPulseItem] = []  # 변동률 절대값 상위
+
+
 class PricePoint(BaseModel):
     date: str
     price: int

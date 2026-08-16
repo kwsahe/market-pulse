@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getCategories, getPrices } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { StatCards, type Stat } from "../components/StatCard";
@@ -14,11 +15,17 @@ import { downloadCsv } from "../utils/csv";
 import type { ProductSummary, SortOrder } from "../types/api";
 
 const PAGE_SIZE = 60;
+const EXPORT_PAGE_SIZE = 500; // api/routers/prices.py의 limit 상한과 동일하게 유지할 것
 const LAPTOP_CATEGORIES = ["게이밍 노트북", "AI 노트북"];
 
 export function OverviewPage() {
+  // 카테고리는 URL로 들고 다닌다 — 3D 데스크의 "전체 상품 보기" 링크가 이 파라미터로 들어온다
+  const [searchParams, setSearchParams] = useSearchParams();
+  const category = searchParams.get("category") ?? "";
+  const setCategory = (next: string) =>
+    setSearchParams(next ? { category: next } : {}, { replace: true });
+
   const [q, setQ] = useState("");
-  const [category, setCategory] = useState("");
   const [sort, setSort] = useState<SortOrder>("price_asc");
 
   const [items, setItems] = useState<ProductSummary[]>([]);
@@ -67,15 +74,21 @@ export function OverviewPage() {
   };
 
   const handleExportCsv = async () => {
-    const res = await getPrices({
-      category: category || undefined,
-      q: q || undefined,
-      sort,
-      limit: total || 999,
-      offset: 0,
-    });
+    // API가 한 번에 500개까지만 내주므로 전체를 받으려면 나눠서 이어붙인다
+    const all: ProductSummary[] = [];
+    while (all.length < total) {
+      const res = await getPrices({
+        category: category || undefined,
+        q: q || undefined,
+        sort,
+        limit: EXPORT_PAGE_SIZE,
+        offset: all.length,
+      });
+      if (res.items.length === 0) break;
+      all.push(...res.items);
+    }
     downloadCsv(
-      res.items,
+      all,
       [
         { label: "상품명", get: (r) => r.product },
         { label: "카테고리", get: (r) => r.category },

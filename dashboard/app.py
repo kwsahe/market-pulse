@@ -117,7 +117,8 @@ if not prices_df.empty:
     categories = prices_df["category"].unique().tolist()
     tab_icons = {
         "게이밍 노트북": "💻", "DDR5 RAM": "🧩",
-        "NVMe SSD": "💾", "그래픽카드": "🎮", "CPU": "⚡", "AI 노트북": "🧠"
+        "NVMe SSD": "💾", "그래픽카드": "🎮", "CPU": "⚡", "AI 노트북": "🧠",
+        "게이밍 모니터": "🖥️"
     }
     tab_labels = (
         ["📋 전체"]

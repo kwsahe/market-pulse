@@ -9,12 +9,14 @@ import { WatchlistPage } from "./pages/WatchlistPage";
 import { ScrapesPage } from "./pages/ScrapesPage";
 import { NewsPage } from "./pages/NewsPage";
 import { ChangesPage } from "./pages/ChangesPage";
+import { DeskPage } from "./pages/DeskPage";
 
 function App() {
   return (
     <Layout>
       <Routes>
         <Route path="/" element={<OverviewPage />} />
+        <Route path="/desk" element={<DeskPage />} />
         <Route path="/products/:code" element={<ProductDetailPage />} />
         <Route path="/changes" element={<ChangesPage />} />
         <Route path="/compare" element={<ComparePage />} />

@@ -19,7 +19,7 @@ Market Pulse는 Danawa 가격 데이터와 Naver IT/과학 뉴스를 수집해 S
 
 - `prices`: 8,227건
 - `news`: 706건
-- 가격 카테고리: AI 노트북, CPU, DDR5 RAM, NVMe SSD, 게이밍 노트북, 그래픽카드
+- 가격 카테고리: AI 노트북, CPU, DDR5 RAM, NVMe SSD, 게이밍 노트북, 게이밍 모니터, 그래픽카드
 - 주요 테이블: `prices`, `news`, `laptop_products`, `laptop_specs`, `laptop_images`, `tracked_laptops`, `product_registry`
 
 ## 2. 현재 활용 중인 ML/분석

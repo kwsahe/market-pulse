@@ -5,6 +5,7 @@ import type {
   AlertsResponse,
   AnomaliesResponse,
   CategoriesResponse,
+  CategoryPulseResponse,
   ChangesResponse,
   CompareResponse,
   LaptopsResponse,
@@ -42,6 +43,10 @@ async function sendJson<T>(method: "POST" | "PUT", path: string, body: unknown):
 
 export function getCategories(): Promise<CategoriesResponse> {
   return getJson<CategoriesResponse>("/api/categories");
+}
+
+export function getCategoryPulse(category: string): Promise<CategoryPulseResponse> {
+  return getJson<CategoryPulseResponse>(`/api/categories/${encodeURIComponent(category)}/pulse`);
 }
 
 export function getPrices(params: {

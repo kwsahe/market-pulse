@@ -8,6 +8,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   "그래픽카드": "#c98500",
   CPU: "#d55181",
   "AI 노트북": "#9085e9",
+  "게이밍 모니터": "#8749a4",
 };
 
 export function categoryColor(category: string): string {

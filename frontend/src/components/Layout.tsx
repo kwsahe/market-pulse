@@ -4,6 +4,7 @@ import styles from "./Layout.module.css";
 
 const NAV_ITEMS: { to: string; label: string }[] = [
   { to: "/", label: "개요" },
+  { to: "/desk", label: "3D 데스크" },
   { to: "/changes", label: "가격 변동" },
   { to: "/compare", label: "비교" },
   { to: "/prediction", label: "예측" },
@@ -14,9 +15,11 @@ const NAV_ITEMS: { to: string; label: string }[] = [
 ];
 
 export function Layout({ children }: { children: ReactNode }) {
+  // toISOString()은 UTC라 KST 새벽에 하루 전 날짜가 찍힌다 — 요일(getDay)과도 어긋나므로 로컬 기준으로 만든다
   const today = new Date();
   const weekdayKr = ["일", "월", "화", "수", "목", "금", "토"][today.getDay()];
-  const dateLabel = `${today.toISOString().slice(0, 10).replaceAll("-", ".")} (${weekdayKr})`;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const dateLabel = `${today.getFullYear()}.${pad(today.getMonth() + 1)}.${pad(today.getDate())} (${weekdayKr})`;
 
   return (
     <div className={styles.page}>

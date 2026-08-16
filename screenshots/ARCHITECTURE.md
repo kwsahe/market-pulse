@@ -13,7 +13,7 @@ Market Pulse는 게이밍 노트북(RTX5080/5090)·AI 노트북과 PC 부품 가
 
 - `prices`: 9,600여 건
 - `news`: 800여 건
-- 가격 카테고리: 게이밍 노트북, AI 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU
+- 가격 카테고리: 게이밍 노트북, AI 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU, 게이밍 모니터
 - 테이블 수: 9개 (`prices`, `news`, `laptop_products`, `laptop_specs`, `laptop_images`, `tracked_laptops`, `product_registry`, `scrape_runs`, `schema_migrations`)
 
 ## 2. 전체 구성도
@@ -384,6 +384,7 @@ erDiagram
 | NVMe SSD | PCIe 세대, 읽기/쓰기 속도, DRAM 여부, TLC 여부, 용량, 외장 여부 |
 | 그래픽카드 | GPU 모델, VRAM, 부스트 클럭, 카드 길이, 정격 파워 |
 | CPU | 총 코어 수, 최대 클럭, 내장 그래픽 여부, 벌크 여부, 세대, 시리즈 여부 |
+| 게이밍 모니터 | 화면 크기, 해상도(픽셀 수), 주사율, 응답속도, 밝기, 명암비, 곡률, 패널 등급, 울트라와이드, 스탠드 기능 수 |
 
 ## 7. ML 처리 흐름도
 

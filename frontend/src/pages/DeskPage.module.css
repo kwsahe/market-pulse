@@ -1,0 +1,143 @@
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip {
+  border: 1px solid var(--mp-border);
+  background: var(--mp-surface);
+  color: var(--mp-text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chip:hover {
+  background: var(--mp-surface-raised);
+}
+
+.chipActive {
+  background: var(--mp-surface-raised);
+  border-color: var(--mp-cyan);
+  font-weight: 600;
+}
+
+.chipEmpty {
+  color: var(--mp-muted);
+  font-size: 0.72rem;
+  margin-left: 5px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.stage {
+  position: relative;
+  height: 560px;
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(34, 211, 238, 0.1) 0%, transparent 55%),
+    var(--mp-bg);
+}
+
+@media (max-width: 900px) {
+  .stage {
+    height: 420px;
+  }
+}
+
+.sceneFallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--mp-muted);
+  font-size: 0.9rem;
+}
+
+.controlsHint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  margin: 0;
+  color: var(--mp-muted);
+  font-size: 0.74rem;
+  background: rgba(13, 15, 20, 0.7);
+  padding: 4px 10px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.empty {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: var(--mp-radius);
+  padding: 18px;
+}
+
+.emptyTitle {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+}
+
+.emptyText {
+  margin: 0 0 14px;
+  color: var(--mp-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.emptyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emptyItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--mp-surface-raised);
+  border: 1px solid var(--mp-border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--mp-text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.emptyItem:hover {
+  border-color: var(--mp-cyan);
+}
+
+.emptyItemLabel {
+  font-weight: 600;
+}
+
+.emptyItemHint {
+  margin-left: auto;
+  color: var(--mp-muted);
+  font-size: 0.74rem;
+}
