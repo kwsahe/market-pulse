@@ -111,6 +111,22 @@ export const PARTS: PartDef[] = [
     hint: "책상 오른쪽, 고주사율 패널",
     camera: { position: [0.18, 1.24, 0.59], target: [0.5, 1.14, -0.31] },
   },
+  {
+    id: "keyboard",
+    category: "게이밍 키보드",
+    label: "게이밍 키보드",
+    icon: "⌨️",
+    hint: "모니터 앞 데스크매트 위",
+    camera: { position: [0.3, 1.02, 0.6], target: [0.389, 0.75, 0.168] },
+  },
+  {
+    id: "mouse",
+    category: "게이밍 마우스",
+    label: "게이밍 마우스",
+    icon: "🖱️",
+    hint: "키보드 오른쪽",
+    camera: { position: [0.66, 0.93, 0.61], target: [0.702, 0.748, 0.363] },
+  },
 ];
 
 export function partColor(part: PartDef): string {

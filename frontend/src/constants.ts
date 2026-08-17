@@ -9,6 +9,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
   CPU: "#d55181",
   "AI 노트북": "#9085e9",
   "게이밍 모니터": "#8749a4",
+  "게이밍 키보드": "#454fdb",
+  "게이밍 마우스": "#a34145",
 };
 
 export function categoryColor(category: string): string {

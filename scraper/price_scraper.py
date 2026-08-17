@@ -29,6 +29,8 @@ CATEGORIES = {
     "그래픽카드": "지포스+그래픽카드",
     "CPU": "CPU+프로세서",
     "게이밍 모니터": "게이밍모니터",
+    "게이밍 키보드": "게이밍키보드",
+    "게이밍 마우스": "게이밍마우스",
 }
 
 # 다나와 검색어에 "게이밍"이 들어가도 필터 효과가 거의 없어서(플레인 "모니터" 검색과 결과가 사실상 동일)
@@ -43,9 +45,39 @@ def _is_gaming_monitor(product: str, specs: str) -> bool:
     return bool(match) and int(match.group(1)) >= MIN_GAMING_REFRESH_HZ
 
 
+# 키보드는 "방식"이 스펙에 100% 표기되므로 그걸로 거른다.
+# 폴링레이트로 거르면 표기가 없는(11.5%) 로지텍 G512·CORSAIR K100 AIR 같은 진짜 게이밍 제품이 탈락한다.
+GAMING_SWITCH_PATTERN = re.compile(r"기계식|무접점\s*\(")
+OFFICE_SWITCH_PATTERN = re.compile(r"멤브레인|펜타그래프|플런저")
+
+
+def _is_gaming_keyboard(product: str, specs: str) -> bool:
+    """기계식 / 무접점(자석축·광축·정전용량)만 게이밍 키보드로 인정."""
+    return bool(GAMING_SWITCH_PATTERN.search(specs)) and not OFFICE_SWITCH_PATTERN.search(specs)
+
+
+# 마우스는 폴링레이트가 게이밍 여부를 가장 잘 가른다. 다만 22%가 미표기이고
+# 그 안에 로지텍 G309 같은 진짜 게이밍 마우스가 섞여 있어, 미표기일 때만 DPI로 대신 판정한다.
+MIN_GAMING_POLLING_HZ = 1000
+MIN_GAMING_DPI = 8000
+POLLING_HZ_PATTERN = re.compile(r"(\d{3,5})\s*Hz\s*폴링레이트")
+DPI_PATTERN = re.compile(r"(\d{3,6})\s*DPI")
+
+
+def _is_gaming_mouse(product: str, specs: str) -> bool:
+    """폴링레이트 1000Hz 이상, 미표기면 DPI 8000 이상."""
+    polling = POLLING_HZ_PATTERN.search(specs)
+    if polling:
+        return int(polling.group(1)) >= MIN_GAMING_POLLING_HZ
+    dpi = DPI_PATTERN.search(specs)
+    return bool(dpi) and int(dpi.group(1)) >= MIN_GAMING_DPI
+
+
 # 카테고리별 추가 선별 규칙 — (상품명, 스펙) -> 수집할지 여부. 없으면 전부 수집한다.
 CATEGORY_FILTERS = {
     "게이밍 모니터": _is_gaming_monitor,
+    "게이밍 키보드": _is_gaming_keyboard,
+    "게이밍 마우스": _is_gaming_mouse,
 }
 
 LAPTOP_CATEGORY = "게이밍 노트북"
@@ -87,6 +119,17 @@ def extract_image(parent):
     return img_url
 
 
+def clean_name(tag) -> str:
+    """상품명 추출 — 다나와가 검색어 토큰을 <b>로 감싸는 걸 감안한다.
+
+    get_text(strip=True)는 텍스트 노드마다 공백을 없앤 뒤 이어붙여서
+    '앱코 HACKER K640 축교환 <b>게이밍</b> <b>기계식</b> 블랙'을
+    '앱코 HACKER K640 축교환게이밍기계식 블랙'으로 만든다. 상품명에 검색어가
+    자주 들어가는 키보드/마우스에서 특히 심하고, 같은 상품이 검색어마다 다른
+    이름으로 저장돼 상품명 기반 매칭이 깨진다. 구분자를 주고 공백을 정리한다."""
+    return re.sub(r"\s+", " ", tag.get_text(" ", strip=True)).strip()
+
+
 def extract_specs(parent):
     """상품 블록에서 스펙 텍스트 추출"""
     spec_div = parent.find("div", class_="spec_list")
@@ -108,12 +151,19 @@ def find_product_block(tag):
     return parent
 
 
+# 중고/병행수입 옵션은 신품과 가격대가 달라서 같은 시계열에 섞으면 안 된다.
+# 실측(키보드 200건): 23%가 '중고' 옵션을 갖고, 중고가는 신품 최저가보다 평균 16.8%,
+# 최대 32% 싸다. 그대로 넣으면 카테고리 최저가·평균가와 가격 하락 알림이 전부 왜곡된다.
+USED_VARIANT_PATTERN = re.compile(r"중고|병행수입|해외구매|리퍼")
+
+
 def extract_variants(parent):
     """용량별 변형 추출
 
     변형 라벨(memory_sect)이 비어 있는 상품은 변형으로 치지 않는다 — 모니터처럼
     옵션이 하나뿐인 상품군은 memory_sect 엘리먼트는 있는데 안이 공백이라,
     라벨을 그대로 붙이면 상품명이 "LG전자 24U411B ()" 꼴로 저장된다.
+    중고/병행수입 라벨도 같이 걸러낸다.
     여기서 걸러내면 호출부의 `if variants:`가 False가 되어 일반 가격 경로로 폴백한다."""
     variants = []
     price_list = parent.find("div", class_="prod_pricelist")
@@ -129,6 +179,8 @@ def extract_variants(parent):
             continue
         mem_text = mem_text_span.get_text(strip=True)
         if not mem_text:
+            continue
+        if USED_VARIANT_PATTERN.search(mem_text):
             continue
         price_tag = item.find("a", class_="click_log_product_standard_price_")
         if not price_tag:
@@ -202,7 +254,7 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
 
         for i, name_tag in enumerate(names):
             try:
-                product = name_tag.get_text(strip=True)
+                product = clean_name(name_tag)
                 href = name_tag.get("href", "")
                 pcode = extract_pcode(href)
                 if not pcode or pcode in seen_pcodes:
@@ -330,7 +382,7 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
     skipped = 0
     for i, name_tag in enumerate(names):
         try:
-            product = name_tag.get_text(strip=True)
+            product = clean_name(name_tag)
             href = name_tag.get("href", "")
             pcode = extract_pcode(href)
             block = find_product_block(name_tag)

@@ -6,7 +6,16 @@ import type { PredictionResponse } from "../types/api";
 import styles from "./PredictionPage.module.css";
 
 // ml/price_prediction.py의 FEATURE_EXTRACTORS 키와 동일 — 예측 모델이 있는 카테고리만.
-const CATEGORIES = ["게이밍 노트북", "DDR5 RAM", "NVMe SSD", "그래픽카드", "CPU", "게이밍 모니터"];
+const CATEGORIES = [
+  "게이밍 노트북",
+  "DDR5 RAM",
+  "NVMe SSD",
+  "그래픽카드",
+  "CPU",
+  "게이밍 모니터",
+  "게이밍 키보드",
+  "게이밍 마우스",
+];
 
 export function PredictionPage() {
   const [category, setCategory] = useState(CATEGORIES[0]);

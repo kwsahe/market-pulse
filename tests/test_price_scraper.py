@@ -3,7 +3,9 @@
 
 from bs4 import BeautifulSoup
 
-from scraper.price_scraper import _is_gaming_monitor, extract_variants
+from scraper.price_scraper import (
+    _is_gaming_keyboard, _is_gaming_monitor, _is_gaming_mouse, clean_name, extract_variants,
+)
 
 
 def block(html: str):
@@ -66,3 +68,96 @@ def test_gaming_monitor_filter_drops_office_panels():
 
 def test_gaming_monitor_filter_drops_missing_refresh_rate():
     assert not _is_gaming_monitor("스펙 미상 모니터", "모니터 / 68.6cm(27인치) / QHD(2560 x 1440)")
+
+
+# ============================
+# 상품명 하이라이트 공백 복원
+# ============================
+
+def test_clean_name_restores_spaces_eaten_by_search_highlight():
+    """다나와가 검색어를 <b>로 감싸면 get_text(strip=True)가 앞뒤 공백을 먹어
+    '축교환 게이밍 기계식'이 '축교환게이밍기계식'으로 붙어버린다."""
+    html = "<a>앱코 HACKER K640 축교환 <b>게이밍</b> <b>기계식</b> 블랙</a>"
+    tag = BeautifulSoup(html, "html.parser").find("a")
+
+    # 기존 동작(버그): 하이라이트 앞뒤 공백이 전부 사라진다
+    assert tag.get_text(strip=True) == "앱코 HACKER K640 축교환게이밍기계식블랙"
+    assert clean_name(tag) == "앱코 HACKER K640 축교환 게이밍 기계식 블랙"
+
+
+def test_clean_name_collapses_repeated_whitespace():
+    tag = BeautifulSoup("<a>  LG전자   24U411B\n </a>", "html.parser").find("a")
+    assert clean_name(tag) == "LG전자 24U411B"
+
+
+# ============================
+# 중고 변형 제외
+# ============================
+
+USED_VARIANT_HTML = """
+<div class="prod_pricelist"><ul>
+  <li id="productInfoDetail_1">
+    <p class="memory_sect"><span class="text">적축</span></p>
+    <a class="click_log_product_standard_price_">29,900원</a>
+  </li>
+  <li id="productInfoDetail_2">
+    <p class="memory_sect"><span class="text">중고</span></p>
+    <a class="click_log_product_standard_price_">20,330원</a>
+  </li>
+</ul></div>
+"""
+
+
+def test_extract_variants_drops_used_options():
+    """중고가는 신품 최저가보다 평균 16.8%, 최대 32% 싸서 같은 시계열에 섞으면
+    카테고리 최저가·평균가와 가격 하락 알림이 전부 왜곡된다."""
+    assert extract_variants(block(USED_VARIANT_HTML)) == [("적축", 29900)]
+
+
+# ============================
+# 게이밍 키보드 / 마우스 선별
+# ============================
+
+MECHANICAL_KB = "키보드 / 풀배열 / 유선 / 기계식 / 104키 / 스위치 : GTMX / 1000Hz / 1ms 응답속도"
+MAGNETIC_KB = "키보드 / 텐키리스 / 유선 / 무접점(자석축) / 84키 / 8000Hz / 0.125ms 응답속도"
+MEMBRANE_KB = "키보드 / 컴팩트 풀배열 / 유선+무선 / 멤브레인 / 블루투스 / 98키 / 1000Hz"
+PANTOGRAPH_KB = "키보드 / 미니 / 무선 / 펜타그래프 / 블루투스 / 79키"
+
+
+def test_gaming_keyboard_filter_keeps_mechanical_and_magnetic():
+    assert _is_gaming_keyboard("앱코 HACKER K640", MECHANICAL_KB)
+    assert _is_gaming_keyboard("CORSAIR K70 PRO TKL", MAGNETIC_KB)
+
+
+def test_gaming_keyboard_filter_drops_office_switches():
+    assert not _is_gaming_keyboard("MSI FORGE GK100", MEMBRANE_KB)
+    assert not _is_gaming_keyboard("로지텍 K380", PANTOGRAPH_KB)
+
+
+def test_gaming_keyboard_filter_does_not_use_polling_rate():
+    """폴링레이트로 거르면 표기가 없는 진짜 게이밍 키보드가 탈락한다
+    (실측: 로지텍 G512, CORSAIR K100 AIR 등 11.5%가 Hz 미표기)."""
+    no_hz = "키보드 / 풀배열 / 유선 / 기계식 / 104키 / RGB 백라이트"
+    assert _is_gaming_keyboard("로지텍 G512", no_hz)
+
+
+HIGH_POLLING_MOUSE = "마우스 / 유선+무선 / 5버튼 / 33000DPI / 8000Hz 폴링레이트 / 오른손"
+OFFICE_MOUSE = "마우스 / 유선 / 3버튼 / 3600DPI / 125Hz 폴링레이트"
+NO_POLLING_HIGH_DPI = "마우스 / 무선 / DPI+5버튼 / 25600DPI / 광 / 전용동글(리시버)"
+NO_POLLING_LOW_DPI = "마우스 / 유선 / 3버튼 / 6400DPI / 광"
+
+
+def test_gaming_mouse_filter_uses_polling_rate_when_present():
+    assert _is_gaming_mouse("CORSAIR 세이버 v2 PRO", HIGH_POLLING_MOUSE)
+    assert not _is_gaming_mouse("COX CM1000", OFFICE_MOUSE)
+
+
+def test_gaming_mouse_filter_falls_back_to_dpi_when_polling_missing():
+    """폴링레이트 미표기가 22%나 되고 그 안에 진짜 게이밍 마우스가 섞여 있어,
+    미표기일 때만 DPI로 대신 판정한다."""
+    assert _is_gaming_mouse("로지텍 G309", NO_POLLING_HIGH_DPI)
+    assert not _is_gaming_mouse("MSI FORGE GM100", NO_POLLING_LOW_DPI)
+
+
+def test_gaming_mouse_filter_drops_specless_product():
+    assert not _is_gaming_mouse("스펙 미상 마우스", "마우스 / 유선 / 3버튼")

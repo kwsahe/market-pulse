@@ -244,6 +244,8 @@ function SceneContent({ selectedId, onSelect, summaries, availableCategories }: 
   const gamingLaptop = PARTS[4];
   const aiLaptop = PARTS[5];
   const monitor = PARTS[6];
+  const keyboard = PARTS[7];
+  const mouse = PARTS[8];
 
   return (
     <>
@@ -335,8 +337,12 @@ function SceneContent({ selectedId, onSelect, summaries, availableCategories }: 
       {/* ---- 책상 위 게이밍 소품 ---- */}
       <group position={[0.42, DESK_TOP_Y, 0.2]} rotation={[0, MONITOR_ROTATION_Y, 0]}>
         <DeskMat position={[0, 0.001, 0]} size={[0.94, 0.5]} accent="#8b5cf6" />
-        <Keyboard position={[-0.04, 0.002, -0.02]} accent="#22d3ee" />
-        <Mouse position={[0.32, 0.002, 0.06]} accent="#22d3ee" />
+        <Hotspot {...hotspotProps(keyboard)} center={[-0.04, 0.018, -0.02]} size={[0.36, 0.06, 0.15]}>
+          <Keyboard position={[-0.04, 0.002, -0.02]} accent={partColor(keyboard)} />
+        </Hotspot>
+        <Hotspot {...hotspotProps(mouse)} center={[0.32, 0.02, 0.06]} size={[0.1, 0.07, 0.12]}>
+          <Mouse position={[0.32, 0.002, 0.06]} accent={partColor(mouse)} />
+        </Hotspot>
       </group>
       <Speaker position={[0.06, DESK_TOP_Y, -0.46]} rotationY={-0.5} accent="#22d3ee" />
       <Speaker position={[0.86, DESK_TOP_Y, -0.38]} rotationY={-0.18} accent="#22d3ee" />

@@ -8,7 +8,16 @@ import type { CompareResponse } from "../types/api";
 import styles from "./ComparePage.module.css";
 
 // ml/price_prediction.py의 FEATURE_EXTRACTORS 키와 동일 — 예측 모델이 있는 카테고리만 비교 가능.
-const CATEGORIES = ["게이밍 노트북", "DDR5 RAM", "NVMe SSD", "그래픽카드", "CPU", "게이밍 모니터"];
+const CATEGORIES = [
+  "게이밍 노트북",
+  "DDR5 RAM",
+  "NVMe SSD",
+  "그래픽카드",
+  "CPU",
+  "게이밍 모니터",
+  "게이밍 키보드",
+  "게이밍 마우스",
+];
 
 export function ComparePage() {
   const [category, setCategory] = useState(CATEGORIES[0]);

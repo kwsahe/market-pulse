@@ -105,9 +105,9 @@ export function DeskPage() {
           <aside className={styles.empty}>
             <h2 className={styles.emptyTitle}>부품을 골라보세요</h2>
             <p className={styles.emptyText}>
-              케이스 안의 CPU·그래픽카드·RAM·SSD, 그리고 책상 위 노트북 2종과 게이밍 모니터가 각각
-              하나의 가격 카테고리예요. 부품을 클릭하면 그 카테고리의 오늘 시세와 최근 추이가 여기에
-              열립니다.
+              케이스 안의 CPU·그래픽카드·RAM·SSD, 그리고 책상 위 노트북 2종과 모니터·키보드·마우스가
+              각각 하나의 가격 카테고리예요. 부품을 클릭하면 그 카테고리의 오늘 시세와 최근 추이가
+              여기에 열립니다.
             </p>
             <ul className={styles.emptyList}>
               {PARTS.map((part) => (

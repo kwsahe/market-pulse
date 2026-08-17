@@ -265,6 +265,100 @@ def extract_monitor_features(row):
     return features
 
 
+def extract_keyboard_features(row):
+    """게이밍 키보드 스펙에서 특성 추출
+
+    스펙 텍스트 예시:
+    "키보드 / 풀배열 / 유선 / 기계식 / 104키 / 스위치 : GTMX / 1000Hz / 1ms 응답속도 /
+     비키스타일 / 스위치 교체형 / 레인보우 백라이트 / PBT / 이중사출 키캡"
+
+    정규식은 다나와 키보드 검색 결과 200건을 실측해서 맞췄다. 키압·무한동시입력은
+    요약 spec_list에 0%라서(전체 스펙표에만 있음) 넣지 않았다.
+    """
+    specs = str(row.get("specs", ""))
+    features = {}
+
+    # 방식 — 가격을 가장 크게 가르는 축 (무접점 자석축 > 광축 > 기계식)
+    features["is_magnetic"] = 1 if re.search(r"무접점\s*\(\s*자석축", specs) else 0
+    features["is_optical"] = 1 if re.search(r"무접점\s*\(\s*광축", specs) else 0
+    features["is_mechanical"] = 1 if "기계식" in specs else 0
+
+    # 배열 — 키 수로 환산되지만 배열 자체도 가격에 영향을 준다
+    features["is_tenkeyless"] = 1 if "텐키리스" in specs else 0
+    features["is_mini"] = 1 if re.search(r"/\s*미니\s*/", specs) else 0
+
+    # 키 수
+    keys = re.search(r"(\d{2,3})\s*키(?=\s|/|$)", specs)
+    features["key_count"] = int(keys.group(1)) if keys else 0
+
+    # 연결 방식
+    features["is_wireless"] = 1 if "무선" in specs else 0
+    features["has_bluetooth"] = 1 if "블루투스" in specs else 0
+
+    # 폴링레이트 (Hz) — 1000/8000으로 이분화된다
+    hz = re.search(r"(\d{3,4})\s*Hz", specs)
+    features["polling_hz"] = int(hz.group(1)) if hz else 0
+
+    # 응답속도 (ms)
+    ms = re.search(r"([\d.]+)\s*ms\s*응답속도", specs)
+    features["response_ms"] = float(ms.group(1)) if ms else 0
+
+    # 백라이트 등급 (RGB > 단색/레인보우 > 없음)
+    features["has_rgb"] = 1 if "RGB 백라이트" in specs else 0
+
+    # 핫스왑 — 스펙 표기는 '스위치 교체형'이고 '핫스왑'이라는 단어는 쓰이지 않는다
+    features["is_hotswap"] = 1 if re.search(r"스위치\s*교체형", specs) else 0
+
+    # 키캡 재질 (PBT가 ABS보다 상급)
+    features["is_pbt"] = 1 if re.search(r"\bPBT\b", specs) else 0
+
+    return features
+
+
+def extract_mouse_features(row):
+    """게이밍 마우스 스펙에서 특성 추출
+
+    스펙 텍스트 예시:
+    "마우스 / 유선+무선 / DPI+5버튼 / 26000DPI / 광 / 전용동글(리시버) / 블루투스 /
+     USB / 센서 : PAW-3395 / 8000Hz 폴링레이트 / 오른손"
+
+    정규식은 다나와 마우스 검색 결과 116건을 실측해서 맞췄다.
+    무게(g)는 목록 spec_list에 0%라서(상세페이지에만 있을 수 있음) 넣지 않았다.
+    """
+    specs = str(row.get("specs", ""))
+    features = {}
+
+    # DPI
+    dpi = re.search(r"(\d{3,6})\s*DPI", specs)
+    features["dpi"] = int(dpi.group(1)) if dpi else 0
+
+    # 폴링레이트 (Hz) — 게이밍 등급을 가장 잘 가르는 지표
+    polling = re.search(r"(\d{3,5})\s*Hz\s*폴링레이트", specs)
+    features["polling_hz"] = int(polling.group(1)) if polling else 0
+
+    # 버튼 수 — 'DPI+5버튼'은 DPI 전환 버튼이 별도라는 뜻이라 실질 6버튼이다
+    buttons = re.search(r"(\d{1,2})\s*버튼", specs)
+    features["button_count"] = int(buttons.group(1)) if buttons else 0
+    features["has_dpi_button"] = 1 if re.search(r"DPI\s*\+\s*\d{1,2}\s*버튼", specs) else 0
+
+    # 연결 방식 — 하이라이트 때문에 '유선+ 무선'으로 깨질 수 있어 공백을 허용한다
+    features["is_wireless"] = 1 if re.search(r"유선\s*\+\s*무선|(?<!유선\+)무선", specs) else 0
+    features["has_bluetooth"] = 1 if "블루투스" in specs else 0
+    features["has_dongle"] = 1 if "전용동글" in specs else 0
+
+    # 상급 센서 여부 (PAW-3395 / HERO / MARKSMAN 계열)
+    features["has_premium_sensor"] = (
+        1 if re.search(r"PAW-3\d{3}|HERO|MARKSMAN|BAMF", specs, re.IGNORECASE) else 0
+    )
+
+    # 조명 / 소프트웨어 / 매크로
+    features["has_rgb"] = 1 if re.search(r"(RGB|LED)라이트", specs) else 0
+    features["has_software"] = 1 if "소프트웨어" in specs else 0
+    features["has_macro"] = 1 if "매크로" in specs else 0
+
+    return features
+
+
 # ============================
 # 카테고리별 특성 추출 매핑
 # ============================
@@ -275,6 +369,8 @@ FEATURE_EXTRACTORS = {
     "그래픽카드": extract_gpu_features,
     "CPU": extract_cpu_features,
     "게이밍 모니터": extract_monitor_features,
+    "게이밍 키보드": extract_keyboard_features,
+    "게이밍 마우스": extract_mouse_features,
 }
 
 
@@ -322,6 +418,25 @@ FEATURE_LABELS = {
     "is_fast_ips": "고속 IPS 패널",
     "is_ultrawide": "울트라와이드",
     "stand_features": "스탠드 조절 기능 수",
+    "is_magnetic": "무접점(자석축)",
+    "is_optical": "무접점(광축)",
+    "is_mechanical": "기계식",
+    "is_tenkeyless": "텐키리스",
+    "is_mini": "미니 배열",
+    "key_count": "키 수",
+    "is_wireless": "무선",
+    "has_bluetooth": "블루투스",
+    "polling_hz": "폴링레이트(Hz)",
+    "has_rgb": "RGB 백라이트",
+    "is_hotswap": "스위치 교체형",
+    "is_pbt": "PBT 키캡",
+    "dpi": "DPI",
+    "button_count": "버튼 수",
+    "has_dpi_button": "DPI 전환 버튼",
+    "has_dongle": "전용 동글",
+    "has_premium_sensor": "상급 센서",
+    "has_software": "소프트웨어 지원",
+    "has_macro": "매크로",
 }
 
 
