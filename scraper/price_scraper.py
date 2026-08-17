@@ -151,10 +151,23 @@ def find_product_block(tag):
     return parent
 
 
-# 중고/병행수입 옵션은 신품과 가격대가 달라서 같은 시계열에 섞으면 안 된다.
+# 중고/병행수입 상품은 신품과 가격대가 달라서 같은 시계열에 섞으면 안 된다.
 # 실측(키보드 200건): 23%가 '중고' 옵션을 갖고, 중고가는 신품 최저가보다 평균 16.8%,
 # 최대 32% 싸다. 그대로 넣으면 카테고리 최저가·평균가와 가격 하락 알림이 전부 왜곡된다.
-USED_VARIANT_PATTERN = re.compile(r"중고|병행수입|해외구매|리퍼")
+#
+# 다나와는 이걸 두 군데에 흘려 놓는다 — prod_pricelist의 변형 라벨(예: '중고')과
+# 상품명 자체(예: '삼성전자 PM981a M.2 NVMe 중고'). 두 경로가 다른 기준을 쓰면
+# 한쪽만 새는 함정이라 같은 패턴을 공유한다.
+#
+# '벌크'는 절대 넣지 말 것 — 무포장 정품(새 제품)이고, 오히려 ml/price_prediction.py의
+# extract_cpu_features가 is_bulk를 가격 특성으로 쓰고 있다.
+# '리퍼'는 실제 표기가 '리퍼비시'라, '그리퍼' 같은 단어에 걸리지 않게 전체 형태로 적는다.
+USED_PRODUCT_PATTERN = re.compile(r"중고|병행수입|해외구매|리퍼비시|리퍼브")
+
+
+def _is_new_product(product: str) -> bool:
+    """상품명에 중고/리퍼비시 표시가 없는(=신품 시세로 볼 수 있는) 상품인지."""
+    return not USED_PRODUCT_PATTERN.search(product or "")
 
 
 def extract_variants(parent):
@@ -180,7 +193,7 @@ def extract_variants(parent):
         mem_text = mem_text_span.get_text(strip=True)
         if not mem_text:
             continue
-        if USED_VARIANT_PATTERN.search(mem_text):
+        if USED_PRODUCT_PATTERN.search(mem_text):
             continue
         price_tag = item.find("a", class_="click_log_product_standard_price_")
         if not price_tag:
@@ -258,6 +271,10 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
                 href = name_tag.get("href", "")
                 pcode = extract_pcode(href)
                 if not pcode or pcode in seen_pcodes:
+                    continue
+                # 노트북은 리퍼비시가 특히 많이 섞여 들어온다(실측 34종) — 신품 시세만 남긴다
+                if not _is_new_product(product):
+                    print(f"   [SKIP] 중고/리퍼: {product[:50]}")
                     continue
                 cate = extract_cate(href, default_cate=default_cate)
 
@@ -380,6 +397,7 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
     data_list = []
     registered = 0
     skipped = 0
+    used_skipped = 0
     for i, name_tag in enumerate(names):
         try:
             product = clean_name(name_tag)
@@ -390,7 +408,11 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
             specs = extract_specs(block)
             variants = extract_variants(block)
 
-            # 카테고리 선별 규칙은 상품번호 발급보다 먼저 — 걸러낸 상품에 번호가 나가면 안 된다
+            # 선별 규칙은 상품번호 발급보다 먼저 — 걸러낸 상품에 번호가 나가면 안 된다
+            if not _is_new_product(product):
+                used_skipped += 1
+                print(f"{i+1}. [SKIP] 중고/리퍼: {product[:50]}")
+                continue
             if keep and not keep(product, specs):
                 skipped += 1
                 print(f"{i+1}. [SKIP] 카테고리 조건 미달: {product[:50]}")
@@ -431,6 +453,7 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
 
     # DB 저장 (중복 무시)
     skip_note = f" | 조건 미달 제외: {skipped}개" if skipped else ""
+    skip_note += f" | 중고/리퍼 제외: {used_skipped}개" if used_skipped else ""
     if data_list:
         new_count = insert_many_laptop_prices(data_list)
         print(f"\n[OK] [{category}] 수집: {len(data_list)}개 | 신규 저장: {new_count}개 | 상품번호 등록: {registered}개 | 중복 건너뜀: {len(data_list) - new_count}개{skip_note}")

@@ -194,6 +194,25 @@ run_scrapers.bat
 
 ---
 
+### **3-1. 중고 상품 정리 (1회성)**
+
+스크래퍼에 중고 필터가 들어가기 전에 쌓인 중고/리퍼비시/병행수입/해외구매 행을 소급 정리합니다.
+필터 적용 이후 수집분에는 애초에 안 들어오므로 보통 한 번만 돌리면 됩니다.
+
+```bash
+python scripts/cleanup_used_products.py            # 미리보기 (DB를 건드리지 않음)
+python scripts/cleanup_used_products.py --apply    # 백업 뜨고 실제 삭제
+```
+
+- 삭제 기준은 `scraper.price_scraper._is_new_product`를 그대로 재사용합니다 —
+  여기서 조건을 다시 쓰면 스크래퍼와 기준이 갈라져 한쪽만 새게 됩니다.
+- `벌크`는 무포장 정품이라 대상이 아닙니다(`extract_cpu_features`가 `is_bulk`를 가격 특성으로 씁니다).
+- `product_registry`는 건드리지 않습니다 — `get_or_create_product_code`가 `COUNT(*)+1`로
+  다음 번호를 매겨서, 레지스트리 행을 지우면 이미 발급된 상품번호와 충돌합니다.
+- 과거 스냅샷이 바뀌므로 카테고리 최저가·평균가와 가격 추이 그래프가 소급해서 달라집니다.
+
+---
+
 ### **4. ML 분석만 실행**
 
 ```bash

@@ -4,7 +4,8 @@
 from bs4 import BeautifulSoup
 
 from scraper.price_scraper import (
-    _is_gaming_keyboard, _is_gaming_monitor, _is_gaming_mouse, clean_name, extract_variants,
+    _is_gaming_keyboard, _is_gaming_monitor, _is_gaming_mouse, _is_new_product,
+    clean_name, extract_variants,
 )
 
 
@@ -112,6 +113,37 @@ def test_extract_variants_drops_used_options():
     """중고가는 신품 최저가보다 평균 16.8%, 최대 32% 싸서 같은 시계열에 섞으면
     카테고리 최저가·평균가와 가격 하락 알림이 전부 왜곡된다."""
     assert extract_variants(block(USED_VARIANT_HTML)) == [("적축", 29900)]
+
+
+# ============================
+# 상품명 기준 중고 제외
+# ============================
+
+def test_is_new_product_drops_used_and_refurbished():
+    """다나와는 중고 표시를 변형 라벨뿐 아니라 상품명 자체에도 넣는다."""
+    assert not _is_new_product("삼성전자 PM981a M.2 NVMe 중고 (256GB)")
+    assert not _is_new_product("GIGABYTE AORUS Gen4 M.2 NVMe 중고 (2TB)")
+    assert not _is_new_product("ASUS TUF Gaming A14 FA401UM-RG007 (리퍼비시)")
+    assert not _is_new_product("삼성전자 PM9A1 M.2 NVMe 병행수입 (2TB)")
+    assert not _is_new_product("삼성전자 990 PRO M.2 NVMe 해외구매 (4TB)")
+
+
+def test_is_new_product_keeps_bulk():
+    """벌크는 무포장 정품(새 제품)이라 걸러내면 안 된다 —
+    ml/price_prediction.py의 extract_cpu_features가 is_bulk를 가격 특성으로 쓴다."""
+    assert _is_new_product("삼성전자 PM9A1 M.2 NVMe 벌크 (1TB)")
+    assert _is_new_product("인텔 코어i5-14세대 14400 (랩터레이크 리프레시) (벌크 + 쿨러)")
+
+
+def test_is_new_product_keeps_normal_products():
+    assert _is_new_product("CORSAIR K100 AIR WIRELESS RGB 게이밍 기계식")
+    assert _is_new_product("LG전자 울트라기어 evo AI 올레드 39GX950B")
+    assert _is_new_product("")
+
+
+def test_is_new_product_does_not_match_partial_words():
+    """'리퍼'만 잡으면 '그리퍼' 같은 무관한 단어에 걸린다 — 전체 형태로만 매칭한다."""
+    assert _is_new_product("로보틱스 그리퍼 마우스")
 
 
 # ============================
