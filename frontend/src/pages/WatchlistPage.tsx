@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useReadonly } from "../hooks/useReadonly";
 import { Link } from "react-router-dom";
 import { getWatchlist, saveTarget, trackProduct } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
@@ -11,6 +12,7 @@ function WatchlistCard({ item, onChanged }: { item: WatchlistItem; onChanged: ()
   const [targetInput, setTargetInput] = useState(item.target_price ? String(item.target_price) : "");
   const [memoInput, setMemoInput] = useState(item.memo ?? "");
   const [saving, setSaving] = useState(false);
+  const readonly = useReadonly();
 
   const handleSave = async () => {
     setSaving(true);
@@ -46,6 +48,8 @@ function WatchlistCard({ item, onChanged }: { item: WatchlistItem; onChanged: ()
         {item.target_reached && (
           <div className={styles.reached}>🎯 목표가 도달! 지금이 구매 타이밍이에요.</div>
         )}
+        {!readonly && (
+        <>
         <div className={styles.targetRow}>
           <input
             type="number"
@@ -68,6 +72,8 @@ function WatchlistCard({ item, onChanged }: { item: WatchlistItem; onChanged: ()
         <button className={styles.untrackBtn} onClick={handleUntrack}>
           추적 해제
         </button>
+        </>
+        )}
       </div>
     </div>
   );

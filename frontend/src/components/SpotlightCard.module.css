@@ -96,3 +96,11 @@
 .link:hover {
   text-decoration: underline;
 }
+
+/* 자동 슬라이드 대신 한 번에 다 보여준다 — 순위를 비교하는 게 목적이라 한 장씩 넘기면 안 된다.
+   (예전 슬라이드는 4초마다 혼자 넘어가고 멈출 방법이 없었다 — WCAG 2.2.2) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}

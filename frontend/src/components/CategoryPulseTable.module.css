@@ -1,0 +1,66 @@
+.wrap {
+  overflow-x: auto; /* 아주 좁은 화면에서도 표가 페이지를 옆으로 밀어내지 않게 */
+}
+
+.table {
+  width: 100%;
+  max-width: 720px; /* 숫자가 카테고리 이름에서 너무 멀어지지 않게 */
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.table thead th {
+  color: var(--mp-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.table th:first-child {
+  text-align: left;
+}
+
+.table tbody th {
+  font-weight: 500;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+
+.up {
+  color: var(--mp-red);
+  font-weight: 600;
+}
+
+.down {
+  color: var(--mp-green);
+  font-weight: 600;
+}
+
+.zero {
+  color: var(--mp-muted);
+}
+
+.note {
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .table th,
+  .table td {
+    padding: 10px 6px;
+  }
+}

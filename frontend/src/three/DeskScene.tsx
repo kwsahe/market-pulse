@@ -8,6 +8,7 @@ import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
 import { ContactShadows, Edges, Html, OrbitControls, useCursor } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Vector3 } from "three";
+import { REDUCED_MOTION } from "../constants";
 
 import {
   CaseFan,
@@ -105,7 +106,8 @@ function CameraRig({
     if (!controls || !traveling.current) return;
 
     // 프레임레이트와 무관하게 같은 속도로 수렴하는 지수 보간
-    const t = 1 - Math.pow(0.0015, delta);
+    // 움직임 줄이기가 켜져 있으면 날아가지 않고 한 프레임에 도착한다
+    const t = REDUCED_MOTION ? 1 : 1 - Math.pow(0.0015, delta);
     state.camera.position.lerp(goalPosition.current, t);
     controls.target.lerp(goalTarget.current, t);
     controls.update();

@@ -1,7 +1,6 @@
 import { getSpotlights } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { SectionHeader } from "./SectionHeader";
-import { Carousel } from "./Carousel";
 import { SpotlightCard } from "./SpotlightCard";
 import cardStyles from "./SpotlightCard.module.css";
 
@@ -9,7 +8,7 @@ export function SpotlightSection() {
   const { data } = useFetch(() => getSpotlights(), []);
   if (!data) return null;
 
-  const moverSlides = data.top_movers.map((item) => {
+  const moverCards = data.top_movers.map((item) => {
     const isUp = item.change > 0;
     return (
       <SpotlightCard
@@ -25,7 +24,7 @@ export function SpotlightSection() {
     );
   });
 
-  const notableSlides = data.notable.map((item) => (
+  const notableCards = data.notable.map((item) => (
     <SpotlightCard
       key={item.code || item.product}
       code={item.code}
@@ -44,16 +43,16 @@ export function SpotlightSection() {
 
   return (
     <>
-      {moverSlides.length > 0 && (
+      {moverCards.length > 0 && (
         <section>
-          <SectionHeader icon="🔥" title="오늘의 변동폭 TOP" subtitle="가격이 가장 많이 움직인 상품이 순서대로 나타나요" />
-          <Carousel slides={moverSlides} />
+          <SectionHeader icon="🔥" title="오늘의 변동폭 TOP" subtitle="가격이 가장 많이 움직인 순서예요" />
+          <div className={cardStyles.grid}>{moverCards}</div>
         </section>
       )}
-      {notableSlides.length > 0 && (
+      {notableCards.length > 0 && (
         <section>
-          <SectionHeader icon="✨" title="주목할 만한 상품" subtitle="이상치·신제품이 순서대로 나타나요" />
-          <Carousel slides={notableSlides} />
+          <SectionHeader icon="✨" title="주목할 만한 상품" subtitle="이상치·신제품이에요" />
+          <div className={cardStyles.grid}>{notableCards}</div>
         </section>
       )}
     </>

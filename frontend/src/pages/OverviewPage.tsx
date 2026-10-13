@@ -4,7 +4,7 @@ import { getCategories, getPrices } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import { StatCards, type Stat } from "../components/StatCard";
 import { SectionHeader } from "../components/SectionHeader";
-import { CategoryBarChart } from "../components/CategoryBarChart";
+import { CategoryPulseTable } from "../components/CategoryPulseTable";
 import { CategoryTabs } from "../components/CategoryTabs";
 import { SearchBar } from "../components/SearchBar";
 import { ProductCard } from "../components/ProductCard";
@@ -131,13 +131,12 @@ export function OverviewPage() {
 
       {categoriesData && categoriesData.categories.length > 0 && (
         <section>
-          <SectionHeader icon="📊" title="카테고리별 평균 가격" />
-          <CategoryBarChart
-            data={categoriesData.categories}
-            valueKey="avg_price"
-            valueLabel="평균가"
-            formatValue={(v) => `${Math.round(v / 10000)}만원`}
+          <SectionHeader
+            icon="📊"
+            title="카테고리별 가격 변동"
+            subtitle="중앙값과, 직전 수집일보다 오른·내린 상품 수예요"
           />
+          <CategoryPulseTable categories={categoriesData.categories.map((c) => c.category)} />
         </section>
       )}
 

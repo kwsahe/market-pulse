@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, YAxis } from "recharts";
 import { getCategoryPulse } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
+import { REDUCED_MOTION } from "../constants";
 import type { PartDef } from "../three/parts";
 import { partColor } from "../three/parts";
 import type { CategoryPulseItem } from "../types/api";
@@ -152,6 +153,7 @@ export function PartPulsePanel({
                     stroke={accent}
                     strokeWidth={2}
                     fill={`url(#pulse-${part.id})`}
+                    isAnimationActive={!REDUCED_MOTION}
                   />
                 </AreaChart>
               </ResponsiveContainer>

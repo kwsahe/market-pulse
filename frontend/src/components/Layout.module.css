@@ -19,17 +19,13 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(34, 211, 238, 0.25);
 }
 
 .title {
   margin: 0;
   font-size: 2rem;
   font-weight: 800;
-  background: linear-gradient(90deg, var(--mp-cyan), var(--mp-violet));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--mp-text);
 }
 
 .subtitle {
@@ -58,6 +54,11 @@
   color: var(--mp-muted);
 }
 
+.pillBad {
+  border-color: var(--mp-red, #ef4444);
+  color: var(--mp-red, #ef4444);
+}
+
 .liveDot {
   width: 7px;
   height: 7px;
@@ -82,13 +83,17 @@
 .nav {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+  /* 좁은 화면에서 메뉴 9개가 3줄로 접히던 것을 한 줄 가로 스크롤로 */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
   margin-bottom: 28px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--mp-border);
 }
 
 .navLink {
+  white-space: nowrap; /* 줄이 좁아져도 "가격 변동"이 알약 안에서 두 줄로 꺾이지 않게 */
   padding: 8px 14px;
   border-radius: 999px;
   font-size: 0.88rem;
@@ -104,7 +109,7 @@
 
 .navLinkActive {
   color: var(--mp-bg);
-  background: linear-gradient(90deg, var(--mp-cyan), var(--mp-violet));
+  background: var(--mp-cyan);
   font-weight: 600;
 }
 
@@ -112,4 +117,26 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+}
+
+/* 기본 규칙보다 뒤에 있어야 이긴다 */
+@media (max-width: 560px) {
+  .hero {
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  /* 소개 문구는 부가 정보 — 좁은 화면에선 데이터를 먼저 보여준다 */
+  .subtitle {
+    display: none;
+  }
 }

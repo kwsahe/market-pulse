@@ -37,21 +37,18 @@
 }
 
 .infoValue {
-  font-family: "Manrope", sans-serif;
   font-weight: 700;
   font-size: 1.1rem;
   margin-top: 4px;
 }
 
 .resultValue {
-  font-family: "Manrope", sans-serif;
   font-weight: 700;
   font-size: 1.15rem;
   margin: 4px 0;
 }
 
 .scoreValue {
-  font-family: "Manrope", sans-serif;
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--mp-cyan);

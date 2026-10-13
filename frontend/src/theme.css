@@ -13,7 +13,7 @@
   --mp-cyan: #22d3ee;
   --mp-violet: #8b5cf6;
   --mp-green: #0ca30c;
-  --mp-red: #d03b3b;
+  --mp-red: #ef5f5f; /* #d03b3b 는 작은 글씨에서 대비 3.6:1 → 5.4:1 */
   --mp-amber: #fab219;
 
   --mp-cat-laptop: #3987e5;
@@ -44,21 +44,47 @@ body,
 body {
   margin: 0;
   background: var(--mp-bg);
-  background-image:
-    radial-gradient(circle at 8% 6%, rgba(34, 211, 238, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 95% 97%, rgba(139, 92, 246, 0.12) 0%, transparent 45%);
-  background-attachment: fixed;
   color: var(--mp-text);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Inter/Manrope 는 선언만 하고 로드한 적이 없고 둘 다 한글이 없어서,
+     화면 글자 대부분이 OS 기본 글꼴(Windows 맑은 고딕)로 나왔다. 한글+영문 단일 패밀리로 통일. */
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* 가격 대시보드라 숫자 자릿수가 세로로 맞아야 한다 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* 폼 컨트롤은 font-family 를 상속하지 않는다 */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 h1,
 h2,
 h3 {
-  font-family: "Manrope", "Inter", sans-serif;
   letter-spacing: -0.02em;
 }
 
 a {
   color: var(--mp-cyan);
+}
+
+/* 키보드 이동 위치 표시. 브라우저 기본 링은 어두운 배경에서 약하고 요소마다 달랐다. */
+:focus-visible {
+  outline: 2px solid var(--mp-cyan);
+  outline-offset: 2px;
+}
+
+/* 움직임 줄이기 설정을 켠 사용자: 깜빡이는 상태 점 같은 반복 애니메이션까지 멈춘다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

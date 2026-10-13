@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trackProduct } from "../api/client";
+import { useReadonly } from "../hooks/useReadonly";
 import type { LaptopItem } from "../types/api";
 import { ImageGalleryModal } from "./ImageGalleryModal";
 import styles from "./LaptopCard.module.css";
@@ -9,6 +10,7 @@ export function LaptopCard({ item, onTrackChange }: { item: LaptopItem; onTrackC
   const [showGallery, setShowGallery] = useState(false);
   const [showSpecs, setShowSpecs] = useState(false);
   const [busy, setBusy] = useState(false);
+  const readonly = useReadonly();
 
   const handleToggleTrack = async () => {
     setBusy(true);
@@ -57,10 +59,12 @@ export function LaptopCard({ item, onTrackChange }: { item: LaptopItem; onTrackC
             </div>
           ))}
 
-        <label className={styles.trackLabel}>
-          <input type="checkbox" checked={item.tracked} disabled={busy} onChange={handleToggleTrack} />
-          🎯 집중 추적
-        </label>
+        {!readonly && (
+          <label className={styles.trackLabel}>
+            <input type="checkbox" checked={item.tracked} disabled={busy} onChange={handleToggleTrack} />
+            🎯 집중 추적
+          </label>
+        )}
 
         <div className={styles.actions}>
           <button className={styles.specToggle} onClick={() => setShowSpecs((s) => !s)}>

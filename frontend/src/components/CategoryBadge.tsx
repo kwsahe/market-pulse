@@ -10,7 +10,7 @@ export function CategoryBadge({ category }: { category: string }) {
         borderRadius: 999,
         fontSize: "0.75rem",
         fontWeight: 600,
-        color,
+        color: "var(--mp-text)", // 키보드·모니터·마우스 색을 글씨에 쓰면 대비 2.8:1
         background: `${color}26`,
         border: `1px solid ${color}55`,
       }}

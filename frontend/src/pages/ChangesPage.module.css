@@ -17,7 +17,7 @@
 
 .tabActive {
   color: var(--mp-bg);
-  background: linear-gradient(90deg, var(--mp-cyan), var(--mp-violet));
+  background: var(--mp-cyan);
   border-color: transparent;
   font-weight: 600;
 }

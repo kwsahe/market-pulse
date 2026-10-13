@@ -368,3 +368,13 @@ export interface LaptopsResponse {
   latest_date?: string | null;
   items: LaptopItem[];
 }
+
+export interface HealthResponse {
+  status: "ok" | "stale" | "empty" | "error";
+  readonly: boolean;
+  last_scrape_date: string | null;
+  days_stale: number | null;
+  rows: number;
+  categories: number;
+  detail?: string;
+}

@@ -16,3 +16,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
 export function categoryColor(category: string): string {
   return CATEGORY_COLORS[category] ?? "#8b93a7";
 }
+
+// 움직임 줄이기 설정. 페이지를 연 시점 값만 본다 — 설정을 바꾸면 새로고침해야 반영된다.
+// (vitest 는 node 환경이라 window 가 없다)
+export const REDUCED_MOTION =
+  typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;

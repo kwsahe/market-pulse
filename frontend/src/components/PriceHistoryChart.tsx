@@ -8,6 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PricePoint } from "../types/api";
+import { REDUCED_MOTION } from "../constants";
 
 export function PriceHistoryChart({ history, color }: { history: PricePoint[]; color: string }) {
   return (
@@ -31,7 +32,7 @@ export function PriceHistoryChart({ history, color }: { history: PricePoint[]; c
           }}
           formatter={(value) => [`${Number(value).toLocaleString()}원`, "가격"]}
         />
-        <Line type="monotone" dataKey="price" stroke={color} strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="price" stroke={color} strokeWidth={2} dot={false} isAnimationActive={!REDUCED_MOTION} />
       </LineChart>
     </ResponsiveContainer>
   );

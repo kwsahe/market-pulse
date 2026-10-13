@@ -58,7 +58,6 @@
 }
 
 .price {
-  font-family: "Manrope", sans-serif;
   font-weight: 700;
   color: var(--mp-cyan);
   font-size: 0.9rem;

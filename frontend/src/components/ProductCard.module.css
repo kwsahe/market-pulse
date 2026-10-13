@@ -6,12 +6,11 @@
   overflow: hidden;
   text-decoration: none;
   color: var(--mp-text);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
 a.card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.12);
   border-color: var(--mp-cyan);
 }
 
@@ -67,7 +66,6 @@ a.card:hover {
 }
 
 .price {
-  font-family: "Manrope", sans-serif;
   font-weight: 700;
   color: var(--mp-cyan);
 }

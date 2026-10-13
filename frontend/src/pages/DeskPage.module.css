@@ -52,9 +52,7 @@
   border: 1px solid var(--mp-border);
   border-radius: var(--mp-radius);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(34, 211, 238, 0.1) 0%, transparent 55%),
-    var(--mp-bg);
+  background: var(--mp-bg);
 }
 
 @media (max-width: 900px) {

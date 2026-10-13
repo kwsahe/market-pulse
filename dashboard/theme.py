@@ -31,7 +31,7 @@ LOGO_DATA_URI = _load_logo_data_uri()
 # 기존 파스텔톤(#34D399/#F87171/#FBBF24)은 명도 밴드·CVD 분리 기준을 통과하지 못해 교체함.
 # red-green 조합은 적록색맹에서 근본적으로 구분이 어려워(ΔE 4.1) 배지에 이모지+수치를 항상 병기해 보완.
 GREEN = "#0CA30C"   # 가격 인하 / 이득 (good)
-RED = "#D03B3B"     # 가격 인상 (critical)
+RED = "#EF5F5F"     # 가격 인상 (critical)
 AMBER = "#FAB219"   # 이상치 경고 (warning)
 
 # 카테고리 고정 색상(다른 차트에서도 항상 같은 카테고리는 항상 같은 색).

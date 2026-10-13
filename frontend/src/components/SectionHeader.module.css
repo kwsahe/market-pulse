@@ -3,9 +3,6 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
-  padding-left: 12px;
-  border-left: 4px solid transparent;
-  border-image: linear-gradient(180deg, var(--mp-cyan), var(--mp-violet)) 1;
 }
 
 .icon {

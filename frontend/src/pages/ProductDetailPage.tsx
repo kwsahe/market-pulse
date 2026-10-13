@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getProductDetail, getWatchlist, trackProduct } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
+import { useReadonly } from "../hooks/useReadonly";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { PriceHistoryChart } from "../components/PriceHistoryChart";
 import { categoryColor } from "../constants";
@@ -10,6 +11,7 @@ import styles from "./ProductDetailPage.module.css";
 function TrackToggle({ pcode }: { pcode: string }) {
   const [tracked, setTracked] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
+  const readonly = useReadonly();
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +34,9 @@ function TrackToggle({ pcode }: { pcode: string }) {
       setBusy(false);
     }
   };
+
+  // 읽기전용으로 공개된 서버에서는 눌러도 실패하므로 아예 감춘다.
+  if (readonly) return null;
 
   return (
     <button className={tracked ? styles.trackBtnActive : styles.trackBtn} onClick={toggle} disabled={busy}>
