@@ -418,8 +418,163 @@ finalize
 - [ ] LLM 기반 뉴스 요약 및 키워드 추출
 - [x] 가격 예측 모델 대시보드 연동 (React 프론트엔드에서 제공)
 - [ ] 시계열 예측 (Prophet) 추가
-- [ ] Docker 컨테이너화
-- [ ] React 프론트엔드 배포용 설정(환경변수 기반 API URL, CORS) 정리
+- [ ] Docker 컨테이너화 (서울 VM 이전 시)
+- [x] React 프론트엔드 API URL 환경변수화 (`VITE_API_BASE_URL`) — CORS 정리는 단일 오리진 배포 시
+- [ ] 뉴스 수집을 네이버 검색 API로 교체 (robots.txt 준수)
+- [x] 단일 오리진 서빙 + 읽기전용 모드
+- [ ] 공개 URL 터널 (Tailscale Funnel — 계정 로그인 필요)
+
+---
+
+## ⚙️ 자동 수집 운영
+
+수집은 Windows 작업 스케줄러가 **매일 09:10** 에 자동 실행한다.
+예전에는 `run_scrapers.bat` 끝의 `pause` 때문에 사람이 창을 닫아줘야 끝나서, 손으로 더블클릭한 날만
+수집이 됐다 — 그 결과가 165일 중 29일(17.6%) 수집이었다. 지금은 무인으로 돈다.
+
+```bash
+# 등록 상태 확인 / 즉시 1회 실행 / 해제 (PowerShell)
+Get-ScheduledTask -TaskName MarketPulse-DailyScrape
+Start-ScheduledTask -TaskName MarketPulse-DailyScrape
+Unregister-ScheduledTask -TaskName MarketPulse-DailyScrape -Confirm:$false
+```
+
+작업은 **창 없이** 돈다. 예전에는 실행될 때마다 콘솔 창이 떴고, 그 창을 닫으면 수집이 기록 없이
+중간에 끊겼다(2026-10-11, CPU 수집 도중 종료). 지금은 창 없는 Python(`pythonw`)이 배치를
+`CREATE_NO_WINDOW`로 띄우고 배치의 종료코드를 그대로 돌려준다 — 그래서 작업 스케줄러의
+"마지막 실행 결과"가 실패를 계속 기록한다. (`conhost --headless`는 종료코드를 항상 0으로 돌려줘서 쓰지 않는다)
+실행 결과는 `logs/last_run.log`에 남고, 실패하면 Windows 알림이 뜬다.
+
+```powershell
+# 작업을 다시 만들 때의 동작 설정
+$arg = "-c `"import subprocess,sys; sys.exit(subprocess.call(['cmd.exe','/c',r'C:\Users\sangh\Desktop\run_scraper.bat','auto'], creationflags=0x08000000))`""
+Set-ScheduledTask -TaskName MarketPulse-DailyScrape -Action (New-ScheduledTaskAction -Execute 'C:\Users\sangh\anaconda3\pythonw.exe' -Argument $arg)
+```
+
+배치는 4단계로 돌고, 어느 하나라도 실패하면 종료코드 1로 끝난다.
+
+| 단계 | 내용 |
+|---|---|
+| 1 | `scraper/price_scraper.py` — 가격 수집 |
+| 2 | `ml/price_change.py` — 가격 변동 분석 |
+| 3 | `scripts/verify_last_scrape.py` — 수집 결과 검증 |
+| 4 | `scripts/backup_db.py` — 백업 |
+
+### 수집 검증 (`scripts/verify_last_scrape.py`)
+
+`scrape_runs.status` 는 신뢰하지 않는다. 실측상 price 런 22회가 **전부** `success` 였고,
+CPU 카테고리가 스마트폰·태블릿으로 오염된 런도, 0건 수집한 런 3개도 `success` 였다.
+대신 결과 데이터의 형상을 본다 — 최신 날짜가 오늘인지, 직전 수집일에 있던 카테고리가 사라지지
+않았는지, 카테고리별 행수가 급감(-40%)/급증(+100%) 하지 않았는지.
+
+임계값 근거: 사고일을 뺀 149건의 카테고리별 전일 대비 변화율이 중앙값 0.9%, p90 5.1%, 최대 28.7%.
+CPU 오염 사고는 -98.1% 였다.
+
+### 백업 (`scripts/backup_db.py`)
+
+`shutil.copy2` 로 백업하면 **안 된다**. WAL 모드에서는 최근 커밋이 `data.db` 본체가 아니라
+`data.db-wal` 에 있어서, 본체만 복사한 백업은 조용히 비어 있다
+(실측: 5,000행 커밋 직후 본체 4,096B, 복원 시 `no such table`).
+`VACUUM INTO` 로 일관 스냅샷을 뜨고, gzip 한 뒤 **다시 풀어서 열어보는 것까지** 성공 조건에 넣었다.
+
+```bash
+python scripts/backup_db.py          # 오프사이트 폴더에 백업 + 3세대 회전
+python scripts/backup_db.py --list   # 보관 목록
+```
+
+### 환경변수
+
+| 이름 | 기본값 | 용도 |
+|---|---|---|
+| `MARKET_PULSE_DB_PATH` | `database/data.db` | DB 경로 |
+| `MARKET_PULSE_BACKUP_DIR` | `~/OneDrive/market-pulse-backup` | 오프사이트 백업 폴더 |
+| `MARKET_PULSE_FETCH_LAPTOP_DETAIL` | `0` (끔) | 노트북 상세 스펙 수집 (아래 참고) |
+| `VITE_API_BASE_URL` | `http://localhost:8000` | 프론트가 호출할 API 주소 |
+| `MARKET_PULSE_HEALTHCHECK_URL` | (없음) | 데드맨 스위치 핑 URL (아래 참고) |
+| `MARKET_PULSE_READONLY` | `0` | `1`이면 워치리스트 쓰기 라우트를 등록하지 않는다 |
+| `MARKET_PULSE_CORS_ORIGINS` | `localhost:5173` | 개발용 CORS 허용 오리진 (콤마 구분) |
+
+### 데드맨 스위치 (선택, 아직 미설정)
+
+배치 실패는 종료코드로 알 수 있지만 **배치가 아예 안 돈 날**은 종료코드조차 없다.
+PC가 꺼져 있었거나 스케줄러가 죽으면 "침묵"과 "정상"이 구분되지 않는다 —
+이 구성의 가장 그럴듯한 실패 유형이 정확히 그것이다.
+
+외부 관측자를 두면 핑이 안 오는 것만으로 알림이 온다. [healthchecks.io](https://healthchecks.io)
+무료 체크 1개를 만들고(grace 26시간 권장) 그 URL을 환경변수에 넣으면 켜진다.
+
+```powershell
+[Environment]::SetEnvironmentVariable('MARKET_PULSE_HEALTHCHECK_URL', 'https://hc-ping.com/<uuid>', 'User')
+```
+
+배치는 성공 시 그 URL로, 실패 시 `<URL>/fail` 로 핑을 보낸다. 환경변수가 없으면 아무 일도 하지 않는다.
+
+계정 없이도 동작하는 감지 장치 두 개가 이미 붙어 있다 — 서로 다른 실패를 담당한다.
+
+| 장치 | 잡는 실패 | 계정 |
+|---|---|---|
+| 헤더 신선도 배지 (`/api/health`) | 수집이 멈춘 채 며칠 지남 — 화면을 여는 순간 보인다 | 불필요 |
+| Windows 토스트 (`scripts/notify.ps1`) | 배치가 돌았는데 실패 | 불필요 |
+| healthchecks.io 핑 | **배치가 아예 안 돔** (PC 꺼짐·스케줄러 죽음) | 필요 |
+
+앞의 둘로는 "PC가 꺼져 있던 날"을 못 잡는다. 그건 외부 관측자만 알 수 있다.
+
+### robots.txt 준수
+
+무인 배치로 매일 도는 이상, 명시된 금지 경로와 크롤 간격을 지킨다.
+
+- **다나와 상세 스펙 수집이 기본 꺼져 있다.** `prod.danawa.com/robots.txt` 가 `/info/ajax/` 를
+  금지하는데 스펙표·상세이미지가 전부 그 ajax 응답에만 있다(허용된 `/info/?pcode=` 페이지는
+  ajax 호출 파라미터만 준다). 켜려면 `MARKET_PULSE_FETCH_LAPTOP_DETAIL=1`.
+  꺼져 있는 동안 **AI 노트북 카테고리는 수집되지 않는다** — 수집 여부 판정이 상세 스펙에
+  의존해서, 검증 없이 담으면 무관한 상품이 섞이기 때문이다. 이미 모은 176종분은 보존된다.
+- **뉴스 수집이 중단돼 있다.** `news.naver.com/robots.txt` 가 `Disallow: /` 전면 금지다.
+  네이버 개발자센터 검색 API로 교체한 뒤 배치에 되살린다.
+- 검색 요청 사이에 `Crawl-delay: 10` 을 지킨다(`search.danawa.com/robots.txt`).
+
+---
+
+## 🌐 단일 오리진 배포
+
+FastAPI 하나가 API와 프론트 빌드(`frontend/dist`)를 **같은 출처**에서 서빙한다.
+오리진이 하나면 CORS가 "설정할 것"이 아니라 "존재하지 않는 것"이 되고,
+배포 산출물·도메인·인증 지점이 각각 하나로 줄어든다.
+
+```bash
+npm run build --prefix frontend      # 프론트 빌드 (먼저)
+python scripts/serve_prod.py         # 읽기전용, http://127.0.0.1:8002
+python scripts/serve_prod.py --writable   # 워치리스트 편집 허용 (로컬 전용)
+```
+
+### 읽기전용이 기본인 이유
+
+워치리스트 쓰기 라우트(`POST /api/watchlist/{pcode}`, `PUT .../target`)에는 인증이 전혀 없다.
+공개 URL에 그대로 노출하면 누구나 추적 목록과 목표가를 바꿀 수 있다.
+인증을 새로 만드는 대신 **그 라우트를 등록하지 않는다** — 인증 코드 0줄로 노출면이 사라진다.
+
+- 조회(`GET /api/watchlist`)는 무해하므로 남긴다. 통째로 빼면 SPA 폴백이 HTML을 돌려줘서
+  프론트가 JSON 파싱 에러로 죽는다.
+- 프론트도 `/api/health` 의 `readonly` 를 보고 편집 컨트롤을 감춘다(`useReadonly`).
+- 확인: `curl -s localhost:8002/openapi.json` 의 쓰기 메서드가 0개여야 한다.
+
+### 공개 URL (미설정 — 계정이 필요한 단계)
+
+집 PC를 인터넷에 노출하는 터널이 필요하다. 둘 다 계정 로그인이 필요해서 자동 설정이 불가능하다.
+
+**Tailscale Funnel** (도메인·인증서 불필요, 무료)
+
+```powershell
+winget install tailscale.tailscale
+tailscale up                          # 브라우저에서 로그인
+tailscale funnel 8002                 # https://<machine>.<tailnet>.ts.net
+```
+
+주의 — Funnel 호스트명은 TLS 인증서 발급과 함께 공개 Certificate Transparency 로그에 남아
+스캐너가 열거할 수 있다. "URL을 안 알려주면 안전"은 성립하지 않으므로,
+방어는 URL 은닉이 아니라 위의 읽기전용에 둔다.
+
+가용성이 PC 가동률에 묶이므로, 포트폴리오처럼 남에게 보여줄 목적이면
+도메인 + Cloudflare Tunnel + Access 쪽이 맞다.
 
 ---
 
