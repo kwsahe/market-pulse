@@ -7,7 +7,12 @@ from contextlib import contextmanager
 from typing import Optional
 import pandas as pd
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data.db")
+# 배포 시 데이터 디렉터리를 코드 밖으로 빼기 위해 환경변수로 덮어쓸 수 있게 한다.
+# 반드시 모듈 전역으로 남겨둘 것 — 테스트 14개 파일이
+# monkeypatch.setattr(db_manager, "DB_PATH", tmp_path/...)로 임시 DB를 주입하는데,
+# 경로 결정을 get_connection() 안으로 내리면 그 주입이 조용히 무력화되고
+# 테스트가 개발자의 실제 data.db를 건드리게 된다.
+DB_PATH = os.getenv("MARKET_PULSE_DB_PATH") or os.path.join(os.path.dirname(__file__), "data.db")
 
 # 카테고리별 내부 상품번호 접두사 (RAM-1, SSD-1, GC-1, CPU-1, GN-1, AN-1 ...)
 CATEGORY_PREFIX = {
@@ -28,6 +33,9 @@ def get_connection():
     """스레드 안전 연결 컨텍스트 매니저"""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    # 스크래퍼 배치(대량 INSERT)와 API/대시보드 조회가 겹칠 때 즉시 "database is locked"로
+    # 죽지 않고 최대 15초 기다린다. 기본값은 0이라 경합 즉시 예외가 난다.
+    conn.execute("PRAGMA busy_timeout = 15000")
     try:
         yield conn
     finally:
@@ -38,6 +46,13 @@ def init_db() -> None:
     """DB 테이블 및 인덱스 초기화"""
     with get_connection() as conn:
         cursor = conn.cursor()
+
+        # WAL: 읽기(API·대시보드)가 쓰기(스크래퍼 배치)를 막지 않게 한다.
+        # DB 파일 자체에 저장되는 설정이라 한 번만 켜면 계속 유지된다.
+        # 주의 — WAL을 켜면 최근 커밋이 data.db 본체가 아니라 data.db-wal에 먼저 쌓인다.
+        # 따라서 파일 복사(shutil.copy2)로 뜬 백업은 조용히 비어 있을 수 있다.
+        # 백업은 반드시 scripts/backup_db.py(VACUUM INTO)를 거쳐야 한다.
+        cursor.execute("PRAGMA journal_mode = WAL")
 
         # prices 테이블
         cursor.execute("""
@@ -276,9 +291,14 @@ def upsert_laptop_product(pcode: str, name: str, gpu_model: str, detail_url: str
             VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
             ON CONFLICT(pcode) DO UPDATE SET
                 name=excluded.name,
-                gpu_model=excluded.gpu_model,
+                -- 상세 수집이 꺼져 있거나(robots 준수) ajax 응답이 비면 빈 값이 올라온다.
+                -- 그대로 덮으면 이미 모아둔 스펙 텍스트가 조용히 지워지므로,
+                -- 들어온 값이 비었을 때는 기존 값을 지킨다. 채워진 값은 평소대로 갱신한다.
+                gpu_model=CASE WHEN excluded.gpu_model IS NULL OR excluded.gpu_model = ''
+                               THEN laptop_products.gpu_model ELSE excluded.gpu_model END,
                 detail_url=excluded.detail_url,
-                raw_spec_text=excluded.raw_spec_text,
+                raw_spec_text=CASE WHEN excluded.raw_spec_text IS NULL OR excluded.raw_spec_text = ''
+                                   THEN laptop_products.raw_spec_text ELSE excluded.raw_spec_text END,
                 updated_at=excluded.updated_at
             """,
             (pcode, name, gpu_model, detail_url, raw_spec_text)

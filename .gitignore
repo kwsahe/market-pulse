@@ -14,6 +14,12 @@ env/
 
 # DB 파일 (데이터는 각자 수집)
 database/*.db
+# WAL 모드 부속 파일
+database/*.db-wal
+database/*.db-shm
+
+# 개인 로컬 설정
+.claude/settings.local.json
 
 # CSV 데이터 파일
 database/*.csv
@@ -65,3 +71,6 @@ Thumbs.db
 
 # 환경 변수
 .env
+
+# 스케줄러 실행 로그 (run_scraper.bat auto)
+logs/
