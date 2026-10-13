@@ -13,6 +13,7 @@ from api.routers.prices import (
 from api.schemas import (
     CategoriesResponse, CategoryPulseItem, CategoryPulseResponse, CategoryStat, CategoryTrendPoint,
 )
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 
@@ -76,7 +77,7 @@ def _pulse_item(row: pd.Series, code_map_cache: dict, change_map: dict) -> Categ
         code=code_for_row(row, code_map_cache),
         product=row["product"],
         price=int(row["price"]),
-        image_url=row.get("image_url"),
+        image_url=optional_str(row.get("image_url")),
         change=int(change) if change is not None else None,
         change_pct=float(change_pct) if change_pct is not None else None,
     )

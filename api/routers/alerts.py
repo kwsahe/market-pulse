@@ -7,6 +7,7 @@ from database.db_manager import get_tracked_pcodes, load_tracked_targets
 from api.routers.changes import _build_change_item
 from api.routers.prices import _load_prices_cached, _price_changes_cached, code_for_row, latest_snapshot
 from api.schemas import AlertsResponse, TargetReachedItem
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
@@ -40,7 +41,7 @@ def get_alerts() -> AlertsResponse:
                 code=code_for_row(row, code_map_cache),
                 category=row["category"],
                 product=row["product"],
-                image_url=row.get("image_url"),
+                image_url=optional_str(row.get("image_url")),
                 price=int(row["price"]),
                 target_price=int(row["_target"]),
             ))

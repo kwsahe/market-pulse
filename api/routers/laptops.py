@@ -16,6 +16,7 @@ from database.db_manager import (
 from api.deps import data_cache
 from api.routers.prices import _load_prices_cached, _price_changes_cached, latest_snapshot
 from api.schemas import LaptopBestBuy, LaptopImage, LaptopItem, LaptopSpec, LaptopsResponse
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/laptops", tags=["laptops"])
 
@@ -135,7 +136,7 @@ def get_laptops(category: str) -> LaptopsResponse:
             product=row["product"],
             price=int(row["price"]),
             date=row["date"],
-            image_url=row.get("image_url"),
+            image_url=optional_str(row.get("image_url")),
             images=[
                 LaptopImage(image_url=r["image_url"], image_type=r["image_type"])
                 for _, r in prod_images.iterrows()

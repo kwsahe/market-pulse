@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query
 from database.db_manager import load_scrape_runs
 from api.deps import data_cache
 from api.schemas import ScrapeRun, ScrapeRunLatest, ScrapeRunsResponse, ScrapeRunSummary
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/scrape-runs", tags=["scrapes"])
 
@@ -28,7 +29,7 @@ def get_scrape_runs(limit: int = Query(50, ge=1, le=200)) -> ScrapeRunsResponse:
         ScrapeRunLatest(
             source=row["source"], status=row["status"], started_at=row["started_at"],
             fetched_count=int(row["fetched_count"]), inserted_count=int(row["inserted_count"]),
-            error_message=row.get("error_message"),
+            error_message=optional_str(row.get("error_message")),
         )
         for _, row in latest_by_source_df.iterrows()
     ]
@@ -43,9 +44,9 @@ def get_scrape_runs(limit: int = Query(50, ge=1, le=200)) -> ScrapeRunsResponse:
     runs = [
         ScrapeRun(
             id=int(row["id"]), source=row["source"], started_at=row["started_at"],
-            finished_at=row.get("finished_at"), fetched_count=int(row["fetched_count"]),
+            finished_at=optional_str(row.get("finished_at")), fetched_count=int(row["fetched_count"]),
             inserted_count=int(row["inserted_count"]), status=row["status"],
-            error_message=row.get("error_message"),
+            error_message=optional_str(row.get("error_message")),
         )
         for _, row in runs_df.iterrows()
     ]

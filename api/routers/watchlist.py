@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from database.db_manager import get_tracked_pcodes, load_tracked_targets, set_laptop_tracked, set_target_price
 from api.routers.prices import _load_prices_cached, code_for_row, latest_snapshot
 from api.schemas import TargetRequest, TrackRequest, WatchlistItem, WatchlistResponse
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 
@@ -49,7 +50,7 @@ def get_watchlist() -> WatchlistResponse:
             category=row["category"],
             product=row["product"],
             price=int(row["price"]),
-            image_url=row.get("image_url"),
+            image_url=optional_str(row.get("image_url")),
             tracked_at=tracked_at,
             target_price=target_price,
             memo=memo,

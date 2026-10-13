@@ -4,20 +4,64 @@
     {
       "name": "market-pulse-dashboard",
       "runtimeExecutable": "streamlit",
-      "runtimeArgs": ["run", "dashboard/app.py", "--server.port", "8010", "--server.headless", "true"],
+      "runtimeArgs": [
+        "run",
+        "dashboard/app.py",
+        "--server.port",
+        "8010",
+        "--server.headless",
+        "true"
+      ],
       "port": 8010
     },
     {
+      "name": "market-pulse-dashboard-8110",
+      "runtimeExecutable": "C:/Users/sangh/anaconda3/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "streamlit",
+        "run",
+        "dashboard/app.py",
+        "--server.port",
+        "8110",
+        "--server.headless",
+        "true"
+      ],
+      "port": 8110
+    },
+    {
       "name": "market-pulse-api",
-      "runtimeExecutable": "uvicorn",
-      "runtimeArgs": ["api.main:app", "--reload", "--port", "8000"],
-      "port": 8000
+      "runtimeExecutable": "C:/Users/sangh/anaconda3/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "api.main:app",
+        "--reload",
+        "--port",
+        "8001"
+      ],
+      "port": 8001
     },
     {
       "name": "market-pulse-frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "frontend"
+      ],
       "port": 5173
+    },
+    {
+      "name": "market-pulse-prod",
+      "runtimeExecutable": "C:/Users/sangh/anaconda3/python.exe",
+      "runtimeArgs": [
+        "scripts/serve_prod.py",
+        "--port",
+        "8002"
+      ],
+      "port": 8002
     }
   ]
 }

@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from api.routers.prices import _load_prices_cached, _price_changes_cached, code_for_row, latest_snapshot
 from api.schemas import ChangeItem, ChangesResponse
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/changes", tags=["changes"])
 
@@ -23,8 +24,8 @@ def _build_change_item(row: pd.Series, current_df: pd.DataFrame, code_map_cache:
         code=code,
         category=row["category"],
         product=row["product"],
-        image_url=image_url,
-        specs=specs,
+        image_url=optional_str(image_url),
+        specs=optional_str(specs),
         prev_price=int(row["prev_price"]),
         current_price=int(row["current_price"]),
         change=int(row["change"]),

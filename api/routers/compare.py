@@ -10,6 +10,7 @@ from api.routers.prediction import _get_model_cached
 from api.routers.prices import _load_prices_cached, latest_snapshot
 from api.routers.products import _match_key_for_row, _price_history_cached, _resolve_code
 from api.schemas import CompareProduct, CompareResponse, SpecRow
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/compare", tags=["compare"])
 
@@ -66,7 +67,8 @@ def compare_products(
             fair_score, fair_label = compute_fair_price_score(price, predicted, hist_min, hist_max, is_anomaly)
 
         products.append(CompareProduct(
-            code=code, category=category, product=row["product"], image_url=row.get("image_url"),
+            code=code, category=category, product=row["product"],
+            image_url=optional_str(row.get("image_url")),
             price=price, predicted_price=predicted, hist_min=hist_min, hist_max=hist_max,
             fair_score=fair_score, fair_label=fair_label,
         ))

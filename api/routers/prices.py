@@ -9,6 +9,7 @@ from ml.anomaly_detection import detect_zscore
 from ml.price_change import detect_price_changes
 from api.deps import data_cache
 from api.schemas import PriceListResponse, ProductSummary
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/prices", tags=["prices"])
 
@@ -89,9 +90,9 @@ def list_prices(
             product=row["product"],
             price=int(row["price"]),
             date=row["date"],
-            specs=row.get("specs"),
-            image_url=row.get("image_url"),
-            pcode=row.get("pcode"),
+            specs=optional_str(row.get("specs")),
+            image_url=optional_str(row.get("image_url")),
+            pcode=optional_str(row.get("pcode")),
             is_anomaly=row["product"] in anomaly_products,
             change=int(change) if change is not None else None,
             change_pct=float(change_pct) if change_pct is not None else None,

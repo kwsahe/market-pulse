@@ -9,6 +9,7 @@ from database.db_manager import load_product_registry, load_laptop_images, load_
 from api.deps import data_cache
 from api.routers.prices import _load_prices_cached
 from api.schemas import ProductDetailResponse, ProductImage, PricePoint
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
@@ -29,8 +30,10 @@ def _price_history_cached(category: str, match_key: str, by_pcode: bool) -> pd.D
 
 
 def _match_key_for_row(row: pd.Series) -> str:
-    pcode = row.get("pcode")
-    return pcode if pcode and str(pcode).strip() else row["product"]
+    # NaN을 거르지 않으면 bool(nan)이 True, str(nan)이 "nan"이라 pcode가 없는 부품 행까지
+    # nan을 매칭 키로 잡는다. 그 상태로 "WHERE product = nan"을 조회해 가격 이력이 빈 채로 나왔다.
+    pcode = optional_str(row.get("pcode"))
+    return pcode if pcode and pcode.strip() else row["product"]
 
 
 def _resolve_code(code: str, prices_df: pd.DataFrame):
@@ -60,8 +63,9 @@ def get_product_detail(code: str) -> ProductDetailResponse:
         raise HTTPException(status_code=404, detail=f"상품번호 '{code}'를 찾을 수 없어요.")
 
     match_key = _match_key_for_row(row)
-    pcode = row.get("pcode")
-    by_pcode = bool(pcode) and str(pcode).strip() != ""
+    # NaN을 그대로 두면 bool(nan)이 True라 pcode가 없는 행도 pcode 경로를 타버린다.
+    pcode = optional_str(row.get("pcode"))
+    by_pcode = bool(pcode and pcode.strip())
 
     images: list[ProductImage] = []
     if by_pcode:
@@ -83,7 +87,7 @@ def get_product_detail(code: str) -> ProductDetailResponse:
         product=row["product"],
         price=int(row["price"]),
         date=row["date"],
-        specs=row.get("specs"),
+        specs=optional_str(row.get("specs")),
         pcode=pcode,
         images=images,
         history=history,

@@ -9,6 +9,7 @@ from ml.anomaly_detection import detect_zscore
 from api.routers.changes import _build_change_item
 from api.routers.prices import _load_prices_cached, _price_changes_cached, code_for_row, latest_snapshot
 from api.schemas import SpotlightNotableItem, SpotlightsResponse
+from api.utils import optional_str
 
 router = APIRouter(prefix="/api/spotlights", tags=["spotlights"])
 
@@ -37,7 +38,7 @@ def get_spotlights() -> SpotlightsResponse:
                 code=code_for_row(row, code_map_cache),
                 category=row["category"],
                 product=row["product"],
-                image_url=row.get("image_url"),
+                image_url=optional_str(row.get("image_url")),
                 price=int(row["price"]),
                 kind="anomaly",
                 z_score=float(row["z_score"]),
@@ -56,7 +57,7 @@ def get_spotlights() -> SpotlightsResponse:
                     code=code_for_row(row, code_map_cache),
                     category=row["category"],
                     product=row["product"],
-                    image_url=row.get("image_url"),
+                    image_url=optional_str(row.get("image_url")),
                     price=int(row["price"]),
                     kind="new",
                 ))
