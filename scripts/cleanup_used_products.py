@@ -19,7 +19,6 @@
 
 import argparse
 import os
-import shutil
 import sqlite3
 import sys
 from collections import Counter
@@ -27,6 +26,7 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import DB_PATH
+from scripts.backup_db import backup_to
 from scraper.price_scraper import USED_PRODUCT_PATTERN, _is_new_product
 
 
@@ -89,7 +89,10 @@ def main() -> None:
 
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         backup = os.path.join(os.path.dirname(args.db), f"data.backup-{stamp}.db")
-        shutil.copy2(args.db, backup)
+        # WAL 모드에서는 파일 복사로 뜬 백업이 조용히 비어 있다 — 최근 커밋이 본체가 아니라
+        # -wal 에 있기 때문(실측: 5,000행 커밋 직후 본체 4,096B, 복원 시 'no such table').
+        # VACUUM INTO 기반 스냅샷을 쓴다.
+        backup_to(args.db, backup)
         print(f"\n백업: {os.path.basename(backup)} ({os.path.getsize(backup):,} bytes)")
 
         conn.executemany("DELETE FROM prices WHERE rowid = ?", [(t[0],) for t in targets])
