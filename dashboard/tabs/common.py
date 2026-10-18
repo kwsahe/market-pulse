@@ -14,6 +14,7 @@ from database.db_manager import (
     load_prices, load_news, get_product_code_map, load_product_registry,
     load_laptop_products, load_laptop_specs, load_laptop_images, load_scrape_runs,
     load_price_history_by_match_key, load_laptop_price_history, load_laptop_best_buy_stats,
+    match_key_for,
 )
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
@@ -25,9 +26,8 @@ _DATA_TTL = 30
 
 
 def match_key_for_row(row: pd.Series) -> str:
-    """상품번호 조회용 식별키 — pcode가 있으면 pcode, 없으면(부품 과거 데이터) 상품명"""
-    pcode = row.get("pcode")
-    return pcode if pcode and str(pcode).strip() else row["product"]
+    """상품번호 조회용 식별키 (규칙은 db_manager.match_key_for — API와 같은 번호를 가리키도록 공유)"""
+    return match_key_for(row["category"], row.get("pcode"), row["product"])
 
 
 def open_product_detail(code: str) -> None:

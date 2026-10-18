@@ -4,7 +4,7 @@
 import pandas as pd
 from fastapi import APIRouter, Query
 
-from database.db_manager import load_prices, get_product_code_map
+from database.db_manager import load_prices, get_product_code_map, match_key_for
 from ml.anomaly_detection import detect_zscore
 from ml.price_change import detect_price_changes
 from api.deps import data_cache
@@ -41,8 +41,7 @@ def code_for_row(row: pd.Series, code_map_cache: dict) -> str:
     category = row["category"]
     if category not in code_map_cache:
         code_map_cache[category] = _code_map_cached(category)
-    match_key = row["pcode"] if row.get("pcode") else row["product"]
-    return code_map_cache[category].get(match_key, "")
+    return code_map_cache[category].get(match_key_for(category, row.get("pcode"), row["product"]), "")
 
 
 @router.get("", response_model=PriceListResponse)

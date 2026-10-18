@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db_manager import (
     init_db, load_prices,
     insert_many_laptop_prices, upsert_laptop_product,
-    save_laptop_specs, save_laptop_images, get_or_create_product_code,
+    save_laptop_specs, save_laptop_images, get_or_create_product_code, match_key_for,
     start_scrape_run, finish_scrape_run,
 )
 from scraper.laptop_detail_scraper import fetch_product_detail
@@ -610,12 +610,7 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
                 print(f"{i+1}. [SKIP] 카테고리 조건 미달: {product[:50]}")
                 continue
 
-            # 상품번호(RAM-1, SSD-1 ...)는 상세페이지(=pcode) 단위로 1개만 발급 —
-            # 용량별 variant는 같은 pcode 상세페이지 안의 가격 옵션일 뿐, 별개 상품이 아님
-            if pcode:
-                get_or_create_product_code(category, pcode, product)
-                registered += 1
-
+            first_row = len(data_list)
             if variants:
                 for mem_text, var_price in variants:
                     full_name = f"{product} ({mem_text})"
@@ -636,6 +631,13 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
                 img_status = "OK" if img_url else "NO"
                 print(f"   가격: {cost_num:,}원 | 이미지: {img_status}")
                 data_list.append((today, category, product, cost_num, specs, img_url, pcode))
+
+            # 상품번호(RAM-1, SSD-1 ...)는 가격 행(용량 변형) 단위로 발급 — 1TB/4TB는 가격이 따로 움직이는
+            # 별개 SKU라, pcode 하나로 묶으면 변동 TOP의 4TB가 상세페이지에선 1TB로 열린다
+            if pcode:
+                for row in data_list[first_row:]:
+                    get_or_create_product_code(category, match_key_for(category, pcode, row[2]), row[2])
+                    registered += 1
 
             if specs:
                 print(f"   스펙: {specs[:80]}...")

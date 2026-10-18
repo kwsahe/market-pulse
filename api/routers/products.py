@@ -5,7 +5,9 @@
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 
-from database.db_manager import load_product_registry, load_laptop_images, load_price_history_by_match_key
+from database.db_manager import (
+    load_product_registry, load_laptop_images, load_price_history_by_match_key, match_key_for, match_keys,
+)
 from api.deps import data_cache
 from api.routers.prices import _load_prices_cached
 from api.schemas import ProductDetailResponse, ProductImage, PricePoint
@@ -30,10 +32,7 @@ def _price_history_cached(category: str, match_key: str, by_pcode: bool) -> pd.D
 
 
 def _match_key_for_row(row: pd.Series) -> str:
-    # NaN을 거르지 않으면 bool(nan)이 True, str(nan)이 "nan"이라 pcode가 없는 부품 행까지
-    # nan을 매칭 키로 잡는다. 그 상태로 "WHERE product = nan"을 조회해 가격 이력이 빈 채로 나왔다.
-    pcode = optional_str(row.get("pcode"))
-    return pcode if pcode and pcode.strip() else row["product"]
+    return match_key_for(row["category"], row.get("pcode"), row["product"])
 
 
 def _resolve_code(code: str, prices_df: pd.DataFrame):
@@ -44,15 +43,16 @@ def _resolve_code(code: str, prices_df: pd.DataFrame):
         return None, None
     category = match.iloc[0]["category"]
     match_key = match.iloc[0]["match_key"]
-    latest_date = prices_df["date"].max()
-    cat_latest = prices_df[(prices_df["date"] == latest_date) & (prices_df["category"] == category)]
-    row = cat_latest[(cat_latest["pcode"] == match_key) | (cat_latest["product"] == match_key)]
-    if row.empty:
-        hist = prices_df[(prices_df["category"] == category) & ((prices_df["pcode"] == match_key) | (prices_df["product"] == match_key))]
-        if hist.empty:
-            return category, None
-        row = hist.sort_values("date").tail(1)
-    return category, row.iloc[0]
+    # pcode/상품명 직접 비교는 식별키 규칙이 바뀌기 전에 발급된 번호(옛 링크)도 계속 열리게 남겨둔다
+    hist = prices_df[(prices_df["category"] == category)
+                     & ((prices_df["pcode"] == match_key.split(" ", 1)[0]) | (prices_df["product"] == match_key))]
+    hist = hist[(match_keys(hist, category) == match_key) | (hist["pcode"] == match_key) | (hist["product"] == match_key)]
+    if hist.empty:
+        return category, None
+    # 가장 최근 수집일(오늘 목록에 없으면 마지막으로 보인 날)의 행. 한 번호에 행이 여럿이면(노트북 옵션,
+    # 옛 pcode 단위 번호) 최저가 — 가격 이력이 날짜별 최저가라, 아무 행이나 고르면 헤드라인과 이력이 어긋난다.
+    last = hist[hist["date"] == hist["date"].max()]
+    return category, last.loc[last["price"].idxmin()]
 
 
 @router.get("/{code}", response_model=ProductDetailResponse)

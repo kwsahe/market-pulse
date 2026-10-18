@@ -3,6 +3,7 @@
 
 import sqlite3
 import os
+import re
 from contextlib import contextmanager
 from typing import Optional
 import pandas as pd
@@ -26,6 +27,35 @@ CATEGORY_PREFIX = {
     "게이밍 키보드": "KBD",
     "게이밍 마우스": "MOU",
 }
+
+LAPTOP_CATEGORIES = ("게이밍 노트북", "AI 노트북")
+
+# 스크래퍼가 변형 행에 붙이는 끝 라벨: f"{상품명} ({mem_text})" — " (4TB)", " (64GB(32Gx2))"
+_VARIANT_SUFFIX = re.compile(r" \((?:[^()]|\([^()]*\))*\)$")
+
+
+def match_key_for(category: str, pcode, product: str) -> str:
+    """가격 행 하나의 product_registry.match_key. 번호 발급(스크래퍼·백필)과 조회(API·대시보드)가
+    모두 이 함수를 거쳐야 같은 행이 같은 상품번호를 가리킨다.
+    - pcode 없음(과거 부품 데이터): 상품명
+    - 노트북: pcode — 용량 변형은 한 모델의 옵션으로 묶고 상세는 변형 중 최저가
+    - 그 외: pcode + 변형 라벨 ('28621400 (4TB)') — 용량마다 가격이 따로 움직이는 별개 SKU다.
+      상품명 대신 pcode를 쓰는 건 다나와 표기가 바뀌어도('포터블SSDT9' → '포터블 SSD T9') 이력이 이어지게."""
+    pcode = pcode.strip() if isinstance(pcode, str) else ""  # pandas NULL은 NaN(float)
+    if not pcode:
+        return product
+    if category in LAPTOP_CATEGORIES:
+        return pcode
+    m = _VARIANT_SUFFIX.search(product)
+    return pcode + m.group(0) if m else pcode
+
+
+def match_keys(df: pd.DataFrame, category: str) -> pd.Series:
+    """match_key_for를 DataFrame 행마다 적용 (상품번호 → 가격 행 역조회용)"""
+    return pd.Series(
+        [match_key_for(category, p, n) for p, n in zip(df["pcode"], df["product"])],
+        index=df.index, dtype=object,
+    )
 
 
 @contextmanager
@@ -157,7 +187,7 @@ def init_db() -> None:
             cursor.execute("ALTER TABLE tracked_laptops ADD COLUMN memo TEXT")
 
         # 카테고리 공통 상품번호 레지스트리 (RAM-1, SSD-1, GC-1, CPU-1, GN-1, AN-1 ...)
-        # match_key: 노트북류는 danawa pcode, 부품류(RAM/SSD/GC/CPU)는 상품명 텍스트 자체가 SKU 단위라 그대로 사용
+        # match_key 규칙은 match_key_for() 참고 (노트북=pcode, 그 외=pcode+변형 라벨, pcode 없는 과거 행=상품명)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS product_registry (
                 internal_code TEXT PRIMARY KEY,
@@ -341,13 +371,13 @@ def get_or_create_product_code(category: str, match_key: str, display_name: str)
 
 
 def backfill_product_registry() -> int:
-    """기존에 수집된 prices 데이터 전체에 상품번호를 발급 (없는 것만). pcode가 있으면 pcode,
-    없으면(과거 부품 데이터) 상품명을 식별키로 사용. 스키마 도입 후 1회 실행용."""
+    """기존에 수집된 prices 데이터 전체에 상품번호를 발급 (없는 것만, 식별키는 match_key_for).
+    이미 있는 번호는 그대로 두므로 다시 돌려도 안전하다 — 식별키 규칙이 바뀌었을 때 재실행용."""
     with get_connection() as conn:
         rows = conn.execute("SELECT DISTINCT category, product, pcode FROM prices").fetchall()
     registered = 0
     for r in rows:
-        match_key = r["pcode"] if r["pcode"] else r["product"]
+        match_key = match_key_for(r["category"], r["pcode"], r["product"])
         get_or_create_product_code(r["category"], match_key, r["product"])
         registered += 1
     return registered
@@ -368,7 +398,7 @@ def load_product_registry(category: str = None) -> pd.DataFrame:
 
 
 def get_product_code_map(category: str) -> dict:
-    """{match_key: internal_code} 매핑 (부품 카테고리는 match_key=상품명, 노트북류는 match_key=pcode)"""
+    """{match_key: internal_code} 매핑 (match_key 규칙은 match_key_for 참고)"""
     reg = load_product_registry(category)
     if reg.empty:
         return {}
@@ -376,15 +406,18 @@ def get_product_code_map(category: str) -> dict:
 
 
 def load_price_history_by_match_key(category: str, match_key: str, by_pcode: bool = False) -> pd.DataFrame:
-    """상품 하나의 날짜별 가격 추이. by_pcode=True면 pcode 기준(노트북, 같은 pcode의 용량 변형 중 최저가),
-    False면 상품명 그대로 매칭(부품류)."""
+    """상품 하나의 날짜별 가격 추이. by_pcode=True면 match_key_for()가 같은 행만
+    (노트북은 pcode 전체라 용량 변형 중 최저가, 부품은 '28621400 (4TB)'처럼 그 변형만),
+    False면 상품명 그대로 매칭(pcode 없는 과거 부품 데이터)."""
     try:
         with get_connection() as conn:
             if by_pcode:
-                return pd.read_sql_query(
-                    "SELECT date, MIN(price) AS price FROM prices WHERE pcode = ? GROUP BY date ORDER BY date",
-                    conn, params=(match_key,)
+                df = pd.read_sql_query(
+                    "SELECT date, pcode, product, price FROM prices WHERE pcode = ?",
+                    conn, params=(match_key.split(" ", 1)[0],)
                 )
+                df = df[match_keys(df, category) == match_key]
+                return df.groupby("date", as_index=False)["price"].min()
             return pd.read_sql_query(
                 "SELECT date, price FROM prices WHERE category = ? AND product = ? ORDER BY date",
                 conn, params=(category, match_key)

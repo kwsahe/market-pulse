@@ -4,6 +4,7 @@
 import pandas as pd
 import streamlit as st
 
+from database.db_manager import match_keys
 from dashboard.theme import card_marker, code_badge, category_color
 from dashboard.tabs.common import (
     match_key_for_row, load_product_registry_cached, load_laptop_images_cached,
@@ -19,16 +20,16 @@ def _resolve_code(code: str, prices_df: pd.DataFrame):
         return None, None
     category = match.iloc[0]["category"]
     match_key = match.iloc[0]["match_key"]
-    latest_date = prices_df["date"].max()
-    cat_latest = prices_df[(prices_df["date"] == latest_date) & (prices_df["category"] == category)]
-    row = cat_latest[(cat_latest["pcode"] == match_key) | (cat_latest["product"] == match_key)]
-    if row.empty:
-        # 오늘 목록엔 없지만(품절 등) 과거에는 있었을 수 있으니 가장 최근 스냅샷을 대신 보여줌
-        hist = prices_df[(prices_df["category"] == category) & ((prices_df["pcode"] == match_key) | (prices_df["product"] == match_key))]
-        if hist.empty:
-            return category, None
-        row = hist.sort_values("date").tail(1)
-    return category, row.iloc[0]
+    # pcode/상품명 직접 비교는 식별키 규칙이 바뀌기 전에 발급된 번호(옛 링크)도 계속 열리게 남겨둔다
+    hist = prices_df[(prices_df["category"] == category)
+                     & ((prices_df["pcode"] == match_key.split(" ", 1)[0]) | (prices_df["product"] == match_key))]
+    hist = hist[(match_keys(hist, category) == match_key) | (hist["pcode"] == match_key) | (hist["product"] == match_key)]
+    if hist.empty:
+        return category, None
+    # 오늘 목록엔 없어도(품절 등) 마지막으로 보인 날의 스냅샷을 보여준다. 한 번호에 행이 여럿이면
+    # (노트북 옵션, 옛 pcode 단위 번호) 최저가 — 가격 이력이 날짜별 최저가라 헤드라인과 맞춘다.
+    last = hist[hist["date"] == hist["date"].max()]
+    return category, last.loc[last["price"].idxmin()]
 
 
 def render(prices_df: pd.DataFrame) -> None:
