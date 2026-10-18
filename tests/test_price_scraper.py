@@ -313,48 +313,103 @@ def test_unified_memory_takes_product_and_specs():
 
 
 # 다나와가 2026-10-07부터 검색 요청 일부를 개편된 새 검색 UI(search.danawa.com/?query=)로
-# 무작위 리다이렉트한다. 새 UI에는 옛 마크업이 없어 상품 0개로 파싱되고, 예외가 아니라서
-# 조용히 '성공' 처리됐다(그날 11개 검색 중 4개 누락). 요청마다 배정이 무작위라 재요청하면 복구된다.
-class _FakeResp:
-    def __init__(self, text, url):
-        self.text, self.url, self.status_code = text, url, 200
+# 무작위 리다이렉트한다. 옛 UI가 올 때까지 재요청하던 우회는 비율이 최대 67%까지 오르자
+# 카테고리를 통째로 놓쳤다(10-16 NVMe SSD, 10-18 그래픽카드). 이제 두 UI를 모두 읽는다.
+# 같은 상품이면 어느 UI든 같은 행(상품명+옵션, 가격, pcode, 이미지)이 나와야 이력이 이어진다.
+# 실데이터 11개 검색어(894행)로 확인한 모양을 줄여서 옮겼다.
+OLD_UI_HTML = """
+<div class="prod_item">
+  <a class="click_log_product_standard_title_" href="https://prod.danawa.com/info/?pcode=111&cate=112752">ESSENCORE KLEVV <b>DDR5</b>-6000 CL30</a>
+  <img src="https://img.danuri.io/catalog-image/111.jpg">
+  <div class="spec_list">데스크탑용 / <b>DDR5</b> / 램타이밍 : CL30</div>
+  <div class="prod_pricelist"><ul>
+    <li id="productInfoDetail_111"><p class="memory_sect"><span class="text">64GB(32Gx2)</span></p>
+      <a class="click_log_product_standard_price_">1,850,000원</a></li>
+    <li id="productInfoDetail_112"><p class="memory_sect"><span class="text">32GB(16Gx2)</span></p>
+      <a class="click_log_product_standard_price_">889,000원</a></li>
+    <li id="productInfoDetail_113"><p class="memory_sect"><span class="text">32GB(16Gx2) 중고</span></p>
+      <a class="click_log_product_standard_price_">700,000원</a></li>
+  </ul></div>
+</div>
+<div class="prod_item">
+  <a class="click_log_product_standard_title_" href="https://prod.danawa.com/info/?pcode=222&cate=112752">삼성전자 <b>DDR5</b>-5600</a>
+  <div class="prod_pricelist"><ul>
+    <li id="productInfoDetail_222"><p class="memory_sect"><span class="text">16GB</span></p>
+      <a class="click_log_product_standard_price_">349,690원</a></li>
+  </ul></div>
+</div>
+<div class="prod_item">
+  <a class="click_log_product_standard_title_" href="https://prod.danawa.com/info/?pcode=333&cate=112757">LG전자 24U411B</a>
+  <a class="click_log_product_standard_price_">142,590원</a>
+</div>
+"""
+
+NEW_UI_PRODUCTS = [
+    {"prodType": 1, "productSeq": "111", "productName": "ESSENCORE KLEVV <b>DDR5</b>-6000 CL30",
+     "linkUrl": "https://prod.danawa.com/info/?pcode=111&keyword=DDR5&cate=112752",
+     "imageUrl": "https://img.danuri.io/catalog-image/111.jpg?v=20261018080440",
+     "summary": {"desc": ["데스크탑용", "<b>DDR5</b>", "램타이밍", "CL30"], "descBridge": ["<em>/</em>", "<em>/</em>", ": "]},
+     "minPrice": 1850000, "totalPrice": 1852500, "bundleName": "64GB(32Gx2)",
+     "bundleList": [{"bundleName": "64GB(32Gx2)", "minPrice": 1850000, "totalPrice": 1852500},
+                    {"bundleName": "32GB(16Gx2)", "minPrice": 889000, "totalPrice": 891500},
+                    {"bundleName": "32GB(16Gx2) 중고", "minPrice": 700000, "totalPrice": 702500}]},
+    # 옵션이 하나뿐이면 bundleList가 비고 라벨은 bundleName에만 있다 — 옛 UI는 이것도 "(16GB)"로 붙였다
+    {"prodType": 1, "productSeq": "222", "productName": "삼성전자 <b>DDR5</b>-5600",
+     "linkUrl": "https://prod.danawa.com/info/?pcode=222&keyword=DDR5&cate=112752",
+     "minPrice": 349690, "totalPrice": 352800, "bundleName": "16GB", "bundleList": []},
+    {"prodType": 1, "productSeq": "333", "productName": "LG전자 24U411B",
+     "linkUrl": "https://prod.danawa.com/info/?pcode=333&keyword=x&cate=112757",
+     "minPrice": 142590, "totalPrice": 145090, "bundleName": "", "bundleList": []},
+    # 오픈마켓 중개 링크 — pcode가 없고 옛 UI에는 나오지 않는다
+    {"prodType": 3, "productSeq": "TH201_1", "productName": "맥북 호환 가죽 케이스",
+     "linkUrl": "https://prod.danawa.com/bridge/go_link_goods.php?x=1", "minPrice": 30000},
+]
 
 
-def _patch_search(monkeypatch, pages):
+def _new_ui_html(products):
+    """Next.js가 실어 보내는 모양 그대로: 페이로드 문자열을 self.__next_f.push 여러 조각으로 나눠 담는다."""
+    import json
+    payload = "17:" + json.dumps({"state": {"data": {"products": products}}}, ensure_ascii=False, separators=(",", ":"))
+    half = len(payload) // 2
+    return "".join(f"<script>self.__next_f.push([1,{json.dumps(part)}])</script>"
+                   for part in (payload[:half], payload[half:]))
+
+
+def _rows(items):
+    from scraper.price_scraper import extract_cate, extract_pcode
+    return [(it["product"], extract_pcode(it["href"]), extract_cate(it["href"]), it["img_url"],
+             it["variants"], it["price"]) for it in items]
+
+
+def test_new_ui_reads_the_same_rows_as_old_ui():
+    from scraper.price_scraper import _search_items
+    old = _rows(_search_items(OLD_UI_HTML))
+    new = _rows(_search_items(_new_ui_html(NEW_UI_PRODUCTS)))
+    assert new == old
+    assert old[0][0] == "ESSENCORE KLEVV DDR5 -6000 CL30"  # 검색어 <b> 강조를 두 UI가 같은 규칙으로 푼다
+    assert old[0][4] == [("64GB(32Gx2)", 1850000), ("32GB(16Gx2)", 889000)]  # 중고 옵션 제외, 가격은 배송비 제외
+    assert old[1][4] == [("16GB", 349690)]
+    assert old[2][4:] == ([], 142590)
+
+
+def test_new_ui_strips_image_version_query():
+    """'?v=수정시각'이 남으면 laptop_images(pcode, image_url)에 같은 이미지가 매일 새 행으로 쌓인다."""
+    from scraper.price_scraper import _search_items
+    assert _search_items(_new_ui_html(NEW_UI_PRODUCTS))[0]["img_url"] == "https://img.danuri.io/catalog-image/111.jpg"
+
+
+def test_new_ui_unknown_structure_reads_nothing():
+    """구조가 또 바뀌면 조용히 엉뚱한 값을 만들지 않고 0개 — verify_last_scrape 가드가 카테고리 소멸로 잡는다."""
+    from scraper.price_scraper import _search_items
+    assert _search_items("<html><body>점검 중</body></html>") == []
+
+
+def test_search_get_requests_once_even_for_new_ui(monkeypatch):
+    """새 UI도 읽을 수 있으니 재요청하지 않는다 — 다나와에 보내는 요청이 검색어당 1번으로 준다."""
     import scraper.price_scraper as ps
     calls = []
-
-    def fake_get(url, headers=None, timeout=None):
-        calls.append(url)
-        return pages[min(len(calls), len(pages)) - 1]
-
-    monkeypatch.setattr(ps.requests, "get", fake_get)
+    monkeypatch.setattr(ps.requests, "get", lambda url, headers=None, timeout=None: calls.append(url))
     monkeypatch.setattr(ps.time, "sleep", lambda s: None)  # 크롤 딜레이는 테스트에서 건너뛴다
-    return ps, calls
-
-
-OLD_UI = _FakeResp('<a class="click_log_product_standard_title_">x</a>', "https://search.danawa.com/dsearch.php?query=x")
-NEW_UI = _FakeResp('<div class="flex hover:underline">x</div>', "https://search.danawa.com/?query=x")
-
-
-def test_search_get_retries_when_bucketed_into_new_ui(monkeypatch):
-    ps, calls = _patch_search(monkeypatch, [NEW_UI, NEW_UI, OLD_UI])
-    resp = ps._search_get("https://search.danawa.com/dsearch.php?query=x")
-    assert resp is OLD_UI
-    assert len(calls) == 3
-
-
-def test_search_get_gives_up_after_retries(monkeypatch):
-    """끝까지 새 UI면 무한히 돌지 않고 마지막 응답을 돌려준다 —
-    그 검색어는 0개로 파싱되고, 카테고리 급감/소멸은 verify_last_scrape 가드가 잡는다."""
-    ps, calls = _patch_search(monkeypatch, [NEW_UI])
-    resp = ps._search_get("https://search.danawa.com/dsearch.php?query=x")
-    assert resp is NEW_UI
-    assert len(calls) == ps.SEARCH_RETRIES + 1
-
-
-def test_search_get_does_not_retry_old_ui(monkeypatch):
-    ps, calls = _patch_search(monkeypatch, [OLD_UI])
     ps._search_get("https://search.danawa.com/dsearch.php?query=x")
     assert len(calls) == 1
 

@@ -5,6 +5,7 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import json
 import re
 import statistics
 import sys
@@ -151,38 +152,31 @@ IMG_URL_PATTERN = re.compile(r"prod_img|catalog-image")
 
 _last_search_ts = 0.0
 
-# 다나와가 2026-10-07부터 검색 요청 일부(관측 20~35%)를 개편된 새 검색 UI
-# (search.danawa.com/?query=)로 무작위 리다이렉트한다. 새 UI에는 아래 마커가 없어 상품 0개로
-# 파싱되고 예외도 안 나서 조용히 '성공' 처리됐다. 요청마다 배정이 무작위라 재요청하면 옛 UI가 온다.
-# 비율이 계속 올라 2026-10-18 실측 25~67%(서버 307, 쿠키 없음, 검색어 무관)가 됐고, 재시도 4회로는
-# 10-16 NVMe SSD, 10-18 그래픽카드가 5연속 새 UI로 통째로 빠졌다. 67%에서도 20회 연속일 확률은
-# 0.03%라 하루 검색어 11개 기준 실패 확률 ~0.4%. 대가는 재시도 1회당 크롤 딜레이 10초
-# (최악이어도 11개 × 20회 × 10초 ≈ 37분, 스케줄러 제한 2시간 안).
-# ponytail: 옛 UI가 남아 있는 동안만 통하는 우회. 다나와가 전환을 끝내면 재시도도 전부 실패하고
-#           verify_last_scrape 가드가 카테고리 소멸로 잡는다 — 그때 새 UI 파서를 짜야 한다
-#           (새 UI도 서버 렌더링이라 HTML의 self.__next_f 페이로드에 상품코드·가격이 들어 있다).
-OLD_SEARCH_UI_MARKER = "click_log_product_standard_title_"
-SEARCH_RETRIES = 19
-
 
 def _search_get(url):
-    """search.danawa.com 검색 요청. robots.txt의 Crawl-delay: 10 을 강제한다.
-
-    새 검색 UI로 배정되면 크롤 딜레이를 지키며 최대 SEARCH_RETRIES번 다시 요청한다.
-    끝까지 새 UI면 마지막 응답을 그대로 돌려준다(0개로 파싱되고 검증 가드가 잡는다)."""
+    """search.danawa.com 검색 요청. robots.txt의 Crawl-delay: 10 을 강제한다."""
     global _last_search_ts
-    for attempt in range(SEARCH_RETRIES + 1):
-        wait = SEARCH_CRAWL_DELAY_SEC - (time.monotonic() - _last_search_ts)
-        if wait > 0:
-            print(f"   (crawl-delay 대기 {wait:.0f}초)")
-            time.sleep(wait)
-        response = requests.get(url, headers=headers, timeout=15)
-        _last_search_ts = time.monotonic()
-        if OLD_SEARCH_UI_MARKER in response.text:
-            return response
-        print(f"   [!] 새 검색 UI로 배정됨 ({response.url[:60]}) — 시도 {attempt + 1}/{SEARCH_RETRIES + 1}")
-    print("   [!] 재시도 소진 — 이 검색어는 0개로 처리됩니다")
+    wait = SEARCH_CRAWL_DELAY_SEC - (time.monotonic() - _last_search_ts)
+    if wait > 0:
+        print(f"   (crawl-delay 대기 {wait:.0f}초)")
+        time.sleep(wait)
+    response = requests.get(url, headers=headers, timeout=15)
+    _last_search_ts = time.monotonic()
     return response
+
+
+# 다나와가 2026-10-07부터 검색 요청 일부를 개편된 새 검색 UI(search.danawa.com/?query=)로 무작위
+# 리다이렉트한다(서버 307, 쿠키 없음, 검색어 무관). 옛 UI가 올 때까지 재요청하던 우회는 비율이
+# 20~35%에서 25~67%(2026-10-18)로 오르자 10-16 NVMe SSD, 10-18 그래픽카드를 통째로 놓쳤다.
+# 그래서 두 UI를 모두 읽는다. 새 UI도 서버 렌더링이라 상품 목록이 HTML 안 self.__next_f
+# 페이로드에 JSON으로 실려 온다(금지 경로인 /api_ui/ 는 부르지 않는다).
+#
+# 같은 시각 두 UI로 받은 11개 검색어 전체에서 저장될 행(상품명+옵션 라벨, 가격, pcode)이 전부 같았다.
+# 가격은 minPrice(배송비 제외)가 옛 UI와 일치한다 — totalPrice는 배송비 포함이라 다르다.
+# 스펙 문구는 표기가 조금 다르지만('램타이밍 : ' → '램타이밍: ', 항목 몇 개 추가) 카테고리 필터와
+# 가격 예측 특성은 같은 값이 나왔다. 그래서 어느 UI가 와도 같은 행이 저장되고 이력이 이어진다.
+OLD_SEARCH_UI_MARKER = "click_log_product_standard_title_"
+_NEXT_F_CHUNK = re.compile(r'self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)')
 
 
 def extract_image(parent):
@@ -391,6 +385,82 @@ def extract_cate(href, default_cate=LAPTOP_DEFAULT_CATE):
     return m.group(1) if m else default_cate
 
 
+def _price_number(tag):
+    """'129,000원' 가격 태그 → 129000. 태그가 없거나 숫자가 아니면 None."""
+    if not tag:
+        return None
+    try:
+        return int(tag.get_text(strip=True).replace(",", "").replace("원", ""))
+    except ValueError:
+        return None
+
+
+# 검색 결과 상품 하나: product(상품명) / href(상세 링크, pcode·cate를 품음) / img_url / specs /
+# variants([(옵션 라벨, 가격)], 중고·미끼가 제외) / price(옵션이 없을 때의 가격, 없으면 None)
+def _old_ui_items(html):
+    items = []
+    for i, tag in enumerate(BeautifulSoup(html, "html.parser").find_all("a", class_=OLD_SEARCH_UI_MARKER)):
+        try:
+            block = find_product_block(tag)
+            variants = extract_variants(block)
+            items.append({
+                "product": clean_name(tag), "href": tag.get("href", ""),
+                "img_url": extract_image(block), "specs": extract_specs(block), "variants": variants,
+                "price": None if variants else _price_number(block.find("a", class_="click_log_product_standard_price_")),
+            })
+        except Exception as e:
+            print(f"   [!] 상품 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
+    return items
+
+
+def _html_text(fragment):
+    """새 UI가 HTML 조각으로 주는 값(검색어 <b> 강조 등)을 옛 UI와 같은 규칙(clean_name)으로 글자만 남긴다.
+    규칙이 다르면 '<b>DDR5</b>-6000'이 'DDR5-6000'/'DDR5 -6000'으로 갈려 같은 상품이 다른 이름이 된다."""
+    return clean_name(BeautifulSoup(fragment or "", "html.parser"))
+
+
+def _new_ui_items(html):
+    payload = "".join(json.loads(chunk) for chunk in _NEXT_F_CHUNK.findall(html))
+    m = re.search(r'"products"\s*:\s*\[', payload)
+    if not m:
+        return []  # 구조가 또 바뀐 것 — 0개로 끝나고 verify_last_scrape 가드가 카테고리 소멸로 잡는다
+    items = []
+    for i, p in enumerate(json.JSONDecoder().raw_decode(payload, m.end() - 1)[0]):
+        # prodType 1 = 다나와 가격비교 상품(옛 UI 목록과 정확히 같은 집합). 3은 오픈마켓 중개 링크라
+        # pcode가 없고 맥북 케이스 같은 무관한 상품이 섞인다 — 옛 UI에는 아예 안 나오던 것들이다.
+        if p.get("prodType") != 1:
+            continue
+        try:
+            summary = p.get("summary") or {}
+            desc, bridge = summary.get("desc") or [], summary.get("descBridge") or []
+            spec_html = "".join(d + (bridge[j] if j < len(bridge) else "") for j, d in enumerate(desc))
+            bundles = [(b.get("bundleName") or "", b.get("minPrice")) for b in p.get("bundleList") or []]
+            if not bundles and p.get("bundleName"):
+                # 옵션이 하나뿐인 상품도 옛 UI는 라벨을 붙였다 — "PATRIOT ... 블랙 (16GB)"
+                bundles = [(p["bundleName"], p.get("minPrice"))]
+            variants = _drop_bogus_variant_prices(
+                [(label, price) for label, price in bundles
+                 if label and price and not USED_PRODUCT_PATTERN.search(label)])
+            items.append({
+                "product": _html_text(p.get("productName")), "href": p.get("linkUrl", ""),
+                # 새 UI는 '?v=수정시각'을 붙인다 — 그대로 두면 laptop_images(pcode, image_url)에 매일 새 행이 쌓인다
+                "img_url": (p.get("imageUrl") or "").split("?")[0], "specs": _html_text(spec_html),
+                "variants": variants, "price": None if variants else p.get("minPrice"),
+            })
+        except Exception as e:
+            print(f"   [!] 상품 #{i+1} 파싱 오류: {e}. 건너뜁니다.")
+    return items
+
+
+def _search_items(html):
+    """검색 결과 HTML → 상품 목록. 옛 UI/새 UI 어느 쪽이 와도 같은 형식으로 돌려준다."""
+    if OLD_SEARCH_UI_MARKER in html:
+        return _old_ui_items(html)
+    items = _new_ui_items(html)
+    print(f"   (새 검색 UI로 응답 — {len(items)}개 읽음)")
+    return items
+
+
 # 통합메모리 판정 — 검색 결과 페이지의 스펙 문자열만 쓴다.
 #
 # 예전에는 상세페이지 ajax 응답의 spec_dict(CPU 제조사 / CPU 세분류 / 램 타입)를 봤는데,
@@ -442,16 +512,15 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
             continue
 
         try:
-            soup = BeautifulSoup(response.text, "html.parser")
-            names = soup.find_all("a", class_="click_log_product_standard_title_")
+            items = _search_items(response.text)
         except Exception as e:
             print(f"⚠️ [{chip_hint}] HTML 파싱 오류: {e}. 건너뜁니다.")
             continue
 
-        for i, name_tag in enumerate(names):
+        for item in items:
             try:
-                product = clean_name(name_tag)
-                href = name_tag.get("href", "")
+                product = item["product"]
+                href = item["href"]
                 pcode = extract_pcode(href)
                 if not pcode or pcode in seen_pcodes:
                     continue
@@ -461,10 +530,9 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
                     continue
                 cate = extract_cate(href, default_cate=default_cate)
 
-                block = find_product_block(name_tag)
-                img_url = extract_image(block)
-                specs = extract_specs(block)
-                variants = extract_variants(block)
+                img_url = item["img_url"]
+                specs = item["specs"]
+                variants = item["variants"]
 
                 # 판정은 검색 페이지 스펙만으로 한다 — 상세 요청보다 먼저 걸러서
                 # 탈락할 상품에 요청을 낭비하지 않고, robots 금지 경로에도 의존하지 않는다.
@@ -482,13 +550,8 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
                         print(f"{len(seen_pcodes)}. {full_name}")
                         data_list.append((today, category, full_name, var_price, specs, img_url, pcode))
                 else:
-                    price_tag = block.find("a", class_="click_log_product_standard_price_")
-                    if not price_tag:
-                        continue
-                    cost_text = price_tag.get_text(strip=True)
-                    try:
-                        cost_num = int(cost_text.replace(",", "").replace("원", ""))
-                    except ValueError:
+                    cost_num = item["price"]
+                    if cost_num is None:
                         continue
                     print(f"{len(seen_pcodes)}. {product}")
                     data_list.append((today, category, product, cost_num, specs, img_url, pcode))
@@ -579,8 +642,7 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
     print(f"   응답: {response.status_code}")
 
     try:
-        soup = BeautifulSoup(response.text, "html.parser")
-        names = soup.find_all("a", class_="click_log_product_standard_title_")
+        items = _search_items(response.text)
     except Exception as e:
         print(f"⚠️ [{category}] HTML 파싱 오류: {e}. 건너뜁니다.")
         return 0, 0
@@ -590,15 +652,13 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
     registered = 0
     skipped = 0
     used_skipped = 0
-    for i, name_tag in enumerate(names):
+    for i, item in enumerate(items):
         try:
-            product = clean_name(name_tag)
-            href = name_tag.get("href", "")
-            pcode = extract_pcode(href)
-            block = find_product_block(name_tag)
-            img_url = extract_image(block)
-            specs = extract_specs(block)
-            variants = extract_variants(block)
+            product = item["product"]
+            pcode = extract_pcode(item["href"])
+            img_url = item["img_url"]
+            specs = item["specs"]
+            variants = item["variants"]
 
             # 선별 규칙은 상품번호 발급보다 먼저 — 걸러낸 상품에 번호가 나가면 안 된다
             if not _is_new_product(product):
@@ -619,13 +679,8 @@ def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
                     print(f"   가격: {var_price:,}원 | 이미지: {img_status}")
                     data_list.append((today, category, full_name, var_price, specs, img_url, pcode))
             else:
-                price_tag = block.find("a", class_="click_log_product_standard_price_")
-                if not price_tag:
-                    continue
-                cost_text = price_tag.get_text(strip=True)
-                try:
-                    cost_num = int(cost_text.replace(",", "").replace("원", ""))
-                except ValueError:
+                cost_num = item["price"]
+                if cost_num is None:
                     continue
                 print(f"{i+1}. {product}")
                 img_status = "OK" if img_url else "NO"
