@@ -154,10 +154,15 @@ _last_search_ts = 0.0
 # 다나와가 2026-10-07부터 검색 요청 일부(관측 20~35%)를 개편된 새 검색 UI
 # (search.danawa.com/?query=)로 무작위 리다이렉트한다. 새 UI에는 아래 마커가 없어 상품 0개로
 # 파싱되고 예외도 안 나서 조용히 '성공' 처리됐다. 요청마다 배정이 무작위라 재요청하면 옛 UI가 온다.
+# 비율이 계속 올라 2026-10-18 실측 25~67%(서버 307, 쿠키 없음, 검색어 무관)가 됐고, 재시도 4회로는
+# 10-16 NVMe SSD, 10-18 그래픽카드가 5연속 새 UI로 통째로 빠졌다. 67%에서도 20회 연속일 확률은
+# 0.03%라 하루 검색어 11개 기준 실패 확률 ~0.4%. 대가는 재시도 1회당 크롤 딜레이 10초
+# (최악이어도 11개 × 20회 × 10초 ≈ 37분, 스케줄러 제한 2시간 안).
 # ponytail: 옛 UI가 남아 있는 동안만 통하는 우회. 다나와가 전환을 끝내면 재시도도 전부 실패하고
-#           verify_last_scrape 가드가 카테고리 소멸로 잡는다 — 그때 새 UI 파서를 짜야 한다.
+#           verify_last_scrape 가드가 카테고리 소멸로 잡는다 — 그때 새 UI 파서를 짜야 한다
+#           (새 UI도 서버 렌더링이라 HTML의 self.__next_f 페이로드에 상품코드·가격이 들어 있다).
 OLD_SEARCH_UI_MARKER = "click_log_product_standard_title_"
-SEARCH_RETRIES = 4
+SEARCH_RETRIES = 19
 
 
 def _search_get(url):
@@ -175,7 +180,7 @@ def _search_get(url):
         _last_search_ts = time.monotonic()
         if OLD_SEARCH_UI_MARKER in response.text:
             return response
-        print(f"   [!] 새 검색 UI로 배정됨 ({response.url[:60]}) — 재시도 {attempt + 1}/{SEARCH_RETRIES}")
+        print(f"   [!] 새 검색 UI로 배정됨 ({response.url[:60]}) — 시도 {attempt + 1}/{SEARCH_RETRIES + 1}")
     print("   [!] 재시도 소진 — 이 검색어는 0개로 처리됩니다")
     return response
 
