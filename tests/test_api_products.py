@@ -58,6 +58,28 @@ def test_get_product_detail_includes_laptop_images(api_client):
     assert image_types == {"main", "detail"}
 
 
+def _main_images(body):
+    return [img["image_url"] for img in body["images"] if img["image_type"] == "main"]
+
+
+def test_get_product_detail_falls_back_to_listing_image_for_parts(api_client):
+    """부품은 laptop_images 에 사진이 없다 — 가격 행의 image_url 을 대표 이미지로 쓴다.
+    예전엔 API가 laptop_images 만 봐서 부품 상세가 전부 '이미지 없음'이었다(Streamlit 쪽은 이미 이렇게 했다)."""
+    assert _main_images(api_client.get(f"/api/products/{api_client.ram_code}").json()) == ["http://img/a.jpg"]
+
+    db_manager.insert_many_laptop_prices([
+        ("2026-08-06", "NVMe SSD", "삼성전자 990 PRO (1TB)", 200000, "", "https://img/ssd.jpg", "SSD-PC"),
+    ])
+    ssd_code = db_manager.get_or_create_product_code("NVMe SSD", "SSD-PC (1TB)", "삼성전자 990 PRO (1TB)")
+    reset_cache()
+    assert _main_images(api_client.get(f"/api/products/{ssd_code}").json()) == ["https://img/ssd.jpg"]
+
+
+def test_get_product_detail_keeps_laptop_main_image_without_duplicate(api_client):
+    """노트북은 laptop_images 의 대표 이미지가 있으니 가격 행 이미지를 또 붙이지 않는다."""
+    assert _main_images(api_client.get(f"/api/products/{api_client.laptop_code}").json()) == ["http://img/gn_main.jpg"]
+
+
 def test_get_product_detail_404_for_unknown_code(api_client):
     resp = api_client.get("/api/products/RAM-999")
     assert resp.status_code == 404

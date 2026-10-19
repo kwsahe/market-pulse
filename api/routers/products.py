@@ -75,6 +75,11 @@ def get_product_detail(code: str) -> ProductDetailResponse:
             ProductImage(image_url=img["image_url"], image_type=img["image_type"])
             for _, img in prod_imgs.iterrows()
         ]
+    # laptop_images 는 노트북만 채운다. 부품은 대표 이미지가 가격 행(image_url)에만 있다 —
+    # 여기서 안 붙이면 부품 상세가 전부 '이미지 없음'이 된다 (Streamlit 상세 화면과 같은 규칙).
+    listing_image = optional_str(row.get("image_url"))
+    if not any(img.image_type == "main" for img in images) and listing_image and listing_image.startswith("http"):
+        images.insert(0, ProductImage(image_url=listing_image, image_type="main"))
 
     history_df = _price_history_cached(category, match_key, by_pcode)
     history = [PricePoint(date=r["date"], price=int(r["price"])) for _, r in history_df.iterrows()]
