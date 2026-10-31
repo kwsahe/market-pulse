@@ -74,6 +74,35 @@ def test_scrape_run_records_failure(temp_db):
     assert row["error_message"] == "네트워크 오류"
 
 
+def _insert_running(source: str, hours_ago: float) -> int:
+    with db_manager.get_connection() as conn:
+        cur = conn.execute(
+            "INSERT INTO scrape_runs (source, started_at, status) "
+            "VALUES (?, datetime('now', 'localtime', ?), 'running')",
+            (source, f"-{hours_ago} hours"),
+        )
+        conn.commit()
+        return cur.lastrowid
+
+
+def test_new_run_closes_stale_running_rows(temp_db):
+    """창이 닫히거나 PC가 꺼져 끝나지 못한 실행은 영원히 '진행 중'으로 남았다(2026-10-11 #72).
+    새 실행을 시작할 때 스케줄러 제한(2시간)보다 오래된 같은 종류의 'running'을 실패로 정리한다."""
+    stale = _insert_running("price", hours_ago=3)
+    recent = _insert_running("price", hours_ago=0.5)   # 아직 돌고 있을 수 있다 — 건드리지 않는다
+    other = _insert_running("news", hours_ago=3)       # 다른 종류의 실행 — 건드리지 않는다
+
+    new_id = db_manager.start_scrape_run("price")
+
+    runs = db_manager.load_scrape_runs().set_index("id")
+    assert runs.loc[stale, "status"] == "failed"
+    assert "중단" in runs.loc[stale, "error_message"]
+    assert runs.loc[stale, "finished_at"] is not None
+    assert runs.loc[recent, "status"] == "running"
+    assert runs.loc[other, "status"] == "running"
+    assert runs.loc[new_id, "status"] == "running"
+
+
 def test_tracked_target_price_roundtrip(temp_db):
     """추적 대상 등록 -> 목표가 설정 -> 조회가 정상 동작해야 한다"""
     db_manager.set_laptop_tracked("pcode-1", True)

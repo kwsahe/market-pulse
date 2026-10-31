@@ -239,8 +239,29 @@ def init_db() -> None:
     print("[OK] DB 초기화 완료! 테이블: prices, news, laptop_products, laptop_specs, laptop_images, tracked_laptops, product_registry, scrape_runs, schema_migrations")
 
 
+# 작업 스케줄러의 실행 제한이 2시간이라, 그보다 오래 'running'인 실행은 끝나지 못한 것이다.
+STALE_RUN_HOURS = 2
+
+
+def close_stale_scrape_runs(source: str) -> int:
+    """창이 닫히거나 PC가 꺼져 finish_scrape_run 까지 못 간 실행을 실패로 정리한다.
+    그대로 두면 수집 이력에 영원히 '진행 중'으로 남는다(2026-10-11 실행 #72). 정리한 건수를 반환."""
+    with get_connection() as conn:
+        cursor = conn.execute(
+            """UPDATE scrape_runs
+               SET status = 'failed', finished_at = datetime('now', 'localtime'),
+                   error_message = '끝나지 못한 실행 — 창이 닫히거나 PC가 꺼져 중단된 것으로 보여 다음 실행 때 정리함'
+               WHERE source = ? AND status = 'running'
+                 AND started_at < datetime('now', 'localtime', ?)""",
+            (source, f"-{STALE_RUN_HOURS} hours"),
+        )
+        conn.commit()
+        return cursor.rowcount
+
+
 def start_scrape_run(source: str) -> int:
     """수집 실행 시작 기록. finish_scrape_run에 넘길 run_id를 반환한다."""
+    close_stale_scrape_runs(source)
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
