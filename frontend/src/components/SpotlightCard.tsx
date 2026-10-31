@@ -36,7 +36,7 @@ export function SpotlightCard({
         </div>
         {code && (
           <Link to={`/products/${encodeURIComponent(code)}`} className={styles.link}>
-            🔗 상품 바로가기
+            상품 바로가기
           </Link>
         )}
       </div>

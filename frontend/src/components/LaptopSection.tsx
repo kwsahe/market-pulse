@@ -96,7 +96,7 @@ export function LaptopSection({ category }: { category: string }) {
       <input
         className={styles.search}
         type="text"
-        placeholder="🔎 상품명으로 검색..."
+        placeholder="상품명으로 검색..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -149,7 +149,7 @@ export function LaptopSection({ category }: { category: string }) {
         <span className={styles.count}>{filtered.length}개 상품 표시 중</span>
         {filtered.length > 0 && (
           <button className={styles.csvBtn} onClick={handleExportCsv}>
-            ⬇️ {category} 목록 CSV ({filtered.length}개)
+            {category} 목록 CSV ({filtered.length}개)
           </button>
         )}
       </div>

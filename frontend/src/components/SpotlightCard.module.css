@@ -58,8 +58,8 @@
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(34, 211, 238, 0.15);
-  color: var(--mp-cyan);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
 }
 
 .badgeUp {

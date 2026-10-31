@@ -21,7 +21,7 @@ export function ChangeCard({ item }: { item: ChangeItem }) {
           {item.prev_price.toLocaleString()}원 → <strong>{item.current_price.toLocaleString()}원</strong>
         </div>
         <div className={isUp ? styles.changeUp : styles.changeDown}>
-          {isUp ? "📈" : "📉"} {isUp ? "+" : ""}
+          {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
           {item.change.toLocaleString()}원 ({isUp ? "+" : ""}
           {item.change_pct}%)
         </div>
@@ -33,7 +33,7 @@ export function ChangeCard({ item }: { item: ChangeItem }) {
         )}
         {item.code && (
           <Link to={`/products/${encodeURIComponent(item.code)}`} className={styles.detailLink}>
-            🔍 상세보기
+            상세보기
           </Link>
         )}
       </div>

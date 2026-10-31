@@ -102,18 +102,15 @@ export function OverviewPage() {
   const stats: Stat[] = useMemo(() => {
     if (!categoriesData) return [];
     return [
-      { icon: "📦", label: "상품", value: `${categoriesData.product_count}개` },
-      { icon: "📂", label: "카테고리", value: `${categoriesData.categories.length}개` },
+      { label: "상품", value: `${categoriesData.product_count}개` },
+      { label: "카테고리", value: `${categoriesData.categories.length}개` },
       {
-        icon: "💰",
         label: "평균가",
         value: `${Math.round(categoriesData.avg_price).toLocaleString()}원`,
-        color: "var(--mp-cyan)",
       },
-      { icon: "📈", label: "인상", value: `${categoriesData.up_count}개`, color: "var(--mp-red)" },
-      { icon: "📉", label: "인하", value: `${categoriesData.down_count}개`, color: "var(--mp-green)" },
+      { label: "인상", value: `${categoriesData.up_count}개`, color: "var(--mp-red)" },
+      { label: "인하", value: `${categoriesData.down_count}개`, color: "var(--mp-green)" },
       {
-        icon: "⚠️",
         label: "이상치",
         value: `${categoriesData.anomaly_count}개`,
         color: "var(--mp-amber)",
@@ -132,7 +129,6 @@ export function OverviewPage() {
       {categoriesData && categoriesData.categories.length > 0 && (
         <section>
           <SectionHeader
-            icon="📊"
             title="카테고리별 가격 변동"
             subtitle="중앙값과, 직전 수집일보다 오른·내린 상품 수예요"
           />
@@ -143,7 +139,7 @@ export function OverviewPage() {
       <SpotlightSection />
 
       <section>
-        <SectionHeader icon="🔍" title="전체 상품" subtitle="카테고리·검색·정렬로 찾아보세요" />
+        <SectionHeader title="전체 상품" subtitle="카테고리·검색·정렬로 찾아보세요" />
         <CategoryTabs
           categories={categoriesData?.categories.map((c) => c.category) ?? []}
           active={category}
@@ -171,7 +167,7 @@ export function OverviewPage() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  ⬇️ CSV 내보내기 ({total}개)
+                  CSV 내보내기 ({total}개)
                 </button>
               )}
             </div>

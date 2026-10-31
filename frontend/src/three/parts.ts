@@ -42,7 +42,6 @@ export interface PartDef {
   /** DB의 카테고리명과 정확히 일치해야 한다 (api/categories의 응답 키). */
   category: string;
   label: string;
-  icon: string;
   hint: string;
   /** 부품을 방문했을 때의 카메라 위치와 바라볼 지점. */
   camera: { position: Vec3; target: Vec3 };
@@ -58,7 +57,6 @@ export const PARTS: PartDef[] = [
     id: "cpu",
     category: "CPU",
     label: "CPU",
-    icon: "🧠",
     hint: "메인보드 소켓 위 쿨러",
     camera: { position: towerToWorld([-0.06, 0.86, 0.76]), target: towerToWorld([0, 0.7, -0.1]) },
   },
@@ -66,7 +64,6 @@ export const PARTS: PartDef[] = [
     id: "gpu",
     category: "그래픽카드",
     label: "그래픽카드",
-    icon: "🎮",
     hint: "PCIe 슬롯의 대형 카드",
     camera: { position: towerToWorld([0.02, 0.6, 1.05]), target: towerToWorld([0.02, 0.44, -0.13]) },
   },
@@ -74,7 +71,6 @@ export const PARTS: PartDef[] = [
     id: "ram",
     category: "DDR5 RAM",
     label: "DDR5 RAM",
-    icon: "🧩",
     hint: "CPU 오른쪽 메모리 슬롯",
     camera: { position: towerToWorld([0.28, 0.8, 0.42]), target: towerToWorld([0.268, 0.72, -0.14]) },
   },
@@ -82,7 +78,6 @@ export const PARTS: PartDef[] = [
     id: "ssd",
     category: "NVMe SSD",
     label: "NVMe SSD",
-    icon: "💾",
     hint: "그래픽카드 아래 M.2 슬롯",
     camera: { position: towerToWorld([0.14, 0.22, 0.88]), target: towerToWorld([0.1, 0.34, -0.185]) },
   },
@@ -90,7 +85,6 @@ export const PARTS: PartDef[] = [
     id: "gaming-laptop",
     category: "게이밍 노트북",
     label: "게이밍 노트북",
-    icon: "💻",
     hint: "책상 왼쪽, RTX 게이밍 모델",
     camera: { position: [-1.5, 1.32, 1.15], target: [-1.5, 0.87, 0.05] },
   },
@@ -98,7 +92,6 @@ export const PARTS: PartDef[] = [
     id: "ai-laptop",
     category: "AI 노트북",
     label: "AI 노트북",
-    icon: "🤖",
     hint: "책상 가운데, NPU 탑재 모델",
     camera: { position: [-0.35, 1.3, 1.1], target: [-0.35, 0.85, 0.02] },
   },
@@ -107,7 +100,6 @@ export const PARTS: PartDef[] = [
     id: "monitor",
     category: "게이밍 모니터",
     label: "게이밍 모니터",
-    icon: "🖥️",
     hint: "책상 오른쪽, 고주사율 패널",
     camera: { position: [0.18, 1.24, 0.59], target: [0.5, 1.14, -0.31] },
   },
@@ -115,7 +107,6 @@ export const PARTS: PartDef[] = [
     id: "keyboard",
     category: "게이밍 키보드",
     label: "게이밍 키보드",
-    icon: "⌨️",
     hint: "모니터 앞 데스크매트 위",
     camera: { position: [0.3, 1.02, 0.6], target: [0.389, 0.75, 0.168] },
   },
@@ -123,7 +114,6 @@ export const PARTS: PartDef[] = [
     id: "mouse",
     category: "게이밍 마우스",
     label: "게이밍 마우스",
-    icon: "🖱️",
     hint: "키보드 오른쪽",
     camera: { position: [0.66, 0.93, 0.61], target: [0.702, 0.748, 0.363] },
   },

@@ -29,7 +29,7 @@ function FreshnessPill() {
     return <span className={styles.livePill}>수집 상태 확인 중…</span>;
   }
   if (data.status === "error" || data.status === "empty") {
-    return <span className={`${styles.livePill} ${styles.pillBad}`}>⚠️ 데이터를 읽을 수 없어요</span>;
+    return <span className={`${styles.livePill} ${styles.pillBad}`}>데이터를 읽을 수 없어요</span>;
   }
 
   const stale = data.days_stale ?? 0;
@@ -37,7 +37,7 @@ function FreshnessPill() {
   if (data.status === "stale") {
     return (
       <span className={`${styles.livePill} ${styles.pillBad}`} title="수집 배치가 멈췄을 수 있어요">
-        ⚠️ {label} 이후 수집 없음 ({stale}일째)
+        {label} 이후 수집 없음 ({stale}일째)
       </span>
     );
   }
@@ -79,7 +79,7 @@ export function Layout({ children }: { children: ReactNode }) {
           PC 부품·노트북 9개 카테고리 가격 추적 · 가격 변동 · 이상치 · 적정가 예측
         </p>
         <div className={styles.metaRow}>
-          <span className={styles.datePill}>📅 {dateLabel}</span>
+          <span className={styles.datePill}>{dateLabel}</span>
           <FreshnessPill />
         </div>
       </header>

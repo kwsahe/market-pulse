@@ -32,7 +32,7 @@ export function LaptopCard({ item, onTrackChange }: { item: LaptopItem; onTrackC
         ) : (
           <div className={styles.noImage}>이미지 없음</div>
         )}
-        <span className={styles.imageCount}>🖼️ {item.images.length}</span>
+        <span className={styles.imageCount}>사진 {item.images.length}</span>
       </div>
 
       <div className={styles.body}>
@@ -45,34 +45,34 @@ export function LaptopCard({ item, onTrackChange }: { item: LaptopItem; onTrackC
 
         {item.change != null && item.change !== 0 && (
           <div className={isUp ? styles.changeUp : styles.changeDown}>
-            {isUp ? "📈" : "📉"} {isUp ? "+" : ""}
+            {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
             {item.change.toLocaleString()}원 ({item.change_pct}%)
           </div>
         )}
 
         {item.best_buy &&
           (item.best_buy.is_best_now ? (
-            <div className={styles.bestNow}>🏆 지금이 역대 최저가예요!</div>
+            <div className={styles.bestNow}>지금이 역대 최저가예요!</div>
           ) : (
             <div className={styles.bestPast}>
-              🕒 {item.best_buy.best_date}에 샀으면 {item.best_buy.savings.toLocaleString()}원 이득이었어요
+              {item.best_buy.best_date}에 샀으면 {item.best_buy.savings.toLocaleString()}원 이득이었어요
             </div>
           ))}
 
         {!readonly && (
           <label className={styles.trackLabel}>
             <input type="checkbox" checked={item.tracked} disabled={busy} onChange={handleToggleTrack} />
-            🎯 집중 추적
+            집중 추적
           </label>
         )}
 
         <div className={styles.actions}>
           <button className={styles.specToggle} onClick={() => setShowSpecs((s) => !s)}>
-            📋 전체 스펙 {showSpecs ? "▲" : "▼"}
+            전체 스펙 {showSpecs ? "▲" : "▼"}
           </button>
           {item.code && (
             <Link to={`/products/${encodeURIComponent(item.code)}`} className={styles.detailLink}>
-              📈 상세보기
+              상세보기
             </Link>
           )}
         </div>

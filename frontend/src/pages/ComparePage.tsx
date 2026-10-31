@@ -78,7 +78,7 @@ export function ComparePage() {
 
   return (
     <section>
-      <SectionHeader icon="🔀" title="상품 비교" subtitle="같은 카테고리에서 2~5개 상품을 선택해 나란히 비교해보세요." />
+      <SectionHeader title="상품 비교" subtitle="같은 카테고리에서 2~5개 상품을 선택해 나란히 비교해보세요." />
 
       <select className={styles.select} value={category} onChange={(e) => setCategory(e.target.value)}>
         {CATEGORIES.map((c) => (

@@ -205,7 +205,7 @@ function Hotspot({
               opacity: available ? 1 : 0.55,
             }}
           >
-            <span style={{ color: accent }}>{part.icon} {part.label}</span>
+            <span style={{ color: accent }}>{part.label}</span>
             <span style={{ color: "#8b93a7", marginLeft: 8, fontWeight: 500 }}>{summary}</span>
           </div>
         </Html>

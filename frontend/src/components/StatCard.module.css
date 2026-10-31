@@ -27,10 +27,6 @@
   border-color: var(--mp-amber);
 }
 
-.icon {
-  font-size: 1.1rem;
-}
-
 .label {
   color: var(--mp-muted);
   font-size: 0.8rem;

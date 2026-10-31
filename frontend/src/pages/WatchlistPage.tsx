@@ -46,7 +46,7 @@ function WatchlistCard({ item, onChanged }: { item: WatchlistItem; onChanged: ()
         </Link>
         <div className={styles.price}>현재가 {item.price.toLocaleString()}원</div>
         {item.target_reached && (
-          <div className={styles.reached}>🎯 목표가 도달! 지금이 구매 타이밍이에요.</div>
+          <div className={styles.reached}>목표가 도달! 지금이 구매 타이밍이에요.</div>
         )}
         {!readonly && (
         <>
@@ -89,9 +89,9 @@ export function WatchlistPage() {
 
   return (
     <section>
-      <SectionHeader icon="🎯" title="워치리스트" subtitle="집중 추적 중인 노트북과 목표가 도달 여부를 확인해요." />
+      <SectionHeader title="워치리스트" subtitle="집중 추적 중인 노트북과 목표가 도달 여부를 확인해요." />
       {data.items.length === 0 ? (
-        <p>추적 중인 상품이 없어요. 노트북 상세 페이지에서 🎯 집중 추적을 눌러보세요!</p>
+        <p>추적 중인 상품이 없어요. 노트북 상세 페이지에서 집중 추적을 눌러보세요!</p>
       ) : (
         <div className={styles.grid}>
           {data.items.map((item) => (

@@ -48,7 +48,6 @@ export function DeskPage() {
   return (
     <>
       <SectionHeader
-        icon="🖥️"
         title="3D 데스크"
         subtitle="부품을 클릭하면 카메라가 이동하고 해당 카테고리 시세가 열려요"
       />
@@ -59,7 +58,7 @@ export function DeskPage() {
           onClick={() => select(null)}
           className={`${styles.chip} ${!selectedPart ? styles.chipActive : ""}`}
         >
-          🏠 전체 보기
+          전체 보기
         </button>
         {PARTS.map((part) => {
           const active = selectedId === part.id;
@@ -73,7 +72,8 @@ export function DeskPage() {
               style={active ? { borderColor: accent, color: accent } : undefined}
               aria-pressed={active}
             >
-              {part.icon} {part.label}
+              <span className={styles.chipDot} style={{ background: accent }} aria-hidden="true" />
+              {part.label}
               {!availableCategories.has(part.category) && categoriesData && (
                 <span className={styles.chipEmpty}>·수집 전</span>
               )}
@@ -113,7 +113,7 @@ export function DeskPage() {
               {PARTS.map((part) => (
                 <li key={part.id}>
                   <button type="button" onClick={() => select(part.id)} className={styles.emptyItem}>
-                    <span style={{ color: partColor(part) }}>{part.icon}</span>
+                    <span className={styles.chipDot} style={{ background: partColor(part) }} aria-hidden="true" />
                     <span className={styles.emptyItemLabel}>{part.label}</span>
                     <span className={styles.emptyItemHint}>{summaries[part.id]}</span>
                   </button>

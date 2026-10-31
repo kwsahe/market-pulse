@@ -10,7 +10,7 @@ function AnomalyRow({ item }: { item: ZScoreAnomaly | IqrAnomaly }) {
   const inner = (
     <>
       <span className={item.direction === "고가" ? styles.dirHigh : styles.dirLow}>
-        {item.direction === "고가" ? "📈" : "📉"} {item.direction}
+        {item.direction === "고가" ? "▲" : "▼"} {item.direction}
       </span>
       <CategoryBadge category={item.category} />
       <span className={styles.name}>{item.product}</span>
@@ -41,7 +41,7 @@ export function AnomaliesPage() {
   return (
     <>
       <section>
-        <SectionHeader icon="📊" title="카테고리별 통계" />
+        <SectionHeader title="카테고리별 통계" />
         <div className={styles.statGrid}>
           {data.category_stats.map((s) => (
             <div key={s.category} className={styles.statCard}>
@@ -57,9 +57,9 @@ export function AnomaliesPage() {
       </section>
 
       <section>
-        <SectionHeader icon="🔵" title="Z-score 이상치" subtitle="평균에서 표준편차 2.5배 이상 벗어난 상품" />
+        <SectionHeader title="Z-score 이상치" subtitle="평균에서 표준편차 2.5배 이상 벗어난 상품" />
         {data.zscore.length === 0 ? (
-          <p>✅ 이상치 없음</p>
+          <p>이상치 없음</p>
         ) : (
           <div className={styles.list}>
             {data.zscore.map((item, i) => (
@@ -70,9 +70,9 @@ export function AnomaliesPage() {
       </section>
 
       <section>
-        <SectionHeader icon="🟠" title="IQR 이상치" subtitle="중간 50% 범위의 1.5배를 벗어난 상품" />
+        <SectionHeader title="IQR 이상치" subtitle="중간 50% 범위의 1.5배를 벗어난 상품" />
         {data.iqr.length === 0 ? (
-          <p>✅ 이상치 없음</p>
+          <p>이상치 없음</p>
         ) : (
           <div className={styles.list}>
             {data.iqr.map((item, i) => (

@@ -16,16 +16,16 @@ export function ScrapesPage() {
   }
 
   const summaryStats: Stat[] = [
-    { icon: "🛰️", label: "전체 실행", value: `${data.summary.total}회` },
-    { icon: "✅", label: "성공", value: `${data.summary.success}회`, color: "var(--mp-green)" },
-    { icon: "❌", label: "실패", value: `${data.summary.failed}회`, color: "var(--mp-red)" },
-    { icon: "⏳", label: "진행 중", value: `${data.summary.running}회`, color: "var(--mp-amber)" },
+    { label: "전체 실행", value: `${data.summary.total}회` },
+    { label: "성공", value: `${data.summary.success}회`, color: "var(--mp-green)" },
+    { label: "실패", value: `${data.summary.failed}회`, color: "var(--mp-red)" },
+    { label: "진행 중", value: `${data.summary.running}회`, color: "var(--mp-amber)" },
   ];
 
   return (
     <>
       <section>
-        <SectionHeader icon="🛰️" title="수집 실행 이력" subtitle="가격/뉴스 스크래퍼가 언제, 얼마나 성공적으로 돌았는지 확인해요." />
+        <SectionHeader title="수집 실행 이력" subtitle="가격/뉴스 스크래퍼가 언제, 얼마나 성공적으로 돌았는지 확인해요." />
         <div className={styles.latestGrid}>
           {data.latest_by_source.map((r) => (
             <div key={r.source} className={styles.latestCard}>
@@ -35,7 +35,7 @@ export function ScrapesPage() {
                 {r.started_at} · 수집 {r.fetched_count}개 · 신규 {r.inserted_count}개
               </div>
               {r.status === "failed" && r.error_message && (
-                <div className={styles.errorMsg}>❌ {r.error_message}</div>
+                <div className={styles.errorMsg}>{r.error_message}</div>
               )}
             </div>
           ))}
@@ -45,7 +45,7 @@ export function ScrapesPage() {
       <StatCards stats={summaryStats} />
 
       <section>
-        <SectionHeader icon="📜" title="최근 실행 목록" />
+        <SectionHeader title="최근 실행 목록" />
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>

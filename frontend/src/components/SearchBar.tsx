@@ -17,7 +17,7 @@ export function SearchBar({
       <input
         className={styles.input}
         type="text"
-        placeholder="🔍 상품명 검색..."
+        placeholder="상품명 검색..."
         value={q}
         onChange={(e) => onQChange(e.target.value)}
       />

@@ -14,14 +14,12 @@
   gap: 12px;
 }
 
-.icon {
-  width: 42px;
-  height: 42px;
+.dot {
+  width: 10px;
+  height: 10px;
   flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  font-size: 1.25rem;
+  margin-top: 8px;
+  border-radius: 50%;
 }
 
 .title {

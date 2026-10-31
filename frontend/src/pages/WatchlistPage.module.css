@@ -59,7 +59,7 @@
 
 .price {
   font-weight: 700;
-  color: var(--mp-cyan);
+  color: var(--mp-text);
   font-size: 0.9rem;
 }
 

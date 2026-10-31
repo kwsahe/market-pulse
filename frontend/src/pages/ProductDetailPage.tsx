@@ -40,7 +40,7 @@ function TrackToggle({ pcode }: { pcode: string }) {
 
   return (
     <button className={tracked ? styles.trackBtnActive : styles.trackBtn} onClick={toggle} disabled={busy}>
-      {tracked ? "🎯 추적 중 (해제하기)" : "🎯 집중 추적"}
+      {tracked ? "추적 중 (해제하기)" : "집중 추적"}
     </button>
   );
 }
@@ -91,7 +91,7 @@ export function ProductDetailPage() {
 
       {detailImages.length > 0 && (
         <section>
-          <h2 className={styles.sectionTitle}>🖼️ 상세정보 이미지</h2>
+          <h2 className={styles.sectionTitle}>상세정보 이미지</h2>
           <div className={styles.detailImages}>
             {detailImages.map((img) => (
               <img key={img.image_url} src={img.image_url} alt="" />
@@ -101,7 +101,7 @@ export function ProductDetailPage() {
       )}
 
       <section>
-        <h2 className={styles.sectionTitle}>📈 가격 추이</h2>
+        <h2 className={styles.sectionTitle}>가격 추이</h2>
         {data.history.length >= 2 ? (
           <>
             <div className={styles.historyStats}>
@@ -117,7 +117,7 @@ export function ProductDetailPage() {
             <p className={styles.meta}>
               {diffFromMinPct > 0.5
                 ? `현재가가 역대 최저가보다 ${diffFromMinPct.toFixed(1)}% 높아요.`
-                : "🏆 지금이 역대 최저가예요!"}
+                : "지금이 역대 최저가예요!"}
             </p>
             <PriceHistoryChart history={data.history} color={categoryColor(data.category)} />
           </>

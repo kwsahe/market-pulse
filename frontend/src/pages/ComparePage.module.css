@@ -79,7 +79,7 @@
 
 .price {
   font-weight: 700;
-  color: var(--mp-cyan);
+  color: var(--mp-text);
 }
 
 .meta {
@@ -92,8 +92,8 @@
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-  background: rgba(34, 211, 238, 0.15);
-  color: var(--mp-cyan);
+  background: var(--mp-surface-raised);
+  color: var(--mp-text);
 }
 
 .tableWrap {

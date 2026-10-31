@@ -13,7 +13,7 @@ export function AlertBanner() {
     <div className={styles.wrap}>
       {data.tracked_drops.length > 0 && (
         <details className={styles.banner} open>
-          <summary>🔔 집중 추적 중인 상품 {data.tracked_drops.length}개의 가격이 내렸어요!</summary>
+          <summary>집중 추적 중인 상품 {data.tracked_drops.length}개의 가격이 내렸어요!</summary>
           <div className={styles.grid}>
             {data.tracked_drops.map((item, i) => (
               <ChangeCard key={`${item.code || item.product}-${i}`} item={item} />
@@ -23,7 +23,7 @@ export function AlertBanner() {
       )}
       {data.target_reached.length > 0 && (
         <details className={styles.banner} open>
-          <summary>🎯 목표가에 도달한 추적 상품 {data.target_reached.length}개가 있어요!</summary>
+          <summary>목표가에 도달한 추적 상품 {data.target_reached.length}개가 있어요!</summary>
           <div className={styles.grid}>
             {data.target_reached.map((item, i) => (
               <div key={`${item.code || item.product}-${i}`} className={styles.targetCard}>
@@ -39,7 +39,7 @@ export function AlertBanner() {
                   </div>
                   {item.code && (
                     <Link to={`/products/${encodeURIComponent(item.code)}`} className={styles.link}>
-                      🔍 상세보기
+                      상세보기
                     </Link>
                   )}
                 </div>

@@ -62,9 +62,7 @@ export function PartPulsePanel({
   return (
     <aside className={styles.panel} style={{ borderColor: `${accent}55` }}>
       <header className={styles.header}>
-        <span className={styles.icon} style={{ background: `${accent}22`, color: accent }}>
-          {part.icon}
-        </span>
+        <span className={styles.dot} style={{ background: accent }} aria-hidden="true" />
         <div>
           <h2 className={styles.title}>{part.label}</h2>
           <p className={styles.hint}>{part.hint}</p>
@@ -111,9 +109,9 @@ export function PartPulsePanel({
           </div>
 
           <div className={styles.chips}>
-            <span className={`${styles.chip} ${styles.up}`}>📈 인상 {data.up_count}</span>
-            <span className={`${styles.chip} ${styles.down}`}>📉 인하 {data.down_count}</span>
-            <span className={`${styles.chip} ${styles.warn}`}>⚠️ 이상치 {data.anomaly_count}</span>
+            <span className={`${styles.chip} ${styles.up}`}>▲ 인상 {data.up_count}</span>
+            <span className={`${styles.chip} ${styles.down}`}>▼ 인하 {data.down_count}</span>
+            <span className={`${styles.chip} ${styles.warn}`}>이상치 {data.anomaly_count}</span>
           </div>
 
           {data.trend.length >= 2 && (

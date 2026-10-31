@@ -67,7 +67,7 @@ a.card:hover {
 
 .price {
   font-weight: 700;
-  color: var(--mp-cyan);
+  color: var(--mp-text);
 }
 
 .changeUp {

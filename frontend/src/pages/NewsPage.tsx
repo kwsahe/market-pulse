@@ -38,7 +38,7 @@ export function NewsPage() {
 
   return (
     <section>
-      <SectionHeader icon="📰" title="IT/과학 뉴스" />
+      <SectionHeader title="IT/과학 뉴스" />
       {/* 새 기사가 안 들어오는 이유를 밝혀 둔다 — 설명이 없으면 멈춘 데이터가 고장처럼 보인다 */}
       <p className={styles.notice}>
         뉴스 수집은 {lastCollected.slice(0, 10)} 이후 멈춰 있어요. 네이버 뉴스가 robots.txt로 자동 수집을
@@ -61,7 +61,7 @@ export function NewsPage() {
           <div key={`${item.title}-${i}`} className={styles.item}>
             <div className={styles.title}>{item.title}</div>
             <div className={styles.meta}>
-              📡 {item.press} · 🕐 {item.published_at}
+              {item.press} · {item.published_at}
             </div>
           </div>
         ))}

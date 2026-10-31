@@ -75,7 +75,7 @@ export function PredictionPage() {
 
   return (
     <section>
-      <SectionHeader icon="🔮" title="가격 예측" subtitle="제품을 선택하면 스펙 기반 적정 가격을 예측하고 실제 판매가와 비교해드려요." />
+      <SectionHeader title="가격 예측" subtitle="제품을 선택하면 스펙 기반 적정 가격을 예측하고 실제 판매가와 비교해드려요." />
 
       <div className={styles.selectRow}>
         <select className={styles.select} value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -136,7 +136,7 @@ export function PredictionPage() {
 
           <div className={styles.splitRow}>
             <div>
-              <SectionHeader icon="📊" title="스펙별 가격 기여도" />
+              <SectionHeader title="스펙별 가격 기여도" />
               {prediction.contributions.length === 0 ? (
                 <p>뚜렷한 기여 스펙을 찾지 못했어요.</p>
               ) : (
@@ -158,7 +158,7 @@ export function PredictionPage() {
             </div>
 
             <div>
-              <SectionHeader icon="🔍" title="비슷한 스펙 제품 비교" />
+              <SectionHeader title="비슷한 스펙 제품 비교" />
               {prediction.similar_products.length === 0 ? (
                 <p>비교할 제품이 없어요.</p>
               ) : (
@@ -170,7 +170,7 @@ export function PredictionPage() {
                         <div className={styles.similarName}>{s.product}</div>
                         <div className={styles.meta}>
                           {s.price.toLocaleString()}원 ·{" "}
-                          {diff > 0 ? `🔺 +${diff.toLocaleString()}원` : diff < 0 ? `🔻 ${diff.toLocaleString()}원` : "동일"}
+                          {diff > 0 ? `▲ +${diff.toLocaleString()}원` : diff < 0 ? `▼ ${diff.toLocaleString()}원` : "동일"}
                         </div>
                       </div>
                     );
