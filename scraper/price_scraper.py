@@ -51,15 +51,26 @@ def _is_gaming_monitor(product: str, specs: str) -> bool:
     return bool(match) and int(match.group(1)) >= MIN_GAMING_REFRESH_HZ
 
 
-# 키보드는 "방식"이 스펙에 100% 표기되므로 그걸로 거른다.
+# 키보드는 옛 검색 UI에서 "방식"이 스펙에 100% 표기돼 그걸로 걸렀다.
 # 폴링레이트로 거르면 표기가 없는(11.5%) 로지텍 G512·CORSAIR K100 AIR 같은 진짜 게이밍 제품이 탈락한다.
+#
+# 그런데 새 검색 UI는 스펙 요약에서 스위치 방식을 자주 뺀다(멤브레인·플런저는 그대로 적는다).
+# 그 탓에 새 UI가 대부분이 된 2026-10-28에 CORSAIR K70 MAX·로지텍 G512 기계식 등 27행이 하루 새 사라졌다
+# (당시엔 검색 순위 변동으로 잘못 봤다 — 11-01 2페이지 시험 실행에서 걸러진 목록을 보고 찾았다).
+# 그래서 방식 표기가 없으면 상품명의 방식 표기, 그다음 폴링레이트 1000Hz 이상으로 대신 판정한다.
 GAMING_SWITCH_PATTERN = re.compile(r"기계식|무접점\s*\(")
 OFFICE_SWITCH_PATTERN = re.compile(r"멤브레인|펜타그래프|플런저")
+KEYBOARD_POLLING_PATTERN = re.compile(r"(\d{3,5})\s*Hz")
 
 
 def _is_gaming_keyboard(product: str, specs: str) -> bool:
-    """기계식 / 무접점(자석축·광축·정전용량)만 게이밍 키보드로 인정."""
-    return bool(GAMING_SWITCH_PATTERN.search(specs)) and not OFFICE_SWITCH_PATTERN.search(specs)
+    """기계식 / 무접점(자석축·광축·정전용량)만 게이밍 키보드로 인정. 멤브레인·펜타그래프·플런저는 제외."""
+    if OFFICE_SWITCH_PATTERN.search(specs):
+        return False
+    if GAMING_SWITCH_PATTERN.search(specs) or GAMING_SWITCH_PATTERN.search(product):
+        return True
+    polling = KEYBOARD_POLLING_PATTERN.search(specs)
+    return bool(polling) and int(polling.group(1)) >= 1000
 
 
 # 마우스는 폴링레이트가 게이밍 여부를 가장 잘 가른다. 다만 22%가 미표기이고
@@ -461,6 +472,39 @@ def _search_items(html):
     return items
 
 
+# 검색 1페이지(40개)만 모으면 순위가 조금만 밀려도 상품이 그날 빠져서, 가격 이력이 끊기고
+# 카테고리 규모가 줄어든 것처럼 보인다. 2페이지까지 읽는다(2026-11-01 시험 실행: 821행 → 1,423행).
+# 요청은 하루 11번 → 22번, crawl-delay 10초라 수집이 약 2분 늘어난다.
+# 다나와는 dsearch.php → 새 UI 로 넘길 때도 page 파라미터를 유지한다(2026-11-01 실측: 2페이지는 1페이지와 0개 겹침).
+SEARCH_PAGES = 2
+
+
+def _search_all_pages(query, label):
+    """검색 결과 1~SEARCH_PAGES 페이지의 상품을 합친다.
+
+    1페이지 실패는 그대로 올려 보낸다(호출부가 그 검색어를 건너뛴다). 2페이지부터의 실패는 앞 페이지를
+    살린다 — 반쪽이라도 저장하는 게 통째로 놓치는 것보다 낫고, 반쪽이 되면 verify_last_scrape 가 급감으로 알린다.
+    옛 UI가 page 를 무시하고 1페이지를 다시 주면 같은 상품이 두 번 담기므로 링크(없으면 이름)로 거른다."""
+    items, seen = [], set()
+    for page in range(1, SEARCH_PAGES + 1):
+        url = f"https://search.danawa.com/dsearch.php?query={query}" + (f"&page={page}" if page > 1 else "")
+        try:
+            response = _search_get(url)
+            response.raise_for_status()
+            page_items = _search_items(response.text)
+        except Exception as e:
+            if page == 1:
+                raise
+            print(f"[!] [{label}] {page}페이지 실패: {e}. 앞 페이지까지만 저장합니다.")
+            break
+        fresh = [it for it in page_items if (it["href"] or it["product"]) not in seen]
+        seen.update(it["href"] or it["product"] for it in page_items)
+        items += fresh
+        if not fresh:
+            break  # 결과 끝(빈 페이지) 또는 page 를 무시하고 같은 목록이 온 경우
+    return items
+
+
 # 통합메모리 판정 — 검색 결과 페이지의 스펙 문자열만 쓴다.
 #
 # 예전에는 상세페이지 ajax 응답의 spec_dict(CPU 제조사 / CPU 세분류 / 램 타입)를 봤는데,
@@ -500,19 +544,14 @@ def _collect_laptops(category, queries, default_cate, chip_spec_key="GPU 칩셋"
     new_products = []
 
     for query, chip_hint in queries:
-        url = f"https://search.danawa.com/dsearch.php?query={query}"
         try:
-            response = _search_get(url)
-            response.raise_for_status()
+            items = _search_all_pages(query, chip_hint)
         except requests.exceptions.Timeout:
             print(f"[!] [{chip_hint}] 요청 시간 초과 (15초). 건너뜁니다.")
             continue
         except requests.exceptions.RequestException as e:
             print(f"[!] [{chip_hint}] 네트워크 오류: {e}. 건너뜁니다.")
             continue
-
-        try:
-            items = _search_items(response.text)
         except Exception as e:
             print(f"⚠️ [{chip_hint}] HTML 파싱 오류: {e}. 건너뜁니다.")
             continue
@@ -624,25 +663,18 @@ def collect_ai_laptops():
 
 def _collect_parts_category(category: str, query: str) -> tuple[int, int]:
     """PC 부품(RAM/SSD/그래픽카드/CPU) 한 카테고리 수집"""
-    url = f"https://search.danawa.com/dsearch.php?query={query}"
     print(f"\n{'='*60}")
     print(f"[+] [{category}] 수집 중...")
     print(f"{'='*60}")
 
     try:
-        response = _search_get(url)
-        response.raise_for_status()
+        items = _search_all_pages(query, category)
     except requests.exceptions.Timeout:
         print(f"[!] [{category}] 요청 시간 초과 (15초). 건너뜁니다.")
         return 0, 0
     except requests.exceptions.RequestException as e:
         print(f"[!] [{category}] 네트워크 오류: {e}. 건너뜁니다.")
         return 0, 0
-
-    print(f"   응답: {response.status_code}")
-
-    try:
-        items = _search_items(response.text)
     except Exception as e:
         print(f"⚠️ [{category}] HTML 파싱 오류: {e}. 건너뜁니다.")
         return 0, 0

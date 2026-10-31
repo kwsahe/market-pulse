@@ -174,6 +174,29 @@ def test_gaming_keyboard_filter_does_not_use_polling_rate():
     assert _is_gaming_keyboard("로지텍 G512", no_hz)
 
 
+# 새 검색 UI(2026-10~)는 스펙 요약에서 스위치 방식을 빼는 일이 많다(멤브레인·플런저는 그대로 적는다).
+# 그 탓에 10-27 → 10-28 게이밍 키보드 27행(CORSAIR K70 MAX·로지텍 G512 기계식 등)이 필터에 걸려 사라졌다.
+NEW_UI_NO_SWITCH_KB = "키보드 / 풀배열 / 유선 / 104키 / 스위치: CORSAIR MGX / 키압: 45g / H/W매크로 / 8000Hz / 0.125ms 응답속도"
+NEW_UI_NO_SWITCH_NO_HZ_KB = "키보드 / 풀배열 / 유선 / 104키 / RGB 백라이트 / 윈도우 키 잠금"
+
+
+def test_gaming_keyboard_without_switch_type_passes_on_high_polling_rate():
+    assert _is_gaming_keyboard("CORSAIR 뱅가드 PRO 96 게이밍", NEW_UI_NO_SWITCH_KB)
+
+
+def test_gaming_keyboard_without_switch_type_passes_on_product_name():
+    assert _is_gaming_keyboard("앱코 HACKER K515 축교환 게이밍 기계식 블랙 (갈축)", NEW_UI_NO_SWITCH_NO_HZ_KB)
+
+
+def test_keyboard_without_any_gaming_signal_is_still_dropped():
+    assert not _is_gaming_keyboard("무명 키보드", NEW_UI_NO_SWITCH_NO_HZ_KB)
+
+
+def test_membrane_keyboard_with_high_polling_is_still_dropped():
+    """멤브레인은 폴링레이트가 높아도 기존 정책대로 뺀다 (CORSAIR K55 CORE: 멤브레인 / 1000Hz)."""
+    assert not _is_gaming_keyboard("CORSAIR K55 CORE RGB 멤브레인 게이밍", MEMBRANE_KB)
+
+
 HIGH_POLLING_MOUSE = "마우스 / 유선+무선 / 5버튼 / 33000DPI / 8000Hz 폴링레이트 / 오른손"
 OFFICE_MOUSE = "마우스 / 유선 / 3버튼 / 3600DPI / 125Hz 폴링레이트"
 NO_POLLING_HIGH_DPI = "마우스 / 무선 / DPI+5버튼 / 25600DPI / 광 / 전용동글(리시버)"
@@ -412,6 +435,76 @@ def test_search_get_requests_once_even_for_new_ui(monkeypatch):
     monkeypatch.setattr(ps.time, "sleep", lambda s: None)  # 크롤 딜레이는 테스트에서 건너뛴다
     ps._search_get("https://search.danawa.com/dsearch.php?query=x")
     assert len(calls) == 1
+
+
+# 검색 2페이지 수집 — 1페이지(40개)만 보면 순위가 조금만 밀려도 상품이 그날 빠진다.
+# 다나와는 page 파라미터를 새 UI로 넘길 때도 유지한다(실측).
+class _FakeResponse:
+    def __init__(self, url):
+        self.text = url
+
+    def raise_for_status(self):
+        pass
+
+
+def _fake_search(monkeypatch, pages, fail_on=None):
+    """URL → 상품 목록을 흉내 낸다. 요청한 URL 목록을 돌려준다."""
+    import scraper.price_scraper as ps
+    requested = []
+
+    def fake_get(url):
+        requested.append(url)
+        if fail_on and fail_on in url:
+            raise ps.requests.exceptions.Timeout("timeout")
+        return _FakeResponse(url)
+
+    monkeypatch.setattr(ps, "_search_get", fake_get)
+    monkeypatch.setattr(ps, "_search_items", lambda text: pages.get("page=2" if "page=2" in text else "page=1", []))
+    return requested
+
+
+def _item(n):
+    return {"product": f"상품{n}", "href": f"https://prod.danawa.com/info/?pcode={n}", "img_url": "", "specs": "", "variants": [], "price": 1000 + n}
+
+
+def test_search_reads_second_page_and_joins_items(monkeypatch):
+    from scraper.price_scraper import _search_all_pages
+    requested = _fake_search(monkeypatch, {"page=1": [_item(1), _item(2)], "page=2": [_item(3)]})
+    items = _search_all_pages("DDR5", "DDR5 RAM")
+    assert [i["product"] for i in items] == ["상품1", "상품2", "상품3"]
+    assert requested == [
+        "https://search.danawa.com/dsearch.php?query=DDR5",
+        "https://search.danawa.com/dsearch.php?query=DDR5&page=2",
+    ]
+
+
+def test_search_skips_repeated_products_when_page_is_ignored(monkeypatch):
+    """옛 UI가 page 를 무시하고 1페이지를 또 주면 같은 상품이 두 번 저장되면 안 된다."""
+    from scraper.price_scraper import _search_all_pages
+    _fake_search(monkeypatch, {"page=1": [_item(1), _item(2)], "page=2": [_item(1), _item(2)]})
+    assert [i["product"] for i in _search_all_pages("DDR5", "DDR5 RAM")] == ["상품1", "상품2"]
+
+
+def test_search_keeps_first_page_when_second_page_fails(monkeypatch):
+    """2페이지만 실패한 날 카테고리를 통째로 버리지 않는다 (반쪽이 되면 verify_last_scrape 가 급감으로 알린다)."""
+    from scraper.price_scraper import _search_all_pages
+    _fake_search(monkeypatch, {"page=1": [_item(1)]}, fail_on="page=2")
+    assert [i["product"] for i in _search_all_pages("DDR5", "DDR5 RAM")] == ["상품1"]
+
+
+def test_search_first_page_failure_is_raised_to_caller(monkeypatch):
+    import pytest
+    import scraper.price_scraper as ps
+    _fake_search(monkeypatch, {}, fail_on="query=DDR5")
+    with pytest.raises(ps.requests.exceptions.Timeout):
+        ps._search_all_pages("DDR5", "DDR5 RAM")
+
+
+def test_search_stops_when_a_page_is_empty(monkeypatch):
+    from scraper.price_scraper import _search_all_pages
+    requested = _fake_search(monkeypatch, {"page=1": []})
+    assert _search_all_pages("없는검색어", "CPU") == []
+    assert len(requested) == 1
 
 
 # 비정상 가격(카테고리 오늘치 중앙값의 100배 초과 / 1/100 미만) — 2026-09-29부터
