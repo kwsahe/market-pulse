@@ -3,19 +3,25 @@
 #
 # 원리:
 # 1. 스펙 텍스트에서 숫자 특성을 추출 (용량, 클럭, 코어 수 등)
-# 2. 카테고리별로 Linear Regression 모델을 학습
-# 3. 새 스펙을 넣으면 적정 가격을 예측
+# 2. 카테고리별로 Linear Regression / Random Forest 를 로그 가격으로 학습하고,
+#    상품 단위 교차검증 오차율이 더 낮은 쪽을 고른다
+# 3. 새 스펙을 넣으면 적정 가격과 80% 예측 범위를 돌려준다
 #
-# 데이터가 쌓일수록 예측 정확도가 올라가요!
+# 2026-11 점검: 최신 수집일 상품을 '본 적 없는 상품'으로 두고 맞혀 보니 예측가가 실제의 ±20% 안에
+# 든 비율이 59.8%였다. 정규식이 실제 스펙 표기와 어긋나 AMD CPU 코어 수·그래픽카드 파워 등이
+# 통째로 0이었고, 노트북은 가격을 가장 크게 가르는 그래픽카드 등급이 빠져 있었다. 원 단위 가격을
+# 그대로 학습하면 비싼 상품 몇 개에 끌려 CPU R²가 음수가 됐다. 특성 수정 + 로그 학습 + 오차율 기준
+# 모델 선택으로 71.8%가 됐다 (README '문제 해결 사례' 6 참고).
 
 import pandas as pd
 import numpy as np
 import re
 import os
 import sys
+from sklearn.compose import TransformedTargetRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import cross_val_score, cross_val_predict, GroupKFold
+from sklearn.model_selection import cross_validate, cross_val_predict, GroupKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
@@ -64,9 +70,27 @@ def extract_notebook_features(row):
     else:
         features["ssd_gb"] = 0
 
-    # RAM 용량 (상품명에서)
-    ram = re.search(r"(\d+)\s*GB\s*램", product)
+    # RAM 용량 — 상품명에는 업그레이드 옵션('64GB램')에만 적혀 있어서, 기본 모델은 스펙의 [구성] 값을 쓴다
+    ram = re.search(r"(\d+)\s*GB\s*램", product) or re.search(r"\[구성\]\s*/\s*(\d+)\s*GB", specs)
     features["ram_gb"] = int(ram.group(1)) if ram else 0
+
+    # 그래픽카드 — 게이밍 노트북 가격을 가장 크게 가르는 부품 (RTX5050 ~ RTX5090)
+    gpu = re.search(r"RTX\s*(\d{4})", specs)
+    features["gpu_model"] = int(gpu.group(1)) if gpu else 0
+    vram = re.search(r"VRAM:\s*(\d+)\s*GB", specs)
+    features["vram_gb"] = int(vram.group(1)) if vram else 0
+    tgp = re.search(r"TGP:\s*(\d+)\s*W", specs)
+    features["tgp_w"] = int(tgp.group(1)) if tgp else 0
+
+    # 화면 주사율·해상도
+    hz = re.search(r"(\d+)\s*Hz", specs)
+    features["refresh_hz"] = int(hz.group(1)) if hz else 0
+    res = re.search(r"(\d{3,4})\s*x\s*(\d{3,4})", specs)
+    features["pixels_mp"] = round(int(res.group(1)) * int(res.group(2)) / 1_000_000, 2) if res else 0
+
+    # CPU 등급 (코어 울트라9 / 라이젠9 → 9)
+    tier = re.search(r"(?:울트라|라이젠|코어\s*i)(\d)", specs)
+    features["cpu_tier"] = int(tier.group(1)) if tier else 0
 
     return features
 
@@ -93,8 +117,8 @@ def extract_ram_features(row):
     cap = re.search(r"\((\d+)\s*GB", product)
     features["capacity_gb"] = int(cap.group(1)) if cap else 0
 
-    # 팩(여러 개 묶음)인지
-    pack = re.search(r"(\d+)x(\d+)", product)
+    # 팩(여러 개 묶음)인지 — 상품명 표기는 '(32GB(16Gx2))'
+    pack = re.search(r"\d+\s*G\s*x\s*\d+", product)
     features["is_pack"] = 1 if pack else 0
 
     # LED 유무
@@ -165,9 +189,16 @@ def extract_gpu_features(row):
     length = re.search(r"가로.*?(\d+\.?\d*)\s*mm", specs)
     features["length_mm"] = float(length.group(1)) if length else 0
 
-    # 정격 파워 (W)
-    power = re.search(r"정격파워\s*(\d+)\s*W", specs)
+    # 권장 파워 (W) — 스펙 표기는 '650W 이상'
+    power = re.search(r"(\d+)\s*W\s*이상", specs)
     features["power_w"] = int(power.group(1)) if power else 0
+
+    # 스트림 프로세서 수 — 같은 숫자 모델 안에서도 성능 등급을 가른다
+    sp = re.search(r"스트림 프로세서:\s*(\d+)", specs)
+    features["stream_processors"] = int(sp.group(1)) if sp else 0
+
+    # Ti 모델 (RTX 5060 Ti 는 5060 보다 한 등급 위)
+    features["is_ti"] = 1 if re.search(r"RTX\s*\d{4}\s*Ti\b", specs, re.IGNORECASE) else 0
 
     return features
 
@@ -178,23 +209,33 @@ def extract_cpu_features(row):
     product = str(row.get("product", ""))
     features = {}
 
-    # 코어 수 (P코어 + E코어)
-    p_core = re.search(r"P(\d+)", specs)
-    e_core = re.search(r"E(\d+)", specs)
-    plain_core = re.search(r"^(\d+)코어", specs)
-    if p_core and e_core:
-        features["total_cores"] = int(p_core.group(1)) + int(e_core.group(1))
+    # 코어 수 — 인텔은 'P6+E12코어', AMD는 'AMD(소켓AM5) / 16코어' (문장 맨 앞이 아니다)
+    pe_core = re.search(r"P(\d+)\+E(\d+)코어", specs)
+    plain_core = re.search(r"(\d+)코어", specs)
+    if pe_core:
+        features["total_cores"] = int(pe_core.group(1)) + int(pe_core.group(2))
     elif plain_core:
         features["total_cores"] = int(plain_core.group(1))
     else:
         features["total_cores"] = 0
 
+    threads = re.search(r"(\d+)스레드", specs)
+    features["threads"] = int(threads.group(1)) if threads else 0
+
     # 최대 클럭 (GHz)
     ghz = re.search(r"최대 클럭\s*:\s*(\d+\.?\d*)\s*GHz", specs)
     features["max_ghz"] = float(ghz.group(1)) if ghz else 0
 
-    # 내장 그래픽 유무
-    features["has_igpu"] = 1 if "내장그래픽:탑재" in specs else 0
+    # L3 캐시 — 3D V캐시(X3D) 제품은 96~192MB로 일반 제품(32MB 안팎)과 값이 크게 다르다
+    l3 = re.search(r"L3 캐시:\s*(\d+)\s*MB", specs)
+    features["l3_mb"] = int(l3.group(1)) if l3 else 0
+
+    # 등급 (라이젠9 / 코어 울트라7 / 코어i5 → 9, 7, 5)
+    tier = re.search(r"(?:라이젠|울트라|코어\s*i)(\d)", product)
+    features["cpu_tier"] = int(tier.group(1)) if tier else 0
+
+    # 내장 그래픽 유무 — 스펙 표기는 '메모리 규격: DDR5 / 탑재' 또는 '/ 미탑재'
+    features["has_igpu"] = 1 if re.search(r"메모리 규격:[^/]*/\s*탑재", specs) else 0
 
     # 정품/벌크
     features["is_bulk"] = 1 if "벌크" in product else 0
@@ -384,6 +425,8 @@ FEATURE_LABELS = {
     "cpu_ghz": "CPU 클럭(GHz)",
     "ssd_gb": "SSD 용량(GB)",
     "ram_gb": "RAM 용량(GB)",
+    "tgp_w": "그래픽 TGP(W)",
+    "cpu_tier": "CPU 등급",
     "clock_mhz": "클럭(MHz)",
     "cl_timing": "CL 타이밍",
     "voltage": "전압(V)",
@@ -400,8 +443,12 @@ FEATURE_LABELS = {
     "vram_gb": "VRAM(GB)",
     "boost_mhz": "부스트 클럭(MHz)",
     "length_mm": "카드 길이(mm)",
-    "power_w": "정격 파워(W)",
+    "power_w": "권장 파워(W)",
+    "stream_processors": "스트림 프로세서 수",
+    "is_ti": "Ti 모델",
     "total_cores": "총 코어 수",
+    "threads": "스레드 수",
+    "l3_mb": "L3 캐시(MB)",
     "max_ghz": "최대 클럭(GHz)",
     "has_igpu": "내장그래픽",
     "is_bulk": "벌크 제품",
@@ -448,13 +495,14 @@ def train_model(category):
     
     1. 해당 카테고리 데이터 필터링
     2. 스펙에서 특성 추출
-    3. LinearRegression + RandomForest 학습
-    4. 교차 검증으로 정확도 평가
-    
+    3. LinearRegression + RandomForest 를 로그 가격으로 학습
+    4. 상품 단위 교차검증 오차율(MAPE)이 낮은 모델 선택, R²는 화면 표시용으로 함께 잰다
+
     반환: (모델, 특성명 리스트, 스케일러, 평가 결과)
     """
     df = load_prices()
-    cat_df = df[df["category"] == category].copy()
+    # 로그를 취하므로 0원 행은 뺀다 (수집 단계에서 이미 걸러지지만 학습이 깨지지 않게 한 번 더)
+    cat_df = df[(df["category"] == category) & (df["price"] > 0)].copy()
 
     if len(cat_df) < 5:
         print(f"[!] [{category}] 데이터가 {len(cat_df)}개로 부족해요. (최소 5개 필요)")
@@ -493,46 +541,56 @@ def train_model(category):
     cv_n = min(5, n_groups)
     cv = GroupKFold(n_splits=cv_n) if cv_n >= 2 else None
 
+    # 가격은 몇만 원~천만 원대로 퍼져 있어서 원 단위로 학습하면 비싼 상품 몇 개의 오차가 모델을 끌고 간다.
+    # 로그 가격으로 학습하고 predict 는 원 단위로 되돌린다 — 이후 코드(예측가·기여도·적정가 점수)는 그대로 원 단위.
+    def log_target(regressor):
+        return TransformedTargetRegressor(regressor=regressor, func=np.log, inverse_func=np.exp)
+
     # 모델 1: Linear Regression (Pipeline으로 스케일링 포함)
     lr_pipeline = Pipeline([
         ("scaler", StandardScaler()),
-        ("model", LinearRegression())
+        ("model", log_target(LinearRegression()))
     ])
 
     # 모델 2: Random Forest (트리 기반이라 스케일링 불필요하지만 일관성을 위해 Pipeline 사용)
     rf_pipeline = Pipeline([
         ("scaler", StandardScaler()),
-        ("model", RandomForestRegressor(n_estimators=100, random_state=42))
+        ("model", log_target(RandomForestRegressor(n_estimators=100, random_state=42)))
     ])
 
+    # 고르는 기준은 오차율(MAPE). R²는 원 단위 오차의 제곱이라 비싼 상품에 좌우돼서,
+    # 마우스처럼 싼 상품이 많은 카테고리에서 상대 오차가 큰 모델을 고르는 일이 있었다.
+    scoring = {"r2": "r2", "mape": "neg_mean_absolute_percentage_error"}
     if cv is not None:
-        lr_scores = cross_val_score(lr_pipeline, X, y, groups=groups, cv=cv, scoring="r2")
-        rf_scores = cross_val_score(rf_pipeline, X, y, groups=groups, cv=cv, scoring="r2")
+        lr_cv = cross_validate(lr_pipeline, X, y, groups=groups, cv=cv, scoring=scoring)
+        rf_cv = cross_validate(rf_pipeline, X, y, groups=groups, cv=cv, scoring=scoring)
     else:
         # 상품 종류가 2개 미만이면 그룹 분할 자체가 불가능 — 교차검증 없이 학습만 진행
-        lr_scores = rf_scores = np.array([0.0])
+        lr_cv = rf_cv = {"test_r2": np.array([0.0]), "test_mape": np.array([0.0])}
 
-    # 더 나은 모델 선택
-    if rf_scores.mean() > lr_scores.mean():
+    # 더 나은 모델 선택 (neg MAPE 라 클수록 오차가 작다)
+    if rf_cv["test_mape"].mean() > lr_cv["test_mape"].mean():
         best_pipeline = rf_pipeline
         best_name = "Random Forest"
-        best_score = rf_scores.mean()
+        best_score = rf_cv["test_r2"].mean()
     else:
         best_pipeline = lr_pipeline
         best_name = "Linear Regression"
-        best_score = lr_scores.mean()
+        best_score = lr_cv["test_r2"].mean()
 
-    # out-of-fold 예측으로 잔차 분포 계산 → 예측 신뢰구간(80% 구간)에 사용
+    # out-of-fold 예측으로 '실제가 / 예측가' 비율 분포를 잰다 → 80% 예측 범위 = 예측가 × (10~90 퍼센타일 비율).
+    # 원 단위 잔차를 더하던 방식은 싼 상품에도 비싼 상품의 금액 폭이 붙어 범위가 넓고 적중률도 낮았다
+    # (점검 때 실측: 목표 80%에 75.8% 적중 → 비율 방식 80.9%, 범위 폭 중앙값 80% → 63%).
     try:
         if cv is not None:
             oof_pred = cross_val_predict(best_pipeline, X, y, groups=groups, cv=cv)
         else:
             oof_pred = best_pipeline.fit(X, y).predict(X)
-        residuals = y - oof_pred
-        residual_p10 = float(np.percentile(residuals, 10))
-        residual_p90 = float(np.percentile(residuals, 90))
+        ratios = y / oof_pred
+        ratio_p10 = float(np.percentile(ratios, 10))
+        ratio_p90 = float(np.percentile(ratios, 90))
     except ValueError:
-        residual_p10 = residual_p90 = 0.0
+        ratio_p10 = ratio_p90 = 1.0
 
     # 전체 데이터로 최종 학습
     best_pipeline.fit(X, y)
@@ -546,13 +604,13 @@ def train_model(category):
         "model_name": best_name,
         "features": useful_cols,
         "scaler": scaler,
-        "lr_r2": lr_scores.mean(),
-        "rf_r2": rf_scores.mean(),
+        "lr_r2": lr_cv["test_r2"].mean(),
+        "rf_r2": rf_cv["test_r2"].mean(),
         "best_r2": best_score,
         "data_count": len(cat_df),
         "category": category,
-        "residual_p10": residual_p10,
-        "residual_p90": residual_p90,
+        "ratio_p10": ratio_p10,
+        "ratio_p90": ratio_p90,
     }
 
 
@@ -574,10 +632,10 @@ def predict_price(model_info, features_dict):
 
 
 def predict_price_range(model_info, features_dict):
-    """예측가 + 신뢰구간(80%). out-of-fold 잔차의 10~90 퍼센타일을 예측값에 더해 범위를 만든다."""
+    """예측가 + 80% 범위. out-of-fold '실제가/예측가' 비율의 10~90 퍼센타일을 예측가에 곱한다."""
     predicted = predict_price(model_info, features_dict)
-    low = max(0, predicted + model_info.get("residual_p10", 0))
-    high = max(0, predicted + model_info.get("residual_p90", 0))
+    low = predicted * model_info.get("ratio_p10", 1.0)
+    high = predicted * model_info.get("ratio_p90", 1.0)
     return predicted, low, high
 
 

@@ -6,9 +6,9 @@
 import numpy as np
 import pandas as pd
 from unittest.mock import patch
-from sklearn.model_selection import cross_val_score as real_cross_val_score
+from sklearn.model_selection import cross_validate as real_cross_validate
 
-from ml.price_prediction import train_model, compute_fair_price_score
+from ml.price_prediction import train_model, compute_fair_price_score, predict_price_range
 
 
 def _make_ram_df() -> pd.DataFrame:
@@ -49,16 +49,16 @@ def test_train_model_groups_cv_by_product_not_by_row(monkeypatch):
 
     captured = {}
 
-    def spy_cross_val_score(estimator, X, y, groups=None, cv=None, scoring=None):
+    def spy_cross_validate(estimator, X, y, groups=None, cv=None, scoring=None):
         captured["groups"] = groups
         captured["cv"] = cv
-        return real_cross_val_score(estimator, X, y, groups=groups, cv=cv, scoring=scoring)
+        return real_cross_validate(estimator, X, y, groups=groups, cv=cv, scoring=scoring)
 
-    with patch("ml.price_prediction.cross_val_score", side_effect=spy_cross_val_score):
+    with patch("ml.price_prediction.cross_validate", side_effect=spy_cross_validate):
         info = train_model("DDR5 RAM")
 
     assert info is not None
-    assert captured["groups"] is not None, "GroupKFold를 쓰려면 groups가 cross_val_score에 전달돼야 한다"
+    assert captured["groups"] is not None, "GroupKFold를 쓰려면 groups가 cross_validate에 전달돼야 한다"
 
     groups_arr = np.asarray(captured["groups"])
     # 3개의 고유 상품(pcode)만 있으므로 5-fold가 아니라 3-fold여야 한다
@@ -80,12 +80,34 @@ def test_train_model_returns_expected_shape(monkeypatch):
     assert info is not None
     for key in (
         "model", "model_name", "features", "scaler", "lr_r2", "rf_r2",
-        "best_r2", "data_count", "category", "residual_p10", "residual_p90",
+        "best_r2", "data_count", "category", "ratio_p10", "ratio_p90",
     ):
         assert key in info
     assert info["data_count"] == len(df)
     assert info["category"] == "DDR5 RAM"
     assert info["model_name"] in ("Linear Regression", "Random Forest")
+    assert 0 < info["ratio_p10"] <= info["ratio_p90"]
+
+
+def test_train_model_predicts_on_price_scale_with_log_target(monkeypatch):
+    """로그 가격으로 학습해도 predict 결과는 원 단위여야 한다 (화면·적정가 점수가 원 단위를 쓴다)."""
+    df = _make_ram_df()
+    monkeypatch.setattr("ml.price_prediction.load_prices", lambda: df)
+    info = train_model("DDR5 RAM")
+    predicted, low, high = predict_price_range(info, {"clock_mhz": 6000, "cl_timing": 30, "voltage": 1.35, "capacity_gb": 16})
+    assert 50_000 < predicted < 250_000
+    assert low <= predicted <= high
+
+
+def test_price_range_scales_with_prediction_not_fixed_won_amount():
+    """예측 범위는 '예측가 × 비율'이다. 원 단위 고정 폭이면 5만 원 마우스와 25만 원 마우스에
+    같은 ±금액이 붙어 싼 상품의 범위가 지나치게 넓어진다."""
+    info = {"ratio_p10": 0.8, "ratio_p90": 1.25}
+    with patch("ml.price_prediction.predict_price", side_effect=[50_000, 250_000]):
+        cheap = predict_price_range(info, {})
+        pricey = predict_price_range(info, {})
+    assert cheap == (50_000, 40_000, 62_500)
+    assert pricey == (250_000, 200_000, 312_500)
 
 
 def test_fair_price_score_at_predicted_price_and_history_midpoint():
