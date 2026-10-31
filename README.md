@@ -4,7 +4,8 @@
 
 [![Tests](https://github.com/kwsahe/market-pulse/actions/workflows/tests.yml/badge.svg)](https://github.com/kwsahe/market-pulse/actions/workflows/tests.yml)
 
-게이밍 노트북(RTX5080/5090) & PC 부품 가격 자동 수집 · ML 분석 · **LangGraph 기반 자동 리포트** · IT 뉴스 대시보드
+다나와 PC 부품·노트북 9개 카테고리 가격을 매일 자동 수집하고, 미끼가·비정상가·카테고리 오염을 걸러낸 뒤
+가격 변동·이상치·스펙 기반 적정가를 보여주는 하드웨어 가격 분석 대시보드 (FastAPI + React + Three.js 3D 데스크)
 
 대시보드는 두 가지로 제공됩니다: 기존 **Streamlit**(단일 프로세스, 빠른 실행)과 신규 **FastAPI + React**(REST API + SPA, 같은 데이터/ML 로직을 재사용하는 별도 프론트엔드) — 서로 대체 관계가 아니라 나란히 운영됩니다.
 
@@ -12,24 +13,29 @@
 
 ## 🖼️ 미리보기
 
-![Market Pulse 대시보드 전체 화면](screenshots/dashboard_overview.png)
+![Market Pulse 3D 데스크 — 부품을 클릭하면 해당 카테고리 시세가 열린다](screenshots/desk_3d.png)
 
-다크 모드 대시보드에서 볼 수 있는 것들:
+![Market Pulse 개요 — 요약 지표와 카테고리별 중앙값·인상/인하 표](screenshots/overview.png)
+
+React 대시보드에서 볼 수 있는 것들:
+- 부품을 클릭하면 카메라가 이동하고 그 카테고리 시세가 열리는 Three.js 3D 데스크
 - 상품 수·평균가·가격 인상/인하·이상치 건수를 한눈에 보여주는 KPI 카드
-- 카테고리별(게이밍 노트북 · AI 노트북 · DDR5 RAM · NVMe SSD · 그래픽카드 · CPU · 게이밍 모니터 · 키보드 · 마우스) 가격 추이 차트
-- 상품번호(`RAM-1`, `GN-3` ...) 기반 검색 + `?code=GN-3` 형태의 상품별 공유 링크(상세정보+가격추이 단독 페이지)
-- 집중 추적 상품의 목표가 도달 알림, 전체/카테고리별 CSV 내보내기
+- 카테고리별(게이밍 노트북 · AI 노트북 · DDR5 RAM · NVMe SSD · 그래픽카드 · CPU · 게이밍 모니터 · 키보드 · 마우스) 중앙값과 직전 수집일 대비 인상·인하 상품 수
+- 상품번호(`RAM-1`, `GN-3` ...)별 상세 페이지(`/products/GN-3`) — 가격 추이, 역대 최저·최고가
+- 관심 상품의 목표가 도달 알림, CSV 내보내기
 - 스펙별 가격 기여도·비슷한 제품 비교가 포함된 ML 가격 예측
 
-### ⚡ 30초 만에 직접 보기
+### ⚡ 직접 보기
 
 ```bash
 pip install -r requirements.txt
-run_scrapers.bat                                       # 최초 1회 데이터 수집 (몇 분 소요)
-streamlit run dashboard/app.py --server.port 8010      # 또는 run_data_dashboard.bat
+run_scrapers.bat                         # 최초 1회 데이터 수집 (몇 분 소요)
+npm install --prefix frontend
+npm run build --prefix frontend          # 화면 빌드
+python scripts/serve_prod.py             # API + 화면을 한 주소로 실행 (읽기 전용)
 ```
 
-→ http://localhost:8010 에서 바로 확인할 수 있습니다. React 프론트엔드로 보려면 [C. React 프론트엔드](#c-react-프론트엔드-신규)를 참고하세요.
+→ http://localhost:8002 에서 확인할 수 있습니다. 기존 Streamlit 대시보드는 `streamlit run dashboard/app.py --server.port 8010` 으로 실행합니다.
 
 ---
 
@@ -37,10 +43,11 @@ streamlit run dashboard/app.py --server.port 8010      # 또는 run_data_dashboa
 
 | 기능 | 설명 |
 |------|------|
-| **자동 데이터 수집** | 다나와 9 개 카테고리(게이밍 노트북/AI 노트북/모니터/키보드/마우스 포함) + 네이버 뉴스 매일 자동 수집 |
-| **LangGraph 워크플로우** | 체크포인트, 재시도, 상태 추적 가능한 자동화 파이프라인 |
-| **실시간 대시보드** | 다크 모드 UI, 상품별 공유 링크, CSV 내보내기, 목표가 알림 (Streamlit) |
-| **REST API + React 프론트엔드** | FastAPI 라우터 13개(캐싱 포함) + React SPA — Streamlit과 동일한 기능을 다른 UI로 제공 |
+| **자동 데이터 수집** | 다나와 9개 카테고리를 매일 자동 수집(작업 스케줄러) → 결과 검증 → 백업 → 실패 알림. 다나와 옛/새 검색 화면을 모두 읽는다. 뉴스 수집은 robots.txt 때문에 중단 |
+| **데이터 품질 필터** | 옵션 미끼가·비정상 가격·카테고리 오염·중고 상품을 수집 단계에서 제외 |
+| **LangGraph 워크플로우 (보조)** | 가격 수집 → 분석 → 리포트(MD/HTML)를 한 번에 돌리는 자동 리포트 파이프라인. 매일 운영 수집은 `run_scrapers.bat` |
+| **Streamlit 대시보드 (기존)** | 다크 모드 UI, 상품별 공유 링크, CSV 내보내기, 목표가 알림 |
+| **REST API + React 프론트엔드** | FastAPI REST API 17개(조회 14·관심상품 저장 2·헬스체크 1, 캐싱 포함) + React SPA 10개 화면 + 3D 데스크 |
 | **이상치 탐지** | Z-score · IQR 통계 기반으로 비정상 가격 감지 |
 | **가격 변동 리포트** | 전날 대비 인상/인하 상품 자동 분석 (pcode 우선 매칭으로 상품명 변경에도 강건) |
 | **가격 예측 (ML)** | 스펙 기반 Linear Regression / Random Forest, GroupKFold로 데이터 누수 방지 |
@@ -54,7 +61,7 @@ streamlit run dashboard/app.py --server.port 8010      # 또는 run_data_dashboa
 
 ```bash
 # 레포지토리 클론
-git clone https://github.com/your-username/market-pulse.git
+git clone https://github.com/kwsahe/market-pulse.git
 cd market-pulse
 
 # 의존성 설치
@@ -65,9 +72,10 @@ pip install -r requirements.txt
 
 ## 🎮 사용 방법
 
-### **1. 자동 리포트 생성 (추천)**
+### **1. 자동 리포트 생성 (LangGraph, 보조)**
 
-LangGraph 워크플로우로 한 번에 실행:
+매일 운영 수집은 작업 스케줄러가 돌리는 `run_scrapers.bat`입니다(아래 "자동 수집 운영" 절 참고).
+이 워크플로우는 수집부터 리포트 파일까지 한 번에 만들어 보고 싶을 때 씁니다.
 
 ```bash
 # Windows
@@ -80,16 +88,17 @@ python workflow/main.py
 **실행 흐름:**
 1. DB 초기화
 2. 가격 데이터 수집 (다나와)
-3. 뉴스 데이터 수집 (네이버)
-4. 가격 변동 분석
-5. 이상치 탐지
-6. 트렌드 분석
-7. 리포트 생성 (Markdown + HTML)
+3. 가격 변동 분석
+4. 이상치 탐지
+5. 트렌드 분석
+6. 리포트 생성 (Markdown + HTML)
+
+뉴스 수집 단계는 없습니다 — `news.naver.com/robots.txt`가 전면 금지라 매일 수집에서 끈 뒤 이 워크플로우에서도 뺐습니다.
 
 **결과:**
 - `reports/report_YYYYMMDD_HHMMSS.md`
 - `reports/report_YYYYMMDD_HHMMSS.html`
-- `workflow_checkpoints/` (중간 상태 저장)
+- `workflow_checkpoints/` (실행이 끝난 뒤의 최종 상태 JSON)
 
 ---
 
@@ -97,7 +106,7 @@ python workflow/main.py
 
 세 가지 방법으로 볼 수 있습니다:
 
-#### **A. 데이터 분석 대시보드** (실시간 조회)
+#### **A. 데이터 분석 대시보드** (Streamlit, 기존)
 수집된 데이터를 직접 조회하고 ML 분석 결과를 시각화합니다.
 
 ```bash
@@ -244,15 +253,16 @@ python ml/trend_analysis.py
 | 게이밍 모니터 (120Hz+) | 가격, 해상도, 주사율, 패널 종류, 응답속도 |
 | 게이밍 키보드 (기계식/무접점) | 가격, 방식, 배열, 키 수, 폴링레이트, 스위치 교체형, 키캡 재질 |
 | 게이밍 마우스 (1000Hz+) | 가격, DPI, 폴링레이트, 버튼 수, 연결방식, 센서 |
-| IT 뉴스 | 제목, 언론사, 발행시간 |
+| IT 뉴스 (**2026-09-10 이후 중단**) | 제목, 언론사, 발행시간 — `news.naver.com/robots.txt`가 전면 금지라 수집을 껐다. 네이버 검색 API로 교체하면 재개 |
 
 ---
 
 ## 🧪 테스트
 
 **백엔드**: 핵심 로직(가격 변동 pcode 매칭, ML 교차검증의 GroupKFold 그룹 분리, DB 스키마/상품번호 레지스트리,
-FastAPI 라우터 13개, 스크래퍼 파싱/카테고리 선별)에 대한 pytest 스위트 105개가 있습니다. 실제 `database/data.db`는 건드리지 않고
-임시 DB/합성 데이터로 동작합니다.
+FastAPI REST API, 스크래퍼 파싱/카테고리 선별, 다나와 옛/새 검색 화면 동등성, 수집 검증·백업)에 대한 pytest 167개가 있습니다.
+실제 `database/data.db`는 건드리지 않고 임시 DB/합성 데이터로 동작합니다. `langgraph`가 설치되지 않은 환경에서는
+워크플로우 테스트 1개를 건너뜁니다(CI는 설치하고 실행).
 
 ```bash
 pip install -r requirements-dev.txt
@@ -280,6 +290,9 @@ npm run build     # 타입체크 + 프로덕션 빌드 확인
 LangGraph 자동화·수집 이력·테스트/CI·캐싱까지 한 장으로 정리했습니다. 코드가 바뀌면
 `python screenshots/generate_architecture_png.py`로 다시 생성할 수 있습니다.
 
+> 이 그림은 2026-08 기준이라 이후 변경(뉴스 수집 중단, React 단일 주소 배포, 데이터 품질 필터,
+> 결과 검증·백업, 다나와 새 검색 화면 대응)이 빠져 있습니다. 갱신 예정입니다.
+
 더 상세한 Mermaid 다이어그램(ER 다이어그램, 시퀀스 다이어그램 등)은 [screenshots/ARCHITECTURE.md](screenshots/ARCHITECTURE.md)에 있습니다.
 
 ---
@@ -294,7 +307,7 @@ market-pulse/
 │   ├── main.py                # 앱 진입점 + CORS
 │   ├── deps.py                # TTL 캐시 데코레이터
 │   ├── schemas.py             # Pydantic 응답/요청 모델
-│   └── routers/                # 엔드포인트 13개(prices/products/prediction/compare/watchlist 등)
+│   └── routers/                # REST API 17개(prices/products/prediction/compare/watchlist 등 + /api/health)
 ├── frontend/                   # React(Vite+TypeScript) SPA — api/를 소비
 │   └── src/
 │       ├── pages/               # 개요/3D 데스크/상세/비교/예측/이상치/워치리스트/수집이력/뉴스/가격변동
@@ -314,8 +327,8 @@ market-pulse/
 ├── reports/                  # 자동 생성: 생성된 리포트
 ├── scraper/                  # 데이터 수집 스크래퍼
 │   ├── price_scraper.py
-│   ├── news_scraper.py
-│   └── laptop_detail_scraper.py  # 노트북 상세 스펙/이미지
+│   ├── news_scraper.py       # 중단 (news.naver.com robots.txt 전면 금지)
+│   └── laptop_detail_scraper.py  # 노트북 상세 스펙/이미지 (robots 금지 경로라 기본 꺼짐)
 ├── database/                 # DB 관리
 │   ├── db_manager.py
 │   └── data.db               # 로컬 생성 (git 추적 안 함)
@@ -324,7 +337,7 @@ market-pulse/
 │   ├── price_change.py       # pcode 우선 매칭
 │   ├── price_prediction.py   # GroupKFold, 적정가 점수
 │   └── trend_analysis.py
-├── dashboard/                 # 실시간 데이터 조회 대시보드
+├── dashboard/                 # Streamlit 데이터 조회 대시보드 (기존)
 │   ├── app.py                # 데이터 로딩 + 조립만 담당 (170줄)
 │   ├── tabs/                  # 탭별 렌더링 모듈 12개
 │   ├── laptop_view.py
@@ -361,9 +374,7 @@ market-pulse/
 ```
 init_db
    ↓
-collect_prices ──┐
-                 ├→ (병렬 실행 가능)
-collect_news ────┘
+collect_prices
    ↓
 analyze_changes
    ↓
@@ -377,10 +388,9 @@ finalize
 ```
 
 **특징:**
-- ✅ 각 단계 후 체크포인트 자동 저장
-- ✅ 에러 발생 시 해당 단계에서 재시작 가능
-- ✅ 상태 추적 및 모니터링
-- ✅ 향후 병렬 실행/조건 분기 확장 가능
+- 각 단계 뒤 상태를 확인해, 실패하면 그 자리에서 멈춘다(조건부 분기)
+- 실행이 끝나면 최종 상태를 `workflow_checkpoints/`에 JSON으로 저장한다
+- 중간 단계부터 이어서 다시 실행하는 기능은 아직 없다(`load_checkpoint`는 정의만 돼 있다)
 
 ---
 
@@ -395,7 +405,6 @@ finalize
 
 ## 📊 요약
 - **가격 데이터:** 4886 개 (신규: 550 개)
-- **뉴스 데이터:** 442 개 (신규: 28 개)
 - **카테고리:** 게이밍 노트북, DDR5 RAM, NVMe SSD, 그래픽카드, CPU
 - **총 상품:** 4886 개
 
@@ -526,10 +535,10 @@ PC가 꺼져 있었거나 스케줄러가 죽으면 "침묵"과 "정상"이 구�
 - **다나와 상세 스펙 수집이 기본 꺼져 있다.** `prod.danawa.com/robots.txt` 가 `/info/ajax/` 를
   금지하는데 스펙표·상세이미지가 전부 그 ajax 응답에만 있다(허용된 `/info/?pcode=` 페이지는
   ajax 호출 파라미터만 준다). 켜려면 `MARKET_PULSE_FETCH_LAPTOP_DETAIL=1`.
-  꺼져 있는 동안 **AI 노트북 카테고리는 수집되지 않는다** — 수집 여부 판정이 상세 스펙에
-  의존해서, 검증 없이 담으면 무관한 상품이 섞이기 때문이다. 이미 모은 176종분은 보존된다.
+  AI 노트북(통합 메모리) 판정은 검색 결과 페이지의 스펙만으로 하므로 꺼져 있어도 매일 수집된다.
+  이미 모은 노트북 상세 스펙·이미지는 보존된다.
 - **뉴스 수집이 중단돼 있다.** `news.naver.com/robots.txt` 가 `Disallow: /` 전면 금지다.
-  네이버 개발자센터 검색 API로 교체한 뒤 배치에 되살린다.
+  매일 배치와 LangGraph 워크플로우 양쪽에서 뺐고, 네이버 개발자센터 검색 API로 교체한 뒤 되살린다.
 - 검색 요청 사이에 `Crawl-delay: 10` 을 지킨다(`search.danawa.com/robots.txt`).
 
 ---

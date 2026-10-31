@@ -1,3 +1,13 @@
+.notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--mp-amber);
+  background: var(--mp-surface);
+  color: var(--mp-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
 .pressFilter {
   display: flex;
   gap: 8px;

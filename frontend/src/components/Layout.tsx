@@ -76,7 +76,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <h1 className={styles.title}>Market Pulse</h1>
         </Link>
         <p className={styles.subtitle}>
-          RTX5080 / RTX5090 게이밍 노트북 & PC 부품 가격 추적 · ML 분석 · IT 뉴스 대시보드
+          PC 부품·노트북 9개 카테고리 가격 추적 · 가격 변동 · 이상치 · 적정가 예측
         </p>
         <div className={styles.metaRow}>
           <span className={styles.datePill}>📅 {dateLabel}</span>
