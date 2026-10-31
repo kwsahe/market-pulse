@@ -74,3 +74,6 @@ Thumbs.db
 
 # 스케줄러 실행 로그 (run_scraper.bat auto)
 logs/
+
+# 정적 데모 데이터 로컬 확인용 출력 (공개 데모는 demo-data 브랜치, scripts/publish_demo.py)
+demo/

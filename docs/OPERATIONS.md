@@ -30,14 +30,26 @@ $arg = "-c `"import subprocess,sys; sys.exit(subprocess.call(['cmd.exe','/c',r'C
 Set-ScheduledTask -TaskName MarketPulse-DailyScrape -Action (New-ScheduledTaskAction -Execute 'C:\Users\sangh\anaconda3\pythonw.exe' -Argument $arg)
 ```
 
-배치는 4단계로 돌고, 어느 하나라도 실패하면 종료코드 1로 끝난다.
+배치는 5단계로 돈다. 1~4단계 중 하나라도 실패하면 종료코드 1로 끝난다.
 
 | 단계 | 내용 |
 |---|---|
-| 1 | `scraper/price_scraper.py` — 가격 수집 |
+| 1 | `scraper/price_scraper.py` — 가격 수집 (카테고리마다 검색 2페이지, 하루 22번 요청) |
 | 2 | `ml/price_change.py` — 가격 변동 분석 |
 | 3 | `scripts/backup_db.py` — 백업 (검증보다 먼저 — 검증이 실패한 날에도 그날치 사본을 남긴다) |
 | 4 | `scripts/verify_last_scrape.py` — 수집 결과 검증 |
+| 5 | `scripts/publish_demo.py` — 공개 데모 데이터 갱신 (검증을 통과한 날만. 실패해도 종료코드는 0이고 별도 알림만 띄운다) |
+
+### 공개 데모 갱신 (`scripts/publish_demo.py`)
+
+실제 API 응답을 JSON으로 떠서(`scripts/export_static_demo.py`) `demo-data` 브랜치에 커밋 하나로 강제 푸시하고,
+Pages 배포 워크플로(`.github/workflows/pages.yml`)를 실행한다. 워크플로는 main 의 화면 코드와 `demo-data` 브랜치의
+데이터로 빌드한다. 데이터를 main 에 커밋하지 않는 이유는 매일 데이터 커밋이 코드 이력을 묻고 저장소가 날마다 몇 MB씩
+커지기 때문이다 — 커밋 하나를 덮어쓰면 이전 데이터는 남지 않는다.
+
+푸시는 저장소 주인(`origin` 의 owner) 계정의 gh 로그인으로 한다. gh 기본 계정이 다른 계정이어도 되고, 그 계정
+로그인이 없는 PC 에서는 아무것도 하지 않고 넘어간다. 손으로 돌리려면 `python scripts/publish_demo.py`,
+푸시 없이 확인만 하려면 `--dry-run`. 내보내기·커밋에 약 2분 걸린다.
 
 ### 수집 검증 (`scripts/verify_last_scrape.py`)
 

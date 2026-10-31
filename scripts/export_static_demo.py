@@ -14,8 +14,9 @@ JSON 파일로 떠 둔다. 응답을 다시 만들지 않고 API가 돌려준 �
     compare/<접두어>.json        {상품번호: {product, specs}}  비교 화면이 2~5개를 골라 조합한다
 
 뉴스는 내보내지 않는다(빈 목록). 원문 수집을 robots.txt 때문에 중단했으니 재배포도 하지 않는다.
+공개 데모 갱신은 매일 배치의 scripts/publish_demo.py 가 이 export() 를 불러 demo-data 브랜치로 올린다.
 
-사용법:
+사용법 (로컬 확인용 — demo/ 는 git 이 무시한다):
     python scripts/export_static_demo.py            # demo/data/ 를 새로 만든다
     python scripts/export_static_demo.py --out D:/tmp/demo-data
 """

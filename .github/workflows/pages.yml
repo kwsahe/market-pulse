@@ -1,13 +1,14 @@
 name: Demo (GitHub Pages)
 
 # 서버 없이 돌아가는 정적 데모를 https://kwsahe.github.io/market-pulse/ 에 올린다.
-# 데이터는 집 PC에서 scripts/export_static_demo.py 로 떠서 demo/data/ 에 커밋한 스냅샷이다
-# (DB는 저장소에 없어서 CI가 직접 만들 수 없다).
+# 데이터는 집 PC의 매일 배치(run_scrapers.bat 5단계, scripts/publish_demo.py)가 demo-data 브랜치에
+# 커밋 하나로 덮어쓰고 이 워크플로를 실행한다 (DB는 저장소에 없어서 CI가 직접 만들 수 없다).
+# 화면 코드가 바뀌어 main 에 push 될 때도 같은 데이터로 다시 빌드한다.
 
 on:
   push:
     branches: [main]
-    paths: ["frontend/**", "demo/data/**", ".github/workflows/pages.yml"]
+    paths: ["frontend/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -28,6 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/checkout@v4
+        with:
+          ref: demo-data
+          path: demo-data
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -42,7 +48,7 @@ jobs:
       # 404.html = index.html: /market-pulse/products/RAM-1 같은 주소로 바로 들어와도 앱이 뜨게 한다.
       - name: Add snapshot data + SPA fallback
         run: |
-          cp -r ../demo/data dist/demo-data
+          cp -r ../demo-data/data dist/demo-data
           cp dist/index.html dist/404.html
 
       - uses: actions/upload-pages-artifact@v3

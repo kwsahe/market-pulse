@@ -27,7 +27,7 @@ echo %date% %time%
 echo ============================
 echo.
 
-echo [1/4] 가격 데이터 수집 중...
+echo [1/5] 가격 데이터 수집 중...
 python -u scraper/price_scraper.py
 if errorlevel 1 goto fail
 echo.
@@ -39,7 +39,7 @@ REM That is a clear violation, not a gray area, so it cannot run unattended.
 REM Bring it back here after switching to the Naver Developers search API.
 REM   python -u scraper/news_scraper.py
 
-echo [2/4] 가격 변동 분석 중...
+echo [2/5] 가격 변동 분석 중...
 python -u ml/price_change.py
 if errorlevel 1 goto fail
 echo.
@@ -47,20 +47,33 @@ echo.
 REM Backup comes BEFORE verification.
 REM The other order would skip the backup on exactly the days verification fails,
 REM i.e. no copy of the day when something went wrong. Always keep it first.
-echo [3/4] 백업 중...
+echo [3/5] 백업 중...
 python -u scripts/backup_db.py
 if errorlevel 1 goto fail
 echo.
 
-echo [4/4] 수집 결과 검증 중...
+echo [4/5] 수집 결과 검증 중...
 python -u scripts/verify_last_scrape.py
 if errorlevel 1 goto fail
+echo.
+
+REM Runs only after verification passed, so a bad scrape never reaches the public demo.
+REM A failure here is NOT a collection failure: data is already saved and backed up,
+REM so warn separately and keep exit code 0 (no "collection failed" alert).
+echo [5/5] 공개 데모 데이터 갱신 중...
+python -u scripts/publish_demo.py
+if errorlevel 1 call :demo_failed
 echo.
 
 echo ============================
 echo 수집 완료! %date% %time%
 echo ============================
 call :ping_health ""
+exit /b 0
+
+:demo_failed
+echo [!] 공개 데모 갱신 실패 - 수집과 백업은 정상입니다.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\notify.ps1" -Title "Market Pulse 데모 갱신 실패" -Message "수집은 정상입니다. 데모 데이터만 못 올렸어요. 로그: logs\last_run.log" -Level error
 exit /b 0
 
 :fail
