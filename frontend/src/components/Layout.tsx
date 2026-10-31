@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { getHealth } from "../api/client";
+import { getHealth, STATIC_DEMO } from "../api/client";
 import { useFetch } from "../hooks/useFetch";
 import styles from "./Layout.module.css";
 
@@ -34,6 +34,14 @@ function FreshnessPill() {
 
   const stale = data.days_stale ?? 0;
   const label = data.last_scrape_date ?? "-";
+  // 정적 데모는 내보낸 날의 스냅샷이라 "오늘 수집됨"·"N일째 수집 없음" 둘 다 틀린 말이 된다.
+  if (STATIC_DEMO) {
+    return (
+      <span className={styles.livePill} title="서버 없이 미리 내보낸 데이터로 돌아가는 데모예요. 편집 기능은 꺼져 있어요.">
+        정적 데모 · {label} 수집분
+      </span>
+    );
+  }
   if (data.status === "stale") {
     return (
       <span className={`${styles.livePill} ${styles.pillBad}`} title="수집 배치가 멈췄을 수 있어요">
@@ -72,7 +80,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className={styles.page}>
       <header className={styles.hero}>
         <Link to="/" className={styles.titleRow}>
-          <img src="/logo_mark.png" alt="Market Pulse 로고" className={styles.logo} />
+          <img src={`${import.meta.env.BASE_URL}logo_mark.png`} alt="Market Pulse 로고" className={styles.logo} />
           <h1 className={styles.title}>Market Pulse</h1>
         </Link>
         <p className={styles.subtitle}>

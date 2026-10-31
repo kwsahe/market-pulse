@@ -21,10 +21,15 @@ import type {
   SpotlightsResponse,
   WatchlistResponse,
 } from "../types/api";
+import { staticGet } from "./staticDemo";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+// GitHub Pages 정적 데모 빌드(VITE_STATIC_DEMO=1)는 서버 없이 미리 떠 둔 JSON을 읽는다.
+export const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === "1";
+
 async function getJson<T>(path: string): Promise<T> {
+  if (STATIC_DEMO) return staticGet(path) as Promise<T>;
   const res = await fetch(`${API_BASE_URL}${path}`);
   if (!res.ok) {
     throw new Error(`요청 실패 (${res.status}): ${path}`);

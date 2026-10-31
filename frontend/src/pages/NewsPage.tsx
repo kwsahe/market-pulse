@@ -21,7 +21,18 @@ export function NewsPage() {
   if (loading) return <p>불러오는 중...</p>;
   if (error) return <p role="alert">뉴스를 불러오지 못했어요: {error}</p>;
   if (!data) return null;
-  if (data.items.length === 0) return <p>아직 뉴스 데이터가 없어요.</p>;
+
+  const stopReason =
+    "네이버 뉴스가 robots.txt로 자동 수집을 금지해서 껐고, 네이버 검색 API로 바꾼 뒤 다시 시작할 예정이에요.";
+  // 정적 데모는 예전 기사를 다시 배포하지 않으려고 빈 목록을 싣는다 — 빈 화면에도 이유를 남긴다
+  if (data.items.length === 0) {
+    return (
+      <section>
+        <SectionHeader title="IT/과학 뉴스" />
+        <p className={styles.notice}>뉴스 수집은 멈춰 있어요. {stopReason}</p>
+      </section>
+    );
+  }
 
   const togglePress = (press: string) => {
     setSelectedPress((prev) => {
@@ -41,8 +52,7 @@ export function NewsPage() {
       <SectionHeader title="IT/과학 뉴스" />
       {/* 새 기사가 안 들어오는 이유를 밝혀 둔다 — 설명이 없으면 멈춘 데이터가 고장처럼 보인다 */}
       <p className={styles.notice}>
-        뉴스 수집은 {lastCollected.slice(0, 10)} 이후 멈춰 있어요. 네이버 뉴스가 robots.txt로 자동 수집을
-        금지해서 껐고, 네이버 검색 API로 바꾼 뒤 다시 시작할 예정이에요. 아래는 그때까지 모은 기사예요.
+        뉴스 수집은 {lastCollected.slice(0, 10)} 이후 멈춰 있어요. {stopReason} 아래는 그때까지 모은 기사예요.
       </p>
       <div className={styles.pressFilter}>
         {allPress.map((press) => (

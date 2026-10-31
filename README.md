@@ -7,6 +7,8 @@
 다나와 PC 부품·노트북 9개 카테고리 가격을 매일 자동 수집하고, 미끼가·비정상가·카테고리 오염을 걸러낸 뒤
 가격 변동·이상치·스펙 기반 적정가를 보여주는 하드웨어 가격 분석 대시보드 (FastAPI + React + Three.js 3D 데스크)
 
+**[라이브 데모](https://kwsahe.github.io/market-pulse/)** (서버 없이 2026-10-31 수집분으로 돌아가는 정적 데모, 편집 기능 꺼짐)
+
 [문제 해결 사례](#문제-해결-사례) · [구조](#구조) · [실행](#실행) · [운영 문서](docs/OPERATIONS.md) · [개발 문서](docs/DEVELOPMENT.md)
 
 ![Market Pulse 3D 데스크 — 부품을 클릭하면 해당 카테고리 시세가 열린다](screenshots/desk_3d.png)
@@ -23,7 +25,7 @@
 | 누적 데이터 | 2026-03-30부터 가격 스냅샷 약 5만 3천 행 (71일치) |
 | 무인 수집률 | 손으로 실행하던 시기 17.1% → 작업 스케줄러 도입 후 82.7% (빠진 날은 모두 PC가 꺼진 날) |
 | 서버·화면 | FastAPI REST API 17개, React 10개 화면 + Three.js 3D 데스크 |
-| 테스트 | pytest 167개 + vitest 22개, GitHub Actions에서 push마다 실행 |
+| 테스트 | pytest 167개 + vitest 26개, GitHub Actions에서 push마다 실행 |
 
 ## 문제 해결 사례
 
@@ -116,12 +118,20 @@ python scripts/serve_prod.py             # API + 화면을 한 주소로 실행 
 개발 서버, Streamlit 대시보드, LangGraph 워크플로우 실행은 [개발 문서](docs/DEVELOPMENT.md)를,
 매일 자동 수집·백업·검증 설정은 [운영 문서](docs/OPERATIONS.md)를 참고하세요.
 
+라이브 데모의 데이터를 새 수집분으로 바꾸려면 아래를 실행해 `demo/data/`를 커밋하면 됩니다.
+push하면 [pages.yml](.github/workflows/pages.yml)이 정적 빌드(`npm run build:demo`)를 GitHub Pages에 올립니다.
+뉴스는 robots.txt 때문에 수집을 멈춘 자료라 데모에 싣지 않습니다.
+
+```bash
+python scripts/export_static_demo.py     # 실제 API 응답을 demo/data/*.json 으로 저장 (약 4MB)
+```
+
 ## 테스트
 
 ```bash
 pip install -r requirements-dev.txt
 pytest -v                                # 백엔드 167개
-npm test --prefix frontend               # 프론트엔드 22개
+npm test --prefix frontend               # 프론트엔드 26개
 npm run build --prefix frontend          # 타입체크 + 프로덕션 빌드
 ```
 

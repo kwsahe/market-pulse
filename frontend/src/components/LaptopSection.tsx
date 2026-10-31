@@ -79,7 +79,7 @@ export function LaptopSection({ category }: { category: string }) {
       {newItems.length > 0 && (
         <div className={styles.newBanner}>
           <button className={styles.newBannerToggle} onClick={() => setShowNew((s) => !s)}>
-            🆕 오늘({data.latest_date}) 새로 발견된 노트북 {newItems.length}종이 있어요! {showNew ? "▲" : "▼"}
+            {data.latest_date} 수집에서 새로 발견된 노트북 {newItems.length}종이 있어요 {showNew ? "▲" : "▼"}
           </button>
           {showNew && (
             <ul className={styles.newList}>

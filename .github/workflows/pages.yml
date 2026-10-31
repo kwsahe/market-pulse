@@ -1,0 +1,60 @@
+name: Demo (GitHub Pages)
+
+# 서버 없이 돌아가는 정적 데모를 https://kwsahe.github.io/market-pulse/ 에 올린다.
+# 데이터는 집 PC에서 scripts/export_static_demo.py 로 떠서 demo/data/ 에 커밋한 스냅샷이다
+# (DB는 저장소에 없어서 CI가 직접 만들 수 없다).
+
+on:
+  push:
+    branches: [main]
+    paths: ["frontend/**", "demo/data/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Build static demo
+        run: npm run build:demo
+
+      # 404.html = index.html: /market-pulse/products/RAM-1 같은 주소로 바로 들어와도 앱이 뜨게 한다.
+      - name: Add snapshot data + SPA fallback
+        run: |
+          cp -r ../demo/data dist/demo-data
+          cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

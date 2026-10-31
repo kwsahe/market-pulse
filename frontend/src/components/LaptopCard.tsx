@@ -38,7 +38,7 @@ export function LaptopCard({ item, onTrackChange }: { item: LaptopItem; onTrackC
       <div className={styles.body}>
         <div className={styles.badgeRow}>
           {item.code && <span className={styles.codeBadge}>{item.code}</span>}
-          {item.is_new && <span className={styles.newBadge}>🆕 NEW</span>}
+          {item.is_new && <span className={styles.newBadge}>NEW</span>}
         </div>
         <div className={styles.name}>{item.product}</div>
         <div className={styles.price}>{item.price.toLocaleString()}원</div>
