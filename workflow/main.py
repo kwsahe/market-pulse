@@ -23,7 +23,6 @@ def main():
     print(f"상태: {result['status']}")
     print(f"실행 ID: {result['run_id']}")
     print(f"가격 데이터: {result['prices_collected']}개 (신규: {result['prices_new']}개)")
-    print(f"뉴스 데이터: {result['news_collected']}개 (신규: {result['news_new']}개)")
     print(f"가격 변동: {len(result['price_changes'])}개")
     print(f"이상치: {len(result['anomalies'])}개")
     print(f"소요시간: {result['duration_seconds']:.1f}초")

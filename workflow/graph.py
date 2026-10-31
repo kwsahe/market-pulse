@@ -6,7 +6,6 @@ from workflow.state import ReportState
 from workflow.nodes import (
     node_init_db,
     node_collect_prices,
-    node_collect_news,
     node_analyze_changes,
     node_detect_anomalies,
     node_analyze_trends,
@@ -29,7 +28,8 @@ def build_workflow() -> StateGraph:
     # 노드 추가
     workflow.add_node("init_db", node_init_db)
     workflow.add_node("collect_prices", node_collect_prices)
-    workflow.add_node("collect_news", node_collect_news)
+    # 뉴스 수집 단계는 없다 — news.naver.com/robots.txt 가 전면 금지(Disallow: /)라서
+    # 매일 수집(run_scrapers.bat)에서 끈 뒤에도 이 워크플로에만 남아 있었다(2026-10-31 제거).
     workflow.add_node("analyze_changes", node_analyze_changes)
     workflow.add_node("detect_anomalies", node_detect_anomalies)
     workflow.add_node("analyze_trends", node_analyze_trends)
@@ -50,11 +50,6 @@ def build_workflow() -> StateGraph:
     )
     workflow.add_conditional_edges(
         "collect_prices",
-        should_continue,
-        {"continue": "collect_news", "error": END}
-    )
-    workflow.add_conditional_edges(
-        "collect_news",
         should_continue,
         {"continue": "analyze_changes", "error": END}
     )

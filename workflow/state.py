@@ -43,9 +43,7 @@ class ReportState(TypedDict):
     # 수집 결과
     prices_collected: int
     prices_new: int
-    news_collected: int
-    news_new: int
-    
+
     # 분석 결과
     price_changes: List[Dict[str, Any]]
     anomalies: List[Dict[str, Any]]
@@ -72,8 +70,6 @@ def create_initial_state() -> ReportState:
         error=None,
         prices_collected=0,
         prices_new=0,
-        news_collected=0,
-        news_new=0,
         price_changes=[],
         anomalies=[],
         trend_summary=[],

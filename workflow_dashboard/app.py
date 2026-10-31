@@ -51,14 +51,12 @@ if run_now:
             st.success("✅ 워크플로우 완료!")
             
             # 결과 요약
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("가격 데이터", f"{result['prices_collected']}개", f"+{result['prices_new']}")
             with col2:
-                st.metric("뉴스 데이터", f"{result['news_collected']}개", f"+{result['news_new']}")
-            with col3:
                 st.metric("가격 변동", f"{len(result['price_changes'])}개")
-            with col4:
+            with col3:
                 st.metric("이상치", f"{len(result['anomalies'])}개")
             
             # 리포트 내용 표시

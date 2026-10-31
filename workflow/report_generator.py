@@ -61,7 +61,6 @@ def _render_html_report(state: Dict[str, Any], run_id: str, timestamp: str) -> s
     summary_html = (
         '<div class="summary-grid">'
         + _stat_card("가격 데이터", f"{state.get('prices_collected', 0)}개 (+{state.get('prices_new', 0)})", _CYAN)
-        + _stat_card("뉴스 데이터", f"{state.get('news_collected', 0)}개 (+{state.get('news_new', 0)})", _CYAN)
         + _stat_card("총 상품", f"{state.get('total_products', 0)}개")
         + _stat_card("소요시간", f"{state.get('duration_seconds', 0):.1f}초")
         + '</div>'
@@ -183,7 +182,6 @@ def generate_report(state: Dict[str, Any]) -> Tuple[str, str, str]:
         f"",
         f"## 📊 요약",
         f"- **가격 데이터:** {state.get('prices_collected', 0)}개 (신규: {state.get('prices_new', 0)}개)",
-        f"- **뉴스 데이터:** {state.get('news_collected', 0)}개 (신규: {state.get('news_new', 0)}개)",
         f"- **카테고리:** {', '.join(state.get('categories', []))}",
         f"- **총 상품:** {state.get('total_products', 0)}개",
         f"",

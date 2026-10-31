@@ -10,7 +10,7 @@ from typing import Dict, Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.db_manager import init_db, load_prices, load_news
+from database.db_manager import init_db, load_prices
 from ml.anomaly_detection import detect_zscore, detect_iqr
 from ml.price_change import detect_price_changes
 from ml.trend_analysis import get_price_trend, summarize_trends
@@ -55,34 +55,6 @@ def node_collect_prices(state: ReportState) -> ReportState:
     except Exception as e:
         state["status"] = "failed"
         state["error"] = f"가격 수집 예외: {e}"
-    return state
-
-
-def node_collect_news(state: ReportState) -> ReportState:
-    """뉴스 데이터 수집"""
-    print("[Node] 뉴스 데이터 수집 중...")
-    try:
-        import subprocess
-        result = subprocess.run(
-            [sys.executable, "-u", "scraper/news_scraper.py"],
-            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            capture_output=True,
-            text=True,
-            timeout=180
-        )
-        if result.returncode == 0:
-            df = load_news()
-            state["news_collected"] = len(df)
-            if not df.empty:
-                latest = df[df["collected_at"] == df["collected_at"].max()]
-                state["news_new"] = len(latest)
-            state["status"] = "news_collected"
-        else:
-            state["status"] = "failed"
-            state["error"] = f"뉴스 수집 실패: {result.stderr}"
-    except Exception as e:
-        state["status"] = "failed"
-        state["error"] = f"뉴스 수집 예외: {e}"
     return state
 
 
