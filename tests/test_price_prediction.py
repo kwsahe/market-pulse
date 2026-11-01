@@ -8,7 +8,7 @@ import pandas as pd
 from unittest.mock import patch
 from sklearn.model_selection import cross_validate as real_cross_validate
 
-from ml.price_prediction import train_model, compute_fair_price_score, predict_price_range
+from ml.price_prediction import train_model, compute_fair_price_score, predict_price_range, ratio_band
 
 
 def _make_ram_df() -> pd.DataFrame:
@@ -108,6 +108,22 @@ def test_price_range_scales_with_prediction_not_fixed_won_amount():
         pricey = predict_price_range(info, {})
     assert cheap == (50_000, 40_000, 62_500)
     assert pricey == (250_000, 200_000, 312_500)
+
+
+def test_ratio_band_uses_latest_rows_when_there_are_enough():
+    """과거 행(실제가 예측의 2배)이 섞여도 범위는 최근 수집일 상품의 오차로 잡는다."""
+    y = np.array([200.0] * 50 + [100.0] * 30)        # 과거 50행은 예측의 2배, 최근 30행은 예측과 같음
+    pred = np.full(80, 100.0)
+    latest = np.array([False] * 50 + [True] * 30)
+    assert ratio_band(y, pred, latest) == (1.0, 1.0)
+
+
+def test_ratio_band_falls_back_to_all_rows_when_latest_is_small():
+    y = np.array([200.0] * 50 + [100.0] * 5)
+    pred = np.full(55, 100.0)
+    latest = np.array([False] * 50 + [True] * 5)
+    p10, p90 = ratio_band(y, pred, latest)
+    assert p90 == 2.0  # 전체 행 기준
 
 
 def test_fair_price_score_at_predicted_price_and_history_midpoint():

@@ -6,6 +6,7 @@
 from ml.price_prediction import (
     extract_cpu_features,
     extract_gpu_features,
+    extract_keyboard_features,
     extract_notebook_features,
     extract_ram_features,
 )
@@ -80,6 +81,43 @@ def test_gpu_reads_recommended_power_stream_processors_and_ti():
 def test_gpu_without_ti_is_not_flagged():
     specs = GPU_SPECS.replace("RTX 5060 Ti", "RTX 5060")
     assert extract_gpu_features({"specs": specs, "product": "MSI 지포스 RTX 5060 D7 8GB"})["is_ti"] == 0
+
+
+def test_cpu_packaging_separates_single_box_from_multipack_bulk_and_parallel_import():
+    """같은 칩도 포장에 따라 값이 크게 다르다 (10-31: 9700X 정품 68.6만 / 멀티팩 39.3만 / 벌크 병행 33.3만)."""
+    def pack(product):
+        f = extract_cpu_features({"specs": AMD_CPU_SPECS, "product": product})
+        return f["is_bulk"], f["is_multipack"], f["is_parallel_import"], f["has_cooler"]
+
+    assert pack("AMD 라이젠7-6세대 9700X (그래니트 릿지) (정품)") == (0, 0, 0, 0)
+    assert pack("AMD 라이젠7-6세대 9700X (그래니트 릿지) (멀티팩 정품)") == (0, 1, 0, 0)
+    assert pack("AMD 라이젠7-6세대 9700X (그래니트 릿지) (벌크 병행)") == (1, 0, 1, 0)
+    assert pack("인텔 코어i5-14세대 14600KF (랩터레이크 리프레시) (밸류팩 정품)") == (0, 1, 0, 0)
+    assert pack("인텔 코어i5-12세대 12400F (엘더레이크) (벌크 + 쿨러)") == (1, 0, 0, 1)
+
+
+# 새 검색 UI 스펙에는 스위치 방식이 빠진다 — 수집 필터와 같은 기준으로 상품명·래피드 트리거도 본다.
+NEW_UI_KB_SPECS = "키보드 / 풀배열 / 유선 / 104키 / H/W매크로 / 8000Hz / 0.125ms 응답속도 / RGB 백라이트"
+
+
+def test_keyboard_switch_type_falls_back_to_product_name():
+    magnetic = extract_keyboard_features({"specs": NEW_UI_KB_SPECS, "product": "CORSAIR K70 MAX RGB MGX 게이밍 기계식 (마그네틱축)"})
+    optical = extract_keyboard_features({"specs": NEW_UI_KB_SPECS, "product": "COX CY104K V2 카일 광축 V2 게이밍 블랙 (갈축)"})
+    mechanical = extract_keyboard_features({"specs": NEW_UI_KB_SPECS, "product": "앱코 K580 교체축 게이밍 스카이 (적축)"})
+    assert magnetic["is_magnetic"] == 1
+    assert optical["is_optical"] == 1
+    assert mechanical["is_mechanical"] == 1 and mechanical["is_magnetic"] == 0
+
+
+def test_keyboard_rapid_trigger_counts_as_magnetic():
+    specs = "키보드 / 미니 / 유선 / 61키 / 8000Hz / 래피드 트리거"
+    assert extract_keyboard_features({"specs": specs, "product": "CORSAIR 클리퍼 PRO 미니 60"})["is_magnetic"] == 1
+
+
+def test_keyboard_old_ui_spec_still_reads_switch_type():
+    old = "키보드 / 텐키리스 / 유선 / 무접점(자석축) / 84키 / 8000Hz"
+    f = extract_keyboard_features({"specs": old, "product": "CORSAIR K70 PRO TKL"})
+    assert f["is_magnetic"] == 1 and f["is_optical"] == 0
 
 
 def test_ram_two_stick_pack_is_detected():

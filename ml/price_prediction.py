@@ -237,8 +237,12 @@ def extract_cpu_features(row):
     # 내장 그래픽 유무 — 스펙 표기는 '메모리 규격: DDR5 / 탑재' 또는 '/ 미탑재'
     features["has_igpu"] = 1 if re.search(r"메모리 규격:[^/]*/\s*탑재", specs) else 0
 
-    # 정품/벌크
+    # 포장 형태 — 같은 칩도 포장에 따라 가격이 크게 갈린다(2026-10-31: 9700X 정품 68.6만 / 멀티팩 39.3만 /
+    # 벌크 40.2만). 벌크 하나만 보던 때는 멀티팩과 단품 정품이 같은 값이라 둘 다 50~180% 틀렸다.
     features["is_bulk"] = 1 if "벌크" in product else 0
+    features["is_multipack"] = 1 if re.search(r"멀티팩|밸류팩", product) else 0
+    features["is_parallel_import"] = 1 if "병행" in product else 0
+    features["has_cooler"] = 1 if "쿨러" in product else 0
 
     # 세대 추출
     gen = re.search(r"(\d+)세대", product)
@@ -317,12 +321,16 @@ def extract_keyboard_features(row):
     요약 spec_list에 0%라서(전체 스펙표에만 있음) 넣지 않았다.
     """
     specs = str(row.get("specs", ""))
+    product = str(row.get("product", ""))
     features = {}
 
     # 방식 — 가격을 가장 크게 가르는 축 (무접점 자석축 > 광축 > 기계식)
-    features["is_magnetic"] = 1 if re.search(r"무접점\s*\(\s*자석축", specs) else 0
-    features["is_optical"] = 1 if re.search(r"무접점\s*\(\s*광축", specs) else 0
-    features["is_mechanical"] = 1 if "기계식" in specs else 0
+    # 새 검색 UI는 스펙 요약에서 방식을 자주 빼서(수집 필터 _is_gaming_keyboard 와 같은 문제),
+    # 상품명·옵션 라벨의 표기('MGX (마그네틱축)', '카일 광축', '기계식 (적축)')와 래피드 트리거도 본다.
+    text = f"{specs} {product}"
+    features["is_magnetic"] = 1 if re.search(r"자석축|마그네틱|Magnet|MGX|래피드\s*트리거", text, re.IGNORECASE) else 0
+    features["is_optical"] = 1 if "광축" in text else 0
+    features["is_mechanical"] = 1 if re.search(r"기계식|\((?:저소음\s*)?(?:적|갈|청|흑|은|백|황)축\)", text) else 0
 
     # 배열 — 키 수로 환산되지만 배열 자체도 가격에 영향을 준다
     features["is_tenkeyless"] = 1 if "텐키리스" in specs else 0
@@ -452,6 +460,9 @@ FEATURE_LABELS = {
     "max_ghz": "최대 클럭(GHz)",
     "has_igpu": "내장그래픽",
     "is_bulk": "벌크 제품",
+    "is_multipack": "멀티팩",
+    "is_parallel_import": "병행수입",
+    "has_cooler": "쿨러 포함",
     "generation": "세대",
     "is_series2": "시리즈2(최신)",
     "panel_inch": "화면 크기(인치)",
@@ -586,9 +597,8 @@ def train_model(category):
             oof_pred = cross_val_predict(best_pipeline, X, y, groups=groups, cv=cv)
         else:
             oof_pred = best_pipeline.fit(X, y).predict(X)
-        ratios = y / oof_pred
-        ratio_p10 = float(np.percentile(ratios, 10))
-        ratio_p90 = float(np.percentile(ratios, 90))
+        latest = (cat_df["date"] == cat_df["date"].max()).values
+        ratio_p10, ratio_p90 = ratio_band(y, oof_pred, latest)
     except ValueError:
         ratio_p10 = ratio_p90 = 1.0
 
@@ -612,6 +622,22 @@ def train_model(category):
         "ratio_p10": ratio_p10,
         "ratio_p90": ratio_p90,
     }
+
+
+MIN_LATEST_ROWS_FOR_BAND = 20
+
+
+def ratio_band(y, oof_pred, is_latest):
+    """80% 예측 범위용 '실제가/예측가' 비율의 10·90 퍼센타일.
+
+    화면이 실제로 예측하는 대상(가장 최근 수집일 상품)의 오차로 잡는다. 과거 행까지 섞으면 가격이 지금과
+    달랐던 시기(CPU는 3~8월이 10월보다 14~34% 비쌌다)의 오차가 들어가 범위가 실제 적중과 어긋난다
+    (점검 때 카테고리별 적중 68~88% → 76~85%). 최근 행이 MIN_LATEST_ROWS_FOR_BAND 개 미만이면 전체를 쓴다."""
+    ratios = np.asarray(y, dtype=float) / np.asarray(oof_pred, dtype=float)
+    is_latest = np.asarray(is_latest, dtype=bool)
+    if is_latest.sum() >= MIN_LATEST_ROWS_FOR_BAND:
+        ratios = ratios[is_latest]
+    return float(np.percentile(ratios, 10)), float(np.percentile(ratios, 90))
 
 
 def predict_price(model_info, features_dict):
